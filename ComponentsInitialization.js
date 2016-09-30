@@ -134,7 +134,7 @@ define(function (require) {
 		
 		//Loading spinner initialization
 		GEPPETTO.on('show_spinner', function(label) {
-			GEPPETTO.ComponentFactory.addComponent('LOADINGSPINNER', {show : true, keyboard : false, text: label, logo: "gpt-osb"}, document.getElementById("modal-region"));	
+			GEPPETTO.ComponentFactory.addSpinner({show : true, keyboard : false, text: label, logo: "gpt-osb"}, document.getElementById("modal-region"));	
 		});
 		
 		//Save initialization 
@@ -144,7 +144,9 @@ define(function (require) {
 		GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"));
 
 		//Spotlight initialization
-		GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"));
+		GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function(){
+			GEPPETTO.Spotlight.addSuggestion(GEPPETTO.Spotlight.plotSample, GEPPETTO.Resources.PLAY_FLOW);
+		});
 
 		//Home button initialization
 		GEPPETTO.ComponentFactory.addComponent('DROPDOWNBUTTON', {label: ' Results', iconOn : 'fa fa-caret-square-o-up' , iconOff : 'fa fa-caret-square-o-down'}, document.getElementById("DropDownButton"));
