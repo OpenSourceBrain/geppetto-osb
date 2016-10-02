@@ -133,9 +133,7 @@ define(function (require) {
 				});
 		
 		//Loading spinner initialization
-		GEPPETTO.on('show_spinner', function(label) {
-			GEPPETTO.ComponentFactory.addSpinner({show : true, keyboard : false, text: label, logo: "gpt-osb"}, document.getElementById("modal-region"));	
-		});
+		GEPPETTO.Spinner.setLogo("gpt-osb");
 		
 		//Save initialization 
 		GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
