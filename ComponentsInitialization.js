@@ -188,13 +188,13 @@ define(function (require) {
 		};
 
 		var configuration = {
-				id : "menuButton",
+				id : "controlsMenuButton",
 				openByDefault : false,
 				closeOnClick : false,
 				label: ' Results', 
 				iconOn : 'fa fa-caret-square-o-up' , 
 				iconOff : 'fa fa-caret-square-o-down',
-				menuPosition : null,
+				menuPosition : {top : 40, right : 550},
 				menuSize : {height : "auto", width : 300},
                 onClickHandler : clickHandler,
 				menuItems : [
@@ -238,7 +238,7 @@ define(function (require) {
 		};
 		
 		//Home button initialization
-		GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {configuration : configuration}, document.getElementById("MenuButton"));
+		GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {configuration : configuration}, document.getElementById("ControlsMenuButton"));
 		
 		//Foreground initialization
 		GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
