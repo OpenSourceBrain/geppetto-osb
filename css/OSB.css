@@ -18,7 +18,8 @@
 	position: fixed;
 	top: 5px;
 	right: 390px;
-	height: 28px
+	height: 27px;
+    padding-left: 9px;
 }
 
 .controlsMenuButton:disabled {
