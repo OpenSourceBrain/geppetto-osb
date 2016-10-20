@@ -273,5 +273,7 @@ define(function (require) {
         GEPPETTO.G.setIdleTimeOut(-1);
         
         GEPPETTO.SceneController.setLinesThreshold(20000);
+
+		GEPPETTO.G.autoFocusConsole(false);
 	};
 });
