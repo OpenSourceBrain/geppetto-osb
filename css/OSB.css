@@ -13,3 +13,16 @@
     text-align: center;
     border-radius:0;
 }
+
+.controlsMenuButton {
+	position: fixed;
+	top: 5px;
+	right: 390px;
+	height: 27px;
+    padding-left: 9px;
+}
+
+.controlsMenuButton:disabled {
+	background: 0;
+	color: @orange;
+}
