@@ -82,11 +82,7 @@ define(function (require) {
 				formData['simulator']=Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getSimulator();
 			}
 
-			var submitHandler = function(){
-				GEPPETTO.Flows.showSpotlightForRun(formCallback);
-				$("#" + formWidget.props.id + "_container").remove();
-			};
-			
+		
 			var errorHandler = function(){
 				
 			};
@@ -112,6 +108,11 @@ define(function (require) {
 						this.formData[key] = formObject.formData[key];
 					}
 				}
+			};
+			
+			var submitHandler = function(){
+				GEPPETTO.Flows.showSpotlightForRun(formCallback);
+				$("#" + formWidget.props.id + "_container").remove();
 			};
 	
 			var formWidget = GEPPETTO.ComponentFactory.addComponent('FORM',
