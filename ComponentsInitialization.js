@@ -1,7 +1,8 @@
 define(function(require) {
 
 	var cellControlPanel = require('json!./osbCellControlPanel.json');
-	vae networkControlPanel = ('json!./osbNetworkControlPanel.json');
+	var networkControlPanel = ('json!./osbNetworkControlPanel.json');
+	var osbTutorial = ('json!./osbTutorial.json');
 	
     return function(GEPPETTO) {
 
@@ -120,7 +121,7 @@ define(function(require) {
 
         //Tutorial component initialization
         GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
-        	tutorial: "https://dl.dropboxusercontent.com/s/puwpjdy9u7bfm2s/osb_tutorial.json?dl=1"
+        	tutorial: osbTutorial
 		}, document.getElementById("tutorial"));
 
 
