@@ -1,8 +1,8 @@
 define(function(require) {
 
-	var cellControlPanel = require('json!./osbCellControlPanel.json');
-	var networkControlPanel = ('json!./osbNetworkControlPanel.json');
-	var osbTutorial = ('json!./osbTutorial.json');
+	var cellControlPanel = require('json!../../geppetto-osb/osbCellControlPanel.json');
+	var networkControlPanel = require('json!../../geppetto-osb/osbNetworkControlPanel.json');
+	var osbTutorial = require('json!../../geppetto-osb/osbTutorial.json');
 	
     return function(GEPPETTO) {
 
@@ -121,7 +121,7 @@ define(function(require) {
 
         //Tutorial component initialization
         GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
-        	tutorial: osbTutorial
+        	tutorialData: osbTutorial
 		}, document.getElementById("tutorial"));
 
 
@@ -163,7 +163,6 @@ define(function(require) {
             	GEPPETTO.Spotlight.addSuggestion(recordAll, GEPPETTO.Resources.RUN_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(lightUpSample, GEPPETTO.Resources.PLAY_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(GEPPETTO.Spotlight.plotSample, GEPPETTO.Resources.PLAY_FLOW);
-            };            
         });
 
 
@@ -319,10 +318,12 @@ define(function(require) {
         	return tv;
         };
 
-        window.initialiseControlPanel = function(barDef){
+        window.initialiseControlPanel = function(barDef, id){
+        	var modifiedBarDef = JSON.parse(JSON.stringify(barDef, id).split("$ENTER_ID").join(id.getId()));
+        	
         	var posX = 90;
         	var posY = 5;
-        	var target = G.addWidget(7).renderBar('OSB Control Panel', barDef['OSB Control Panel']);
+        	var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
         	target.setPosition(posX, posY).showTitleBar(false);
         	$("#" + target.id).find(".btn-lg").css("font-size","15px");
         };
@@ -418,6 +419,7 @@ define(function(require) {
         window.showModelDescription = function(model){
         	if(mainPopup==undefined || mainPopup.destroyed){
         		mainPopup=G.addWidget(1).setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95,140);
+        		mainPopup.showHistoryNavigationBar(true);
         	}
         	mainPopup.setData(model,[GEPPETTO.Resources.HTML_TYPE]);	
         };
@@ -450,7 +452,7 @@ define(function(require) {
         	var id=eval(idString);
         	switch(type){
         	case "generic":
-        		window.initialiseControlPanel(networkControlPanel);
+        		window.initialiseControlPanel(networkControlPanel, id);
 	        	var mdPopupWidth = 350;
 	        	var mdPopupHeight = 400;
 	        	var elementMargin = 20;
@@ -463,11 +465,11 @@ define(function(require) {
 	        	G.setCameraPosition(-60,-250,370);
 	        	break;
         	case "cell":
-                window.initialiseControlPanel(cellControlPanel);
+                window.initialiseControlPanel(cellControlPanel, id);
         		id.select();
         		break;
         	case "network":
-                window.initialiseControlPanel(networkControlPanel);
+                window.initialiseControlPanel(networkControlPanel, id);
         		// Check if there is one single cell and select it so that TreeVisualisers work from the beginning 
         		var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
         		// If there are two cells -> SuperType and cell

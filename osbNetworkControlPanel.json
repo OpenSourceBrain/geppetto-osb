@@ -11,7 +11,7 @@
             },
             "Model Description": {
                 "actions": [
-                    "showModelDescription(getMainType())"
+                    "showModelDescription(getMainType($ENTER_ID))"
                 ],
                 "icon": "gpt-pyramidal-cell",
                 "label": "Model Description",
