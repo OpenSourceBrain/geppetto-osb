@@ -330,6 +330,8 @@ define(function(require) {
             GEPPETTO.ControlPanel.setControlsConfig(customControlsConfiguration);
 
             // TODO: configure options button with options and actions
+                // TODO: actions will be setColMeta, setCols, setData, should be able to keep data filter and params config
+                // TODO: filtering should happen before calling setData to only pass what we need
         });
 
         //Spotlight initialization
