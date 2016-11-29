@@ -123,7 +123,214 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
         //Control panel initialization
-        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"));
+        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"), function() {
+            var instancesColumnMeta = [
+                {
+                    "columnName": "path",
+                    "order": 1,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Path",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "name",
+                    "order": 2,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Name",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "type",
+                    "order": 3,
+                    "locked": false,
+                    "visible": true,
+                    "customComponent": GEPPETTO.ArrayComponent,
+                    "displayName": "Type(s)",
+                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+                },
+                {
+                    "columnName": "controls",
+                    "order": 4,
+                    "locked": false,
+                    "visible": true,
+                    "customComponent": GEPPETTO.ControlsComponent,
+                    "displayName": "Controls",
+                    "source": "",
+                    "actions": "GEPPETTO.ControlPanel.refresh();",
+                    "cssClassName": "controlpanel-controls-column"
+                }
+            ];
+            var instancesCols = ['name', 'type', 'controls'];
+
+            var stateVariablesColMeta = [
+                {
+                    "columnName": "path",
+                    "order": 1,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Path",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "name",
+                    "order": 2,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Name",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "type",
+                    "order": 3,
+                    "locked": false,
+                    "visible": true,
+                    "customComponent": GEPPETTO.ArrayComponent,
+                    "displayName": "Type(s)",
+                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+                },
+                {
+                    "columnName": "controls",
+                    "order": 4,
+                    "locked": false,
+                    "visible": true,
+                    "customComponent": GEPPETTO.ControlsComponent,
+                    "displayName": "Controls",
+                    "source": "",
+                    "actions": "GEPPETTO.ControlPanel.refresh();",
+                    "cssClassName": "controlpanel-controls-column"
+                }
+            ];
+            var stateVariablesCols = ['name', 'type', 'controls'];
+
+            // TODO: add editable value field and what happens upon edit
+            var parametersColMeta = [
+                {
+                    "columnName": "path",
+                    "order": 1,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Path",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "name",
+                    "order": 2,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Name",
+                    "source": "$entity$.getPath()"
+                },
+                {
+                    "columnName": "type",
+                    "order": 3,
+                    "locked": false,
+                    "visible": true,
+                    "customComponent": GEPPETTO.ArrayComponent,
+                    "displayName": "Type(s)",
+                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+                },
+                {
+                    "columnName": "value",
+                    "order": 4,
+                    "locked": false,
+                    "visible": true,
+                    "displayName": "Controls",
+                    "source": "",
+                    "actions": "",
+                }
+            ];
+            var paramsCols = ['name', 'type', 'value'];
+
+            // TODO: add plot / plot+add for state variable capability
+            var customControlsConfiguration = {
+                "VisualCapability": {
+                    "select": {
+                        "condition": "GEPPETTO.SceneController.isSelected($instances$)",
+                        "false": {
+                            "actions": ["GEPPETTO.SceneController.select($instances$)"],
+                            "icon": "fa-hand-stop-o",
+                            "label": "Unselected",
+                            "tooltip": "Select"
+                        },
+                        "true": {
+                            "actions": ["GEPPETTO.SceneController.deselect($instances$)"],
+                            "icon": "fa-hand-rock-o",
+                            "label": "Selected",
+                            "tooltip": "Deselect"
+                        },
+                    },"visibility": {
+                        "condition": "GEPPETTO.SceneController.isVisible($instances$)",
+                        "false": {
+                            "id": "visibility",
+                            "actions": [
+                                "GEPPETTO.SceneController.show($instances$);"
+                            ],
+                            "icon": "fa-eye-slash",
+                            "label": "Hidden",
+                            "tooltip": "Show"
+                        },
+                        "true": {
+                            "id": "visibility",
+                            "actions": [
+                                "GEPPETTO.SceneController.hide($instances$);"
+                            ],
+                            "icon": "fa-eye",
+                            "label": "Visible",
+                            "tooltip": "Hide"
+                        }
+                    },
+                    "color": {
+                        "id": "color",
+                        "actions": [
+                            "$instance$.setColor('$param$');"
+                        ],
+                        "icon": "fa-tint",
+                        "label": "Color",
+                        "tooltip": "Color"
+                    },
+                    "randomcolor": {
+                        "id": "randomcolor",
+                        "actions": [
+                            "GEPPETTO.SceneController.assignRandomColor($instance$);"
+                        ],
+                        "icon": "fa-random",
+                        "label": "Random Color",
+                        "tooltip": "Random Color"
+                    },
+                    "zoom": {
+                        "id": "zoom",
+                        "actions": [
+                            "GEPPETTO.SceneController.zoomTo($instances$)"
+                        ],
+                        "icon": "fa-search-plus",
+                        "label": "Zoom",
+                        "tooltip": "Zoom"
+                    }
+                },
+                "Common": {}
+            };
+
+            // whatever gets passed we keep, filtering will happen outside the control panel
+            var passThroughDataFilter = function(entities){
+                return entities;
+            };
+
+            // set initial col meta (instances)
+            GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
+            // set initial cols (instances)
+            GEPPETTO.ControlPanel.setColumns(instancesCols);
+            // set data filter
+            GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+            // set controls config
+            GEPPETTO.ControlPanel.setControlsConfig(customControlsConfiguration);
+
+            // TODO: configure options button with options and actions
+        });
 
         //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
