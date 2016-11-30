@@ -236,48 +236,51 @@ define(function(require) {
                 "order": 4,
                 "locked": false,
                 "visible": true,
-                "customComponent": null,
-                "displayName": "Controls",
-                "source": "",
+                "displayName": "Value",
+                "source": "$entity$.getPath()",
                 "actions": "",
             }
         ];
         var paramsCols = ['name', 'type', 'value'];
 
-        // control panel menu button confgiuration
+        // control panel menu button configuration
         var panelMenuClickHandler = function(value){
             switch(value) {
                 case 'show_visual_instances':
-                    GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
+                    GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
+                    GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
                     // do filtering
                     var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances);
-                    // set data
-                    GEPPETTO.ControlPanel.setData(visualInstances);
+                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
                 case 'show_local_state_variables':
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
+                    GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
+                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
                     // TODO: do filtering
                     var localStateVars = window.Instances;
-                    // set data
-                    GEPPETTO.ControlPanel.setData(localStateVars);
+                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(localStateVars); }, 5);
                     break;
                 case 'show_recorded_state_variables':
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
+                    GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
+                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
                     // TODO: do filtering
                     var recordedStateVars = window.Instances;
-                    // set data
-                    GEPPETTO.ControlPanel.setData(recordedStateVars);
+                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
                 case 'show_parameters':
-                    GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
+                    GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(paramsCols);
+                    GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
                     // TODO: do filtering
                     var params = window.Instances;
-                    // set data
-                    GEPPETTO.ControlPanel.setData(params);
+                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(params); }, 5);
                     break;
             }
         };
