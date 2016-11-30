@@ -123,128 +123,165 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
         //Control panel initialization
-        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"), function() {
-            var instancesColumnMeta = [
-                {
-                    "columnName": "path",
-                    "order": 1,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Path",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "name",
-                    "order": 2,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Name",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "type",
-                    "order": 3,
-                    "locked": false,
-                    "visible": true,
-                    "customComponent": GEPPETTO.ArrayComponent,
-                    "displayName": "Type(s)",
-                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
-                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
-                },
-                {
-                    "columnName": "controls",
-                    "order": 4,
-                    "locked": false,
-                    "visible": true,
-                    "customComponent": GEPPETTO.ControlsComponent,
-                    "displayName": "Controls",
-                    "source": "",
-                    "actions": "GEPPETTO.ControlPanel.refresh();",
-                    "cssClassName": "controlpanel-controls-column"
-                }
-            ];
-            var instancesCols = ['name', 'type', 'controls'];
+        var instancesColumnMeta = [
+            {
+                "columnName": "path",
+                "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Path",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "name",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Name",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "type",
+                "order": 3,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+            },
+            {
+                "columnName": "controls",
+                "order": 4,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Controls",
+                "source": "",
+                "actions": "GEPPETTO.ControlPanel.refresh();",
+                "cssClassName": "controlpanel-controls-column"
+            }
+        ];
+        var instancesCols = ['name', 'type', 'controls'];
+        var stateVariablesColMeta = [
+            {
+                "columnName": "path",
+                "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Path",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "name",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Name",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "type",
+                "order": 3,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+            },
+            {
+                "columnName": "controls",
+                "order": 4,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Controls",
+                "source": "",
+                "actions": "GEPPETTO.ControlPanel.refresh();",
+                "cssClassName": "controlpanel-controls-column"
+            }
+        ];
+        var stateVariablesCols = ['name', 'type', 'controls'];
+        // TODO: add editable value field and what happens upon edit
+        var parametersColMeta = [
+            {
+                "columnName": "path",
+                "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Path",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "name",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Name",
+                "source": "$entity$.getPath()"
+            },
+            {
+                "columnName": "type",
+                "order": 3,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+            },
+            {
+                "columnName": "value",
+                "order": 4,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Controls",
+                "source": "",
+                "actions": "",
+            }
+        ];
+        var paramsCols = ['name', 'type', 'value'];
 
-            var stateVariablesColMeta = [
-                {
-                    "columnName": "path",
-                    "order": 1,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Path",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "name",
-                    "order": 2,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Name",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "type",
-                    "order": 3,
-                    "locked": false,
-                    "visible": true,
-                    "customComponent": GEPPETTO.ArrayComponent,
-                    "displayName": "Type(s)",
-                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
-                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
-                },
-                {
-                    "columnName": "controls",
-                    "order": 4,
-                    "locked": false,
-                    "visible": true,
-                    "customComponent": GEPPETTO.ControlsComponent,
-                    "displayName": "Controls",
-                    "source": "",
-                    "actions": "GEPPETTO.ControlPanel.refresh();",
-                    "cssClassName": "controlpanel-controls-column"
-                }
-            ];
-            var stateVariablesCols = ['name', 'type', 'controls'];
+        var panelMenuItemsConfig = [
+            {
+                label: "Visual Instances",
+                action: "",
+                value: "show_visual_instances"
+            }, {
+                label: "State Variables (All)",
+                action: "",
+                value: "show_local_state_variables"
+            }, {
+                label: "State Variables (Recorded)",
+                action: "",
+                value: "show_recorded_state_variables"
+            }, {
+                label: "Parameters",
+                action: "",
+                value: "show_parameters"
+            }
+        ];
 
-            // TODO: add editable value field and what happens upon edit
-            var parametersColMeta = [
-                {
-                    "columnName": "path",
-                    "order": 1,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Path",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "name",
-                    "order": 2,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Name",
-                    "source": "$entity$.getPath()"
-                },
-                {
-                    "columnName": "type",
-                    "order": 3,
-                    "locked": false,
-                    "visible": true,
-                    "customComponent": GEPPETTO.ArrayComponent,
-                    "displayName": "Type(s)",
-                    "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
-                    "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
-                },
-                {
-                    "columnName": "value",
-                    "order": 4,
-                    "locked": false,
-                    "visible": true,
-                    "displayName": "Controls",
-                    "source": "",
-                    "actions": "",
+        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
+            showMenuButton: true,
+            menuButtonItemsConfig: panelMenuItemsConfig
+        }, document.getElementById("controlpanel"), function () {
+            var injectCustomControls = function(colMeta){
+                for(var i=0; i<colMeta.length; i++){
+                    if(colMeta[i].columnName == 'type'){
+                        colMeta[i].customComponent = GEPPETTO.ArrayComponent;
+                    } else if(colMeta[i].columnName == 'controls'){
+                        colMeta[i].customComponent = GEPPETTO.ControlsComponent;
+                    }
                 }
-            ];
-            var paramsCols = ['name', 'type', 'value'];
+            };
+
+            // need to inject custom controls here as they become visible only after control panel component is imported
+            injectCustomControls(instancesColumnMeta);
+            injectCustomControls(stateVariablesColMeta);
+            injectCustomControls(parametersColMeta);
 
             // TODO: add plot / plot+add for state variable capability
             var customControlsConfiguration = {
@@ -263,7 +300,7 @@ define(function(require) {
                             "label": "Selected",
                             "tooltip": "Deselect"
                         },
-                    },"visibility": {
+                    }, "visibility": {
                         "condition": "GEPPETTO.SceneController.isVisible($instances$)",
                         "false": {
                             "id": "visibility",
@@ -316,7 +353,7 @@ define(function(require) {
             };
 
             // whatever gets passed we keep, filtering will happen outside the control panel
-            var passThroughDataFilter = function(entities){
+            var passThroughDataFilter = function (entities) {
                 return entities;
             };
 
@@ -325,13 +362,15 @@ define(function(require) {
             // set initial cols (instances)
             GEPPETTO.ControlPanel.setColumns(instancesCols);
             // set data filter
-            GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+            //GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
             // set controls config
             GEPPETTO.ControlPanel.setControlsConfig(customControlsConfiguration);
-
-            // TODO: configure options button with options and actions
-                // TODO: actions will be setColMeta, setCols, setData, should be able to keep data filter and params config
-                // TODO: filtering should happen before calling setData to only pass what we need
+            // set controls
+            // TODO: add state variable capability once it's configured
+            GEPPETTO.ControlPanel.setControls({
+                "Common": [],
+                "VisualCapability": ['color', 'randomcolor', 'visibility', 'zoom']
+            });
         });
 
         //Spotlight initialization
