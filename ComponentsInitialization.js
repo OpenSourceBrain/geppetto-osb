@@ -315,7 +315,8 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
             showMenuButton: true,
             menuButtonItems: panelMenuItemsConfig,
-            menuButtonClickHandler: panelMenuClickHandler
+            menuButtonClickHandler: panelMenuClickHandler,
+            listenToInstanceCreationEvents: false
         }, document.getElementById("controlpanel"), function () {
             var injectCustomControls = function(colMeta){
                 for(var i=0; i<colMeta.length; i++){
@@ -326,7 +327,6 @@ define(function(require) {
                     }
                 }
             };
-
             // need to inject custom controls here as they become visible only after control panel component is imported
             injectCustomControls(instancesColumnMeta);
             injectCustomControls(stateVariablesColMeta);
