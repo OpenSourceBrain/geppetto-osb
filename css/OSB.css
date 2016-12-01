@@ -26,3 +26,7 @@
 	background: 0;
 	color: @orange;
 }
+
+.control-panel-path-column {
+	width: 60%;
+}

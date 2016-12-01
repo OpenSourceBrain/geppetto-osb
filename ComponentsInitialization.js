@@ -138,7 +138,8 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
-                "source": "$entity$.getPath()"
+                "source": "$entity$.getPath()",
+                "cssClassName": "control-panel-path-column",
             },
             {
                 "columnName": "type",
@@ -169,8 +170,7 @@ define(function(require) {
                 "order": 1,
                 "locked": false,
                 "visible": true,
-                "displayName": "Path",
-                "source": "$entity$.getPath()"
+                "displayName": "Path"
             },
             {
                 "columnName": "name",
@@ -178,7 +178,7 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
-                "source": "$entity$.getPath()"
+                "cssClassName": "control-panel-path-column",
             },
             {
                 "columnName": "type",
@@ -187,7 +187,6 @@ define(function(require) {
                 "visible": true,
                 "customComponent": null,
                 "displayName": "Type(s)",
-                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
                 "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
             },
             {
@@ -210,8 +209,7 @@ define(function(require) {
                 "order": 1,
                 "locked": false,
                 "visible": true,
-                "displayName": "Path",
-                "source": "$entity$.getPath()"
+                "displayName": "Path"
             },
             {
                 "columnName": "name",
@@ -219,7 +217,7 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
-                "source": "$entity$.getPath()"
+                "cssClassName": "control-panel-path-column",
             },
             {
                 "columnName": "type",
@@ -228,7 +226,6 @@ define(function(require) {
                 "visible": true,
                 "customComponent": null,
                 "displayName": "Type(s)",
-                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
                 "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
             },
             {
@@ -237,7 +234,6 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Value",
-                "source": "$entity$.getPath()",
                 "actions": "",
             }
         ];
@@ -259,23 +255,38 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    // TODO: show all state variable instances + all potential state variables instance (minus the ones that are instantiated)
-                    // TODO: state variable instances can always be plotted (they are the recorded ones)
+                    // take all potential state variables instances
+                    var potentialStateVarInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).map(
+                        function(item){
+                            return {
+                                path: item.path,
+                                name: item.path,
+                                type: [eval(item.type).getPath()],
+                                getPath: function(){
+                                    return this.path;
+                                }
+                            }
+                        }
+                    );
+
+                    // TODO: state variable instances can always be plotted if an instance exists (they are the recorded ones)
                     // TODO: status=completed, design or error, potential state variable instances and instances can be toggled to watched true/false
-                    // TODO: if status=running, nothing can be changed (no actions/controls should be enabled)
-                    var localStateVars = window.Instances;
+                    // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
+
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(localStateVars); }, 5);
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialStateVarInstances); }, 5);
                     break;
                 case 'show_recorded_state_variables':
                     GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
+                    GEPPETTO.ControlPanel.setColumns(instancesCols);
+                    GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
                     // show all state variable instances (means they are recorded)
                     var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances);
+
                     // TODO: state variable instances can always be plotted (they are the recorded ones)
                     // TODO: if status=complete, design or error, state variable instances can be toggled to watched true/false
-                    // TODO: if status=running, nothing can be changed (no actions/controls should be enabled)
+                    // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
+
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
@@ -283,12 +294,25 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(paramsCols);
                     GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
-                    // TODO: show all parameters instances + parameters potential instances?
+                    // take all parameters potential instances
+                    var potentialParamInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('ParameterType', undefined, true).map(
+                        function(item){
+                            return {
+                                path: item.path,
+                                name: item.path,
+                                type: [eval(item.type).getPath()],
+                                getPath: function(){
+                                    return this.path;
+                                }
+                            }
+                        }
+                    );
+
                     // TODO: if status=completed, design or error, parameters values can be edited
                     // TODO: if status=running, nothing can be changed (no actions/controls)
-                    var params = window.Instances;
+
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(params); }, 5);
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialParamInstances); }, 5);
                     break;
             }
         };
