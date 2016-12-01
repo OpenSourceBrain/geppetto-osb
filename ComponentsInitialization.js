@@ -250,36 +250,44 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
-                    // do filtering
+                    // do filtering (always the same)
                     var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances);
-                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
                 case 'show_local_state_variables':
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    // TODO: do filtering
+                    // TODO: show all state variable instances + all potential state variables instance (minus the ones that are instantiated)
+                    // TODO: state variable instances can always be plotted (they are the recorded ones)
+                    // TODO: status=completed, design or error, potential state variable instances and instances can be toggled to watched true/false
+                    // TODO: if status=running, nothing can be changed (no actions/controls should be enabled)
                     var localStateVars = window.Instances;
-                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(localStateVars); }, 5);
                     break;
                 case 'show_recorded_state_variables':
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    // TODO: do filtering
-                    var recordedStateVars = window.Instances;
-                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    // show all state variable instances (means they are recorded)
+                    var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances);
+                    // TODO: state variable instances can always be plotted (they are the recorded ones)
+                    // TODO: if status=complete, design or error, state variable instances can be toggled to watched true/false
+                    // TODO: if status=running, nothing can be changed (no actions/controls should be enabled)
+                    // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
                 case 'show_parameters':
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(paramsCols);
                     GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
-                    // TODO: do filtering
+                    // TODO: show all parameters instances + parameters potential instances?
+                    // TODO: if status=completed, design or error, parameters values can be edited
+                    // TODO: if status=running, nothing can be changed (no actions/controls)
                     var params = window.Instances;
-                    // set data (dealy update to avoid race conditions with react dealing with new columns)
+                    // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(params); }, 5);
                     break;
             }
@@ -452,13 +460,13 @@ define(function(require) {
             return v;
         };
 
+        //Menu button initialization
         var clickHandler = function(value) {
             //Do Something with value returned
             if (value != null) {
                 GEPPETTO.Console.log(value);
             }
         };
-
         var configuration = {
             id: "controlsMenuButton",
             openByDefault: false,
@@ -507,11 +515,7 @@ define(function(require) {
                 value: "simulation_time"
             }]
         };
-
-        //Home button initialization
-        GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {
-            configuration: configuration
-        }, document.getElementById("ControlsMenuButton"));
+        GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', { configuration: configuration }, document.getElementById("ControlsMenuButton"));
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
