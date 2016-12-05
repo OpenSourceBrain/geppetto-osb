@@ -247,14 +247,14 @@ define(function(require) {
             });
         };
 
-        GEPPETTO.on(Events.Model_loaded, function() {
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
                 $('#mainContainer').append('<div class="alert alert-warning osb-notification alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="osb-notification-text">' + Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. <a href="javascript:loadConnections();" class="alert-link">Click here to load the connections.</a> (Note: depending on the size of the network this could take some time).</span></div>');
             }
 
         });
 
-        GEPPETTO.on(Events.Project_loading, function() {
+        GEPPETTO.on(GEPPETTO.Events.Project_loading, function() {
             $('.osb-notification').remove();
         });
 
