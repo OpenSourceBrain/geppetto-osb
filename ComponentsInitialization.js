@@ -164,6 +164,105 @@ define(function(require) {
             }
         ];
         var instancesCols = ['name', 'type', 'controls'];
+        var instancesControlsConfiguration = {
+            "VisualCapability": {
+                "select": {
+                    "condition": "GEPPETTO.SceneController.isSelected($instances$)",
+                    "false": {
+                        "actions": ["GEPPETTO.SceneController.select($instances$)"],
+                        "icon": "fa-hand-stop-o",
+                        "label": "Unselected",
+                        "tooltip": "Select"
+                    },
+                    "true": {
+                        "actions": ["GEPPETTO.SceneController.deselect($instances$)"],
+                        "icon": "fa-hand-rock-o",
+                        "label": "Selected",
+                        "tooltip": "Deselect"
+                    },
+                }, "visibility": {
+                    "condition": "GEPPETTO.SceneController.isVisible($instances$)",
+                    "false": {
+                        "id": "visibility",
+                        "actions": [
+                            "GEPPETTO.SceneController.show($instances$);"
+                        ],
+                        "icon": "fa-eye-slash",
+                        "label": "Hidden",
+                        "tooltip": "Show"
+                    },
+                    "true": {
+                        "id": "visibility",
+                        "actions": [
+                            "GEPPETTO.SceneController.hide($instances$);"
+                        ],
+                        "icon": "fa-eye",
+                        "label": "Visible",
+                        "tooltip": "Hide"
+                    }
+                },
+                "color": {
+                    "id": "color",
+                    "actions": [
+                        "$instance$.setColor('$param$');"
+                    ],
+                    "icon": "fa-tint",
+                    "label": "Color",
+                    "tooltip": "Color"
+                },
+                "randomcolor": {
+                    "id": "randomcolor",
+                    "actions": [
+                        "GEPPETTO.SceneController.assignRandomColor($instance$);"
+                    ],
+                    "icon": "fa-random",
+                    "label": "Random Color",
+                    "tooltip": "Random Color"
+                },
+                "zoom": {
+                    "id": "zoom",
+                    "actions": [
+                        "GEPPETTO.SceneController.zoomTo($instances$)"
+                    ],
+                    "icon": "fa-search-plus",
+                    "label": "Zoom",
+                    "tooltip": "Zoom"
+                }
+            },
+            "StateVariableCapability": {
+                "watch": {
+                    "showCondition": "Project.getActiveExperiment().getStatus() != 'RUNNING'",
+                    "condition": "GEPPETTO.ExperimentsController.isWatched($instances$);",
+                    "false": {
+                        "actions": ["GEPPETTO.ExperimentsController.watchVariables($instances$,true);"],
+                        "icon": "fa-circle-o",
+                        "label": "Not recorded",
+                        "tooltip": "Record the state variable"
+                    },
+                    "true": {
+                        "actions": ["GEPPETTO.ExperimentsController.watchVariables($instances$,false);"],
+                        "icon": "fa-dot-circle-o",
+                        "label": "Recorded",
+                        "tooltip": "Stop recording the state variable"
+                    }
+                },
+                "plot": {
+                    "id": "plot",
+                    "actions": [
+                        "G.addWidget(0).plotData($instances$)",
+                    ],
+                    "icon": "fa-area-chart",
+                    "label": "Plot",
+                    "tooltip": "Plot state variable in a new widget"
+                }
+            },
+            "Common": {}
+        };
+        var instancesControls = {
+            "Common": [],
+            "VisualCapability": ['color', 'randomcolor', 'visibility', 'zoom'],
+            "StateVariableCapability": ['watch', 'plot']
+        };
         var stateVariablesColMeta = [
             {
                 "columnName": "path",
@@ -202,6 +301,11 @@ define(function(require) {
             }
         ];
         var stateVariablesCols = ['name', 'type', 'controls'];
+        // TODO: state variable instances can always be plotted if an instance exists (they are the recorded ones)
+        // TODO: status=completed, design or error, potential state variable instances and instances can be toggled to watched true/false
+        // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
+        var stateVariablesControlsConfig = {};
+        var stateVariablesControls = { "Common": [] };
         // TODO: add editable value field and what happens upon edit
         var parametersColMeta = [
             {
@@ -238,6 +342,10 @@ define(function(require) {
             }
         ];
         var paramsCols = ['name', 'type', 'value'];
+        // TODO: if status=completed, design or error, parameters values can be edited
+        // TODO: if status=running, nothing can be changed (no actions/controls)
+        var parametersControlsConfig = {};
+        var parametersControls = { "Common": [] };
 
         // control panel menu button configuration
         var panelMenuClickHandler = function(value){
@@ -246,6 +354,8 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
+                    GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
+                    GEPPETTO.ControlPanel.setControls(instancesControls);
                     // do filtering (always the same)
                     var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances);
                     // set data (delay update to avoid race conditions with react dealing with new columns)
@@ -255,6 +365,8 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
+                    GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
+                    GEPPETTO.ControlPanel.setControls(stateVariablesControls);
                     // take all potential state variables instances
                     var potentialStateVarInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).map(
                         function(item){
@@ -269,10 +381,6 @@ define(function(require) {
                         }
                     );
 
-                    // TODO: state variable instances can always be plotted if an instance exists (they are the recorded ones)
-                    // TODO: status=completed, design or error, potential state variable instances and instances can be toggled to watched true/false
-                    // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
-
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialStateVarInstances); }, 5);
                     break;
@@ -280,12 +388,10 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
+                    GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
+                    GEPPETTO.ControlPanel.setControls(instancesControls);
                     // show all state variable instances (means they are recorded)
                     var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances);
-
-                    // TODO: state variable instances can always be plotted (they are the recorded ones)
-                    // TODO: if status=complete, design or error, state variable instances can be toggled to watched true/false
-                    // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
@@ -294,6 +400,8 @@ define(function(require) {
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(paramsCols);
                     GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
+                    GEPPETTO.ControlPanel.setControlsConfig(parametersControlsConfig);
+                    GEPPETTO.ControlPanel.setControls(parametersControls);
                     // take all parameters potential instances
                     var potentialParamInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('ParameterType', undefined, true).map(
                         function(item){
@@ -307,9 +415,6 @@ define(function(require) {
                             }
                         }
                     );
-
-                    // TODO: if status=completed, design or error, parameters values can be edited
-                    // TODO: if status=running, nothing can be changed (no actions/controls)
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialParamInstances); }, 5);
@@ -356,75 +461,6 @@ define(function(require) {
             injectCustomControls(stateVariablesColMeta);
             injectCustomControls(parametersColMeta);
 
-            // TODO: add plot / plot+add for state variable capability
-            var customControlsConfiguration = {
-                "VisualCapability": {
-                    "select": {
-                        "condition": "GEPPETTO.SceneController.isSelected($instances$)",
-                        "false": {
-                            "actions": ["GEPPETTO.SceneController.select($instances$)"],
-                            "icon": "fa-hand-stop-o",
-                            "label": "Unselected",
-                            "tooltip": "Select"
-                        },
-                        "true": {
-                            "actions": ["GEPPETTO.SceneController.deselect($instances$)"],
-                            "icon": "fa-hand-rock-o",
-                            "label": "Selected",
-                            "tooltip": "Deselect"
-                        },
-                    }, "visibility": {
-                        "condition": "GEPPETTO.SceneController.isVisible($instances$)",
-                        "false": {
-                            "id": "visibility",
-                            "actions": [
-                                "GEPPETTO.SceneController.show($instances$);"
-                            ],
-                            "icon": "fa-eye-slash",
-                            "label": "Hidden",
-                            "tooltip": "Show"
-                        },
-                        "true": {
-                            "id": "visibility",
-                            "actions": [
-                                "GEPPETTO.SceneController.hide($instances$);"
-                            ],
-                            "icon": "fa-eye",
-                            "label": "Visible",
-                            "tooltip": "Hide"
-                        }
-                    },
-                    "color": {
-                        "id": "color",
-                        "actions": [
-                            "$instance$.setColor('$param$');"
-                        ],
-                        "icon": "fa-tint",
-                        "label": "Color",
-                        "tooltip": "Color"
-                    },
-                    "randomcolor": {
-                        "id": "randomcolor",
-                        "actions": [
-                            "GEPPETTO.SceneController.assignRandomColor($instance$);"
-                        ],
-                        "icon": "fa-random",
-                        "label": "Random Color",
-                        "tooltip": "Random Color"
-                    },
-                    "zoom": {
-                        "id": "zoom",
-                        "actions": [
-                            "GEPPETTO.SceneController.zoomTo($instances$)"
-                        ],
-                        "icon": "fa-search-plus",
-                        "label": "Zoom",
-                        "tooltip": "Zoom"
-                    }
-                },
-                "Common": {}
-            };
-
             // whatever gets passed we keep, filtering will happen outside the control panel
             var passThroughDataFilter = function (entities) {
                 return entities;
@@ -436,14 +472,10 @@ define(function(require) {
             GEPPETTO.ControlPanel.setColumns(instancesCols);
             // set data filter
             GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
-            // set controls config
-            GEPPETTO.ControlPanel.setControlsConfig(customControlsConfiguration);
-            // set controls
-            // TODO: add state variable capability once it's configured
-            GEPPETTO.ControlPanel.setControls({
-                "Common": [],
-                "VisualCapability": ['color', 'randomcolor', 'visibility', 'zoom']
-            });
+            // set default controls config
+            GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
+            // set default controls
+            GEPPETTO.ControlPanel.setControls(instancesControls);
         });
 
         //Spotlight initialization
