@@ -324,7 +324,7 @@ define(function(require) {
                     }
                 },
                 "plot": {
-                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return true; } else { return false; } })()",
+                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
                     "id": "plot",
                     "actions": [
                         "G.addWidget(0).plotData($instances$)",
