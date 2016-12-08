@@ -441,6 +441,7 @@ define(function(require) {
                                 path: item.path,
                                 name: item.path,
                                 type: [eval(item.type).getPath()],
+                                value: eval(item.type).getDefaultValue(),
                                 getPath: function(){
                                     return this.path;
                                 }
