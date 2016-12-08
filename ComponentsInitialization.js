@@ -400,7 +400,13 @@ define(function(require) {
                     GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
                     GEPPETTO.ControlPanel.setControls(stateVariablesControls);
                     // take all potential state variables instances
-                    var potentialStateVarInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).map(
+                    var filteredPaths = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).filter(
+                        function(item){
+                            // only include paths without stars (real paths)
+                            return item.path.indexOf('*') == -1;
+                        }
+                    );
+                    var potentialStateVarInstances = filteredPaths.map(
                         function(item){
                             return {
                                 path: item.path,
@@ -441,7 +447,6 @@ define(function(require) {
                                 path: item.path,
                                 name: item.path,
                                 type: [eval(item.type).getPath()],
-                                value: eval(item.type).getDefaultValue(),
                                 getPath: function(){
                                     return this.path;
                                 }
