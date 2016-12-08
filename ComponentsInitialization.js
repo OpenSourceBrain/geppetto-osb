@@ -445,7 +445,7 @@ define(function(require) {
                         function(item){
                             return {
                                 path: item.path,
-                                name: item.path,
+                                name: item.path.replace(/Model\.neuroml\./gi, '').replace(/\b(\w+)\b([\w\W]*)\b\1\b/gi, '$1$2').replace(/\.\./g, '.'),
                                 type: [eval(item.type).getPath()],
                                 getPath: function(){
                                     return this.path;
