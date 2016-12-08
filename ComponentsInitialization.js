@@ -123,6 +123,8 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
         //Control panel initialization
+
+        // instances config
         var instancesColumnMeta = [
             {
                 "columnName": "path",
@@ -263,6 +265,8 @@ define(function(require) {
             "VisualCapability": ['color', 'randomcolor', 'visibility', 'zoom'],
             "StateVariableCapability": ['watch', 'plot']
         };
+
+        // state variables config (treated as potential instances)
         var stateVariablesColMeta = [
             {
                 "columnName": "path",
@@ -301,11 +305,39 @@ define(function(require) {
             }
         ];
         var stateVariablesCols = ['name', 'type', 'controls'];
-        // TODO: state variable instances can always be plotted if an instance exists (they are the recorded ones)
-        // TODO: status=completed, design or error, potential state variable instances and instances can be toggled to watched true/false
-        // TODO: if status=running, watch status cannot be changed (no actions/controls should be enabled)
-        var stateVariablesControlsConfig = {};
-        var stateVariablesControls = { "Common": [] };
+        var stateVariablesControlsConfig = {
+            "Common": {
+                "watch": {
+                    "showCondition": "Project.getActiveExperiment().getStatus() != 'RUNNING'",
+                    "condition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return GEPPETTO.ExperimentsController.isWatched($instances$); } else { return false; } })();",
+                    "false": {
+                        "actions": ["var inst = Instances.getInstance('$instance$'); GEPPETTO.ExperimentsController.watchVariables([inst],true);"],
+                        "icon": "fa-circle-o",
+                        "label": "Not recorded",
+                        "tooltip": "Record the state variable"
+                    },
+                    "true": {
+                        "actions": ["var inst = Instances.getInstance('$instance$'); GEPPETTO.ExperimentsController.watchVariables([inst],false);"],
+                        "icon": "fa-dot-circle-o",
+                        "label": "Recorded",
+                        "tooltip": "Stop recording the state variable"
+                    }
+                },
+                "plot": {
+                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return true; } else { return false; } })()",
+                    "id": "plot",
+                    "actions": [
+                        "G.addWidget(0).plotData($instances$)",
+                    ],
+                    "icon": "fa-area-chart",
+                    "label": "Plot",
+                    "tooltip": "Plot state variable in a new widget"
+                }
+            }
+        };
+        var stateVariablesControls = { "Common": ['watch', 'plot'] };
+
+        // parameters config (treated as potential instances)
         // TODO: add editable value field and what happens upon edit
         var parametersColMeta = [
             {
