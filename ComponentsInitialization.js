@@ -383,6 +383,7 @@ define(function(require) {
         var panelMenuClickHandler = function(value){
             switch(value) {
                 case 'show_visual_instances':
+                    GEPPETTO.ControlPanel.setFilter('');
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
@@ -394,6 +395,7 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
                 case 'show_local_state_variables':
+                    GEPPETTO.ControlPanel.setFilter('');
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
@@ -423,6 +425,7 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialStateVarInstances); }, 5);
                     break;
                 case 'show_recorded_state_variables':
+                    GEPPETTO.ControlPanel.setFilter('');
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(instancesCols);
                     GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
@@ -435,6 +438,7 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
                 case 'show_parameters':
+                    GEPPETTO.ControlPanel.setFilter('');
                     GEPPETTO.ControlPanel.clearData();
                     GEPPETTO.ControlPanel.setColumns(paramsCols);
                     GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
