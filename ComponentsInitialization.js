@@ -423,16 +423,27 @@ define(function(require) {
         	}
         	mainPopup.setData(model,[GEPPETTO.Resources.HTML_TYPE]);	
         };
-        
+
         window.executeOnSelection = function(callback) {
-        	if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell){
-        		var csel = G.getSelection()[0];
-        		if (typeof csel !== 'undefined') {
-        			callback(csel);
-        		} else {
-        			G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
-        		}
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell){
+        	var csel = G.getSelection()[0];
+                var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
+        	if (typeof csel !== 'undefined') {
+        	    callback(csel);
         	}
+                // Check if there is one single cell select it
+                else if (population.length == 2) { // 2 == 1 pop + 1 supertype
+                    for (var i = 0; i<population.length; i++) {
+        		if (typeof population[i].getSize === "function" && population[i].getSize() == 1) {
+                            GEPPETTO.ModelFactory.getAllInstancesOf(population[i])[0][0].select();
+                            csel = G.getSelection()[0];
+        		}
+        	    }
+                    callback(csel);
+        	} else {
+        	    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+        	}
+            }
         };
 
         window.showSelection = function(csel) {
@@ -465,22 +476,12 @@ define(function(require) {
 	        	G.setCameraPosition(-60,-250,370);
 	        	break;
         	case "cell":
-                window.initialiseControlPanel(cellControlPanel, id);
-        		id.select();
-        		break;
+                    window.initialiseControlPanel(cellControlPanel, id);
+        	    id.select();
+        	    break;
         	case "network":
-                window.initialiseControlPanel(networkControlPanel, id);
-        		// Check if there is one single cell and select it so that TreeVisualisers work from the beginning 
-        		var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
-        		// If there are two cells -> SuperType and cell
-        		if (population.length == 2){
-        			for (var i = 0; i<population.length; i++){
-        				if (typeof population[i].getSize === "function" && population[i].getSize() == 1){
-        					population[i].select();
-        				}
-        			}
-        		}
-        		break;
+                    window.initialiseControlPanel(networkControlPanel, id);
+        	    break;
         	case "synapse":
         	case "channel":
         		var plotMaxWidth = 450;
