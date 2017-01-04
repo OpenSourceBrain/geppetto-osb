@@ -370,7 +370,7 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Value",
-                "actions": "",
+                "actions": "$entity$.setValue($VALUE$)",
             }
         ];
         var paramsCols = ['name', 'type', 'value'];
