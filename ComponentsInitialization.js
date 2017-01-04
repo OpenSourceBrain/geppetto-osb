@@ -371,6 +371,7 @@ define(function(require) {
                 "visible": true,
                 "displayName": "Value",
                 "actions": "$entity$.setValue($VALUE$)",
+                "cssClassName": "control-panel-value-column",
             }
         ];
         var paramsCols = ['name', 'type', 'value'];
@@ -495,6 +496,8 @@ define(function(require) {
                         colMeta[i].customComponent = GEPPETTO.ArrayComponent;
                     } else if(colMeta[i].columnName == 'controls'){
                         colMeta[i].customComponent = GEPPETTO.ControlsComponent;
+                    } else if(colMeta[i].columnName == 'value'){
+                        colMeta[i].customComponent = GEPPETTO.ParameterInputComponent;
                     }
                 }
             };

@@ -30,3 +30,7 @@
 .control-panel-path-column {
 	width: 60%;
 }
+
+.control-panel-value-column {
+	width: 30%;
+}
