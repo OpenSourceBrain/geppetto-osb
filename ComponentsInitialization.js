@@ -8,6 +8,25 @@ define(function(require) {
         link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
         document.getElementsByTagName("head")[0].appendChild(link);
 
+        // utility function to check for if user has write permission
+        window.doesUserHaveWritePermission = function(){
+            var hasPermission = false;
+
+            if(
+                window.Project != undefined &&
+                window.Project.persisted &&
+                GEPPETTO.UserController.isLoggedIn() &&
+                GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT) &&
+                window.Project.getActiveExperiment() != null &&
+                window.Project.getActiveExperiment() != undefined &&
+                window.Project.getActiveExperiment().getStatus() == GEPPETTO.Resources.ExperimentStatus.DESIGN
+            ){
+                hasPermission = true;
+            }
+
+            return hasPermission;
+        };
+
         //Change this to prompt the user to switch to lines or not
         GEPPETTO.SceneFactory.setLinesUserInput(false);
 
@@ -233,7 +252,7 @@ define(function(require) {
             },
             "StateVariableCapability": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment().getStatus() != 'RUNNING'",
+                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && window.doesUserHaveWritePermission(Project.getActiveExperiment().getId())",
                     "condition": "GEPPETTO.ExperimentsController.isWatched($instances$);",
                     "false": {
                         "actions": ["GEPPETTO.ExperimentsController.watchVariables($instances$,true);"],
@@ -308,7 +327,7 @@ define(function(require) {
         var stateVariablesControlsConfig = {
             "Common": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment().getStatus() != 'RUNNING'",
+                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && window.doesUserHaveWritePermission(Project.getActiveExperiment().getId())",
                     "condition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return GEPPETTO.ExperimentsController.isWatched($instances$); } else { return false; } })();",
                     "false": {
                         "actions": ["var inst = Instances.getInstance('$instance$'); GEPPETTO.ExperimentsController.watchVariables([inst],true);"],
@@ -338,7 +357,6 @@ define(function(require) {
         var stateVariablesControls = { "Common": ['watch', 'plot'] };
 
         // parameters config (treated as potential instances)
-        // TODO: add editable value field and what happens upon edit
         var parametersColMeta = [
             {
                 "columnName": "path",
