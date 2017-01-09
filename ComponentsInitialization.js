@@ -389,6 +389,7 @@ define(function(require) {
                 "visible": true,
                 "displayName": "Value",
                 "actions": "$entity$.setValue($VALUE$)",
+                "readOnlyCondition": "!window.doesUserHaveWritePermission()",
                 "cssClassName": "control-panel-value-column",
             }
         ];
