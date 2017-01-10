@@ -276,7 +276,7 @@ define(function(require) {
                     "label": "Plot",
                     "tooltip": "Plot state variable in a new widget"
                 },
-              //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
+                //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
                 "plot2": {
                 	"menu" :true,
                 	"menuItemsType" : "dynamic_plot",
@@ -284,7 +284,7 @@ define(function(require) {
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
-                    "tooltip": "Plot state variable in a new widget"
+                    "tooltip": "Plot state variable in a an existing widget"
                 }
             },
             "Common": {}
@@ -370,7 +370,7 @@ define(function(require) {
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
-                    "tooltip": "Plot state variable in a new widget"
+                    "tooltip": "Plot state variable in a an existing widget"
                 }
             }
         };
