@@ -394,8 +394,6 @@ define(function(require) {
             }
         ];
         var paramsCols = ['name', 'type', 'value'];
-        // TODO: if status=completed, design or error, parameters values can be edited
-        // TODO: if status=running, nothing can be changed (no actions/controls)
         var parametersControlsConfig = {};
         var parametersControls = { "Common": [] };
 
