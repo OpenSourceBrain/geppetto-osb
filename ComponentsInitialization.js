@@ -275,6 +275,16 @@ define(function(require) {
                     "icon": "fa-area-chart",
                     "label": "Plot",
                     "tooltip": "Plot state variable in a new widget"
+                },
+              //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
+                "plot2": {
+                	"menu" :true,
+                	"menuItemsType" : "dynamic_plot",
+                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
+                    "id": "plot2",
+                    "icon": "fa-line-chart",
+                    "label": "Plot2",
+                    "tooltip": "Plot state variable in a new widget"
                 }
             },
             "Common": {}
@@ -282,7 +292,7 @@ define(function(require) {
         var instancesControls = {
             "Common": [],
             "VisualCapability": ['color', 'randomcolor', 'visibility', 'zoom'],
-            "StateVariableCapability": ['watch', 'plot']
+            "StateVariableCapability": ['watch', 'plot','plot2']
         };
 
         // state variables config (treated as potential instances)
@@ -351,10 +361,20 @@ define(function(require) {
                     "icon": "fa-area-chart",
                     "label": "Plot",
                     "tooltip": "Plot state variable in a new widget"
+                },
+                //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
+                "plot2": {
+                	"menu" :true,
+                	"menuItemsType" : "dynamic_plot",
+                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
+                    "id": "plot2",
+                    "icon": "fa-line-chart",
+                    "label": "Plot2",
+                    "tooltip": "Plot state variable in a new widget"
                 }
             }
         };
-        var stateVariablesControls = { "Common": ['watch', 'plot'] };
+        var stateVariablesControls = { "Common": ['watch', 'plot','plot2'] };
 
         // parameters config (treated as potential instances)
         var parametersColMeta = [
@@ -596,10 +616,7 @@ define(function(require) {
                 top: 40,
                 right: 550
             },
-            menuSize: {
-                height: "auto",
-                width: 300
-            },
+            menuSize: null,
             onClickHandler: clickHandler,
             menuItems: [{
                 label: "Plot all recorded variables",
