@@ -150,6 +150,30 @@ define(function(require) {
 
         //Control panel initialization
 
+        var that = this;
+        var createMenuItems = function(instance){
+        	var menuButtonItems = new Array();
+        	var plots = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).getWidgets();
+			if(plots.length > 0){
+				for(var i =0 ; i<plots.length; i++){
+					menuButtonItems.push({
+						label: "Add to " +plots[i].getId(),
+						action:plots[i].getId()+".plotData("+instance+")",
+						value: "plot_variable"
+					});
+				}
+			}else{
+				//add default item
+				menuButtonItems.push({
+					label: "Add new plot ",
+					action:"G.addWidget(0).plotData("+instance+")",
+					value: "plot_variable"
+				});
+			}
+			
+			return menuButtonItems;
+        }
+        
         // instances config
         var instancesColumnMeta = [
             {
@@ -286,7 +310,8 @@ define(function(require) {
                 //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
                 "plot2": {
                 	"menu" :true,
-                	"menuItemsType" : "dynamic_plot",
+                	"menuMaker" : createMenuItems,
+                	"actions" :["GEPPETTO.ControlPanel.refresh();"],
                     "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
                     "id": "plot2",
                     "icon": "fa-line-chart",
@@ -372,7 +397,8 @@ define(function(require) {
                 //dynamic menu button, no initial list of items, and adds menu items on the go as plots are created
                 "plot2": {
                 	"menu" :true,
-                	"menuItemsType" : "dynamic_plot",
+                	"menuMaker" : createMenuItems,
+                	"actions" :["GEPPETTO.ControlPanel.refresh();"],
                     "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
                     "id": "plot2",
                     "icon": "fa-line-chart",
