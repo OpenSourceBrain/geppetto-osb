@@ -149,10 +149,8 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
         //Control panel initialization
-
-        var that = this;
         var createMenuItems = function(instance){
-        	var menuButtonItems = new Array();
+        	var menuButtonItems = [];
         	var plots = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).getWidgets();
 			if(plots.length > 0){
 				for(var i =0 ; i<plots.length; i++){
@@ -172,7 +170,7 @@ define(function(require) {
 			}
 			
 			return menuButtonItems;
-        }
+        };
         
         // instances config
         var instancesColumnMeta = [
