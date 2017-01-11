@@ -27,6 +27,13 @@ define(function(require) {
             return hasPermission;
         };
 
+        window.plotStateVariable = function(projectId, experimentId, path){
+            // TODO: check if we have data already
+            // TODO: if so, plot
+            // TODO: if not, trigger get experiment data with projectId, experimentId and path
+                // TODO: pass a callback that plots
+        };
+
         //Change this to prompt the user to switch to lines or not
         GEPPETTO.SceneFactory.setLinesUserInput(false);
 
