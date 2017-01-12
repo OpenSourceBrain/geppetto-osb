@@ -27,7 +27,7 @@ define(function(require) {
             return hasPermission;
         };
 
-        window.plotStateVariable = function(projectId, experimentId, path){
+        window.plotStateVariable = function(projectId, experimentId, path, plotWidget){
             if(window.Project.getId() === projectId && window.Project.getActiveExperiment().getId() === experimentId){
                 // try to resolve path
                 var inst = undefined;
@@ -38,11 +38,19 @@ define(function(require) {
                 // check if we already have data
                 if (inst != undefined && inst.getTimeSeries() != undefined) {
                     // plot, we have data
-                    G.addWidget(0).plotData(inst);
+                    if(plotWidget != undefined){
+                        plotWidget.plotData(inst);
+                    } else {
+                        G.addWidget(0).plotData(inst);
+                    }
                 } else {
                     var cb = function(){
                         var i = window.Instances.getInstance(path);
-                        G.addWidget(0).plotData(i);
+                        if(plotWidget != undefined){
+                            plotWidget.plotData(i);
+                        } else {
+                            G.addWidget(0).plotData(i);
+                        }
                     };
                     // trigger get experiment data with projectId, experimentId and path, and callback to plot
                     GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], cb);
@@ -52,7 +60,11 @@ define(function(require) {
                 var plotExternalCallback = function(){
                     var i = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
                     var t = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, 'time(StateVariable)');
-                    G.addWidget(0).plotXYData(i, t);
+                    if(plotWidget != undefined){
+                        plotWidget.plotXYData(i,t);
+                    } else {
+                        G.addWidget(0).plotXYData(i,t);
+                    }
                 };
 
                 var externalInstance = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
@@ -181,14 +193,14 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
         //Control panel initialization
-        var createMenuItems = function(instance){
+        var createMenuItems = function(projectId, experimentId, instance){
         	var menuButtonItems = [];
         	var plots = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).getWidgets();
 			if(plots.length > 0){
 				for(var i =0 ; i<plots.length; i++){
 					menuButtonItems.push({
 						label: "Add to " +plots[i].getId(),
-						action:plots[i].getId()+".plotData("+instance+")",
+                        action:"window.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "'," + plots[i].getId() + ")",
 						value: "plot_variable"
 					});
 				}
@@ -196,7 +208,7 @@ define(function(require) {
 				//add default item
 				menuButtonItems.push({
 					label: "Add new plot ",
-					action:"G.addWidget(0).plotData("+instance+")",
+					action:"window.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "')",
 					value: "plot_variable"
 				});
 			}
