@@ -28,10 +28,42 @@ define(function(require) {
         };
 
         window.plotStateVariable = function(projectId, experimentId, path){
-            // TODO: check if we have data already
-            // TODO: if so, plot
-            // TODO: if not, trigger get experiment data with projectId, experimentId and path
-                // TODO: pass a callback that plots
+            if(window.Project.getId() === projectId && window.Project.getActiveExperiment().getId() === experimentId){
+                // try to resolve path
+                var inst = undefined;
+                try {
+                    inst = window.Instances.getInstance(path);
+                } catch (e) {}
+
+                // check if we already have data
+                if (inst != undefined && inst.getTimeSeries() != undefined) {
+                    // plot, we have data
+                    G.addWidget(0).plotData(inst);
+                } else {
+                    var cb = function(){
+                        var i = window.Instances.getInstance(path);
+                        G.addWidget(0).plotData(i);
+                    };
+                    // trigger get experiment data with projectId, experimentId and path, and callback to plot
+                    GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], cb);
+                }
+            } else {
+                // we are dealing with external instances, define re-usable callback for plotting external instances
+                var plotExternalCallback = function(){
+                    var i = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
+                    var t = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, 'time(StateVariable)');
+                    G.addWidget(0).plotXYData(i, t);
+                };
+
+                var externalInstance = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
+                if(externalInstance != undefined){
+                    // if not undefined, plot
+                    plotExternalCallback();
+                } else {
+                    // if undefined trigger get experiment state
+                    GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], plotExternalCallback);
+                }
+            }
         };
 
         //Change this to prompt the user to switch to lines or not
@@ -175,8 +207,22 @@ define(function(require) {
         // instances config
         var instancesColumnMeta = [
             {
-                "columnName": "path",
+                "columnName": "projectId",
                 "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Project Id"
+            },
+            {
+                "columnName": "experimentId",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Experiment Id"
+            },
+            {
+                "columnName": "path",
+                "order": 3,
                 "locked": false,
                 "visible": true,
                 "displayName": "Path",
@@ -184,7 +230,7 @@ define(function(require) {
             },
             {
                 "columnName": "name",
-                "order": 2,
+                "order": 4,
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
@@ -193,7 +239,7 @@ define(function(require) {
             },
             {
                 "columnName": "type",
-                "order": 3,
+                "order": 5,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -203,7 +249,7 @@ define(function(require) {
             },
             {
                 "columnName": "controls",
-                "order": 4,
+                "order": 6,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -299,7 +345,7 @@ define(function(require) {
                 "plot": {
                     "id": "plot",
                     "actions": [
-                        "G.addWidget(0).plotData($instances$)",
+                        "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
                     "icon": "fa-area-chart",
                     "label": "Plot",
@@ -328,15 +374,29 @@ define(function(require) {
         // state variables config (treated as potential instances)
         var stateVariablesColMeta = [
             {
-                "columnName": "path",
+                "columnName": "projectId",
                 "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Project Id"
+            },
+            {
+                "columnName": "experimentId",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Experiment Id"
+            },
+            {
+                "columnName": "path",
+                "order": 3,
                 "locked": false,
                 "visible": true,
                 "displayName": "Path"
             },
             {
                 "columnName": "name",
-                "order": 2,
+                "order": 4,
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
@@ -344,7 +404,7 @@ define(function(require) {
             },
             {
                 "columnName": "type",
-                "order": 3,
+                "order": 5,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -353,7 +413,7 @@ define(function(require) {
             },
             {
                 "columnName": "controls",
-                "order": 4,
+                "order": 6,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -386,7 +446,7 @@ define(function(require) {
                     "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
                     "id": "plot",
                     "actions": [
-                        "G.addWidget(0).plotData($instances$)",
+                        "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
                     "icon": "fa-area-chart",
                     "label": "Plot",
@@ -410,15 +470,29 @@ define(function(require) {
         // parameters config (treated as potential instances)
         var parametersColMeta = [
             {
-                "columnName": "path",
+                "columnName": "projectId",
                 "order": 1,
+                "locked": false,
+                "visible": true,
+                "displayName": "Project Id",
+            },
+            {
+                "columnName": "experimentId",
+                "order": 2,
+                "locked": false,
+                "visible": true,
+                "displayName": "Experiment Id",
+            },
+            {
+                "columnName": "path",
+                "order": 3,
                 "locked": false,
                 "visible": true,
                 "displayName": "Path"
             },
             {
                 "columnName": "name",
-                "order": 2,
+                "order": 4,
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
@@ -426,7 +500,7 @@ define(function(require) {
             },
             {
                 "columnName": "type",
-                "order": 3,
+                "order": 5,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -435,7 +509,7 @@ define(function(require) {
             },
             {
                 "columnName": "value",
-                "order": 4,
+                "order": 6,
                 "locked": false,
                 "visible": true,
                 "displayName": "Value",
@@ -459,7 +533,20 @@ define(function(require) {
                     GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
                     GEPPETTO.ControlPanel.setControls(instancesControls);
                     // do filtering (always the same)
-                    var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances);
+                    var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances).map(
+                        function(item){
+                            return {
+                                path: item.getPath(),
+                                name: item.getPath(),
+                                type: [item.getType().getPath()],
+                                projectId: window.Project.getId(),
+                                experimentId: window.Project.getActiveExperiment().getId(),
+                                getPath: function(){
+                                    return this.path;
+                                }
+                            }
+                        }
+                    );
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
@@ -483,6 +570,8 @@ define(function(require) {
                                 path: item.path,
                                 name: item.path,
                                 type: [eval(item.type).getPath()],
+                                projectId: window.Project.getId(),
+                                experimentId: window.Project.getActiveExperiment().getId(),
                                 getPath: function(){
                                     return this.path;
                                 }
@@ -501,7 +590,20 @@ define(function(require) {
                     GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
                     GEPPETTO.ControlPanel.setControls(instancesControls);
                     // show all state variable instances (means they are recorded)
-                    var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances);
+                    var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances).map(
+                        function(item){
+                            return {
+                                path: item.getPath(),
+                                name: item.getPath(),
+                                type: [item.getType().getPath()],
+                                projectId: window.Project.getId(),
+                                experimentId: window.Project.getActiveExperiment().getId(),
+                                getPath: function(){
+                                    return this.path;
+                                }
+                            }
+                        }
+                    );
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
@@ -520,6 +622,8 @@ define(function(require) {
                                 path: item.path,
                                 name: item.path.replace(/Model\.neuroml\./gi, '').replace(/\b(\w+)\b([\w\W]*)\b\1\b/gi, '$1$2').replace(/\.\./g, '.'),
                                 type: [eval(item.type).getPath()],
+                                projectId: window.Project.getId(),
+                                experimentId: window.Project.getActiveExperiment().getId(),
                                 getPath: function(){
                                     return this.path;
                                 }
