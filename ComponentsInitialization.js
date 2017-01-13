@@ -570,6 +570,18 @@ define(function(require) {
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
+                case 'show_project_recorded_state_variables':
+                    // TODO: this will display potential instances with state variables col meta / controls
+                    // TODO: get all experiments from current project
+                        // TODO: get all state variables
+                        // TODO: add to records to show
+                    break;
+                case 'show_global_recorded_state_variables':
+                    // TODO: this will display potential instances with state variables col meta / controls
+                    // TODO: get all experiments from projects other than current project
+                        // TODO: get all state variables
+                        // TODO: add to records to show
+                    break;
                 case 'show_parameters':
                     GEPPETTO.ControlPanel.setFilter('');
                     GEPPETTO.ControlPanel.clearData();
@@ -596,6 +608,18 @@ define(function(require) {
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialParamInstances); }, 5);
                     break;
+                case 'show_project_parameters':
+                    // TODO: this will display potential instances with parameters col meta / controls
+                    // TODO: get all experiments from current project
+                        // TODO: get all edited parameters
+                        // TODO: add to records to show
+                    break;
+                case 'show_global_parameters':
+                    // TODO: this will display potential instances with parameters col meta / controls
+                    // TODO: get all experiments from projects other than current project
+                        // TODO: get all edited parameters
+                        // TODO: add to records to show
+                    break;
             }
         };
         var panelMenuItemsConfig = [
@@ -603,18 +627,34 @@ define(function(require) {
                 label: "Visual Instances",
                 action: "",
                 value: "show_visual_instances"
-            }, {
-                label: "State Variables (All)",
+            },{
+                label: "All Local State Variables (Current Project/Experiment)",
                 action: "",
                 value: "show_local_state_variables"
-            }, {
-                label: "State Variables (Recorded)",
+            },{
+                label: "Recorded Local State Variables (Current project/experiment)",
                 action: "",
                 value: "show_recorded_state_variables"
-            }, {
-                label: "Parameters",
+            },{
+                label: "Project Recorded State Variables (All experiments for current project)",
+                action: "",
+                value: "show_project_recorded_state_variables"
+            },{
+                label: "Global Recorded State Variables (All other projects/experiments)",
+                action: "",
+                value: "show_global_recorded_state_variables"
+            },{
+                label: "Local Parameters (Current project/experiment)",
                 action: "",
                 value: "show_parameters"
+            },{
+                label: "Project Edited Parameters (All experiments for current project)",
+                action: "",
+                value: "show_project_parameters"
+            },{
+                label: "Global Edited Parameters (All other projects/experiments)",
+                action: "",
+                value: "show_global_parameters"
             }
         ];
 
