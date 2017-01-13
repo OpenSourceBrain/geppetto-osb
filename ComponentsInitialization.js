@@ -11,20 +11,26 @@ define(function(require) {
         PlotCtrlr = require('widgets/plot/controllers/PlotsController');
         window.PlotController = new PlotCtrlr();
 
-        window.isLocalWatchedInstance = function(projectId, experimentId, path){
-            var watched = false;
+        window.isLocalWatchedInstanceOrExternal = function(projectId, experimentId, path){
+            var watchedOrExternal = false;
 
             if(projectId == window.Project.getId() && experimentId == window.Project.getActiveExperiment().getId()){
-                var watchList = window.Project.getActiveExperiment().getWatchedVariables();
-                for(var i=0; i<watchList.length; i++){
-                    if(watchList[i] == path){
-                        watched = true;
-                        break;
+                // local, check if experiment completed and variable watched
+                if(window.Project.getActiveExperiment().getStatus() == GEPPETTO.Resources.ExperimentStatus.COMPLETED){
+                    var watchList = window.Project.getActiveExperiment().getWatchedVariables();
+                    for(var i=0; i<watchList.length; i++){
+                        if(watchList[i] == path){
+                            watchedOrExternal = true;
+                            break;
+                        }
                     }
                 }
+            } else {
+                // external, this is always true as we only show state variables from completed external experiments
+                watchedOrExternal = true;
             }
 
-            return watched;
+            return watchedOrExternal;
         };
 
         //Change this to prompt the user to switch to lines or not
@@ -288,7 +294,7 @@ define(function(require) {
             },
             "StateVariableCapability": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && GEPPETTO.UserController.canUserEditProject()",
+                    "showCondition": "GEPPETTO.UserController.canUserEditExperiment() && (window.Project.getId() == $projectId$ && window.Project.getActiveExperiment().getId() == $experimentId$)",
                     "condition": "GEPPETTO.ExperimentsController.isWatched($instances$);",
                     "false": {
                         "actions": ["GEPPETTO.ExperimentsController.watchVariables($instances$,true);"],
@@ -308,7 +314,7 @@ define(function(require) {
                     "actions": [
                         "window.PlotController.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
-                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
+                    "showCondition": "window.isLocalWatchedInstanceOrExternal($projectId$, $experimentId$, '$instance$');",
                     "icon": "fa-area-chart",
                     "label": "Plot",
                     "tooltip": "Plot state variable in a new widget"
@@ -318,7 +324,7 @@ define(function(require) {
                 	"menu" :true,
                 	"menuMaker" : createMenuItems,
                 	"actions" :["GEPPETTO.ControlPanel.refresh();"],
-                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
+                    "showCondition": "window.isLocalWatchedInstanceOrExternal($projectId$, $experimentId$, '$instance$');",
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
@@ -357,8 +363,22 @@ define(function(require) {
                 "displayName": "Path"
             },
             {
-                "columnName": "name",
+                "columnName": "projectName",
                 "order": 4,
+                "locked": false,
+                "visible": true,
+                "displayName": "Project"
+            },
+            {
+                "columnName": "experimentName",
+                "order": 5,
+                "locked": false,
+                "visible": true,
+                "displayName": "Experiment"
+            },
+            {
+                "columnName": "name",
+                "order": 6,
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
@@ -366,7 +386,7 @@ define(function(require) {
             },
             {
                 "columnName": "type",
-                "order": 5,
+                "order": 7,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -375,7 +395,7 @@ define(function(require) {
             },
             {
                 "columnName": "controls",
-                "order": 6,
+                "order": 8,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -386,10 +406,12 @@ define(function(require) {
             }
         ];
         var stateVariablesCols = ['name', 'type', 'controls'];
+        var stateVariablesColsWithExperiment = ['name', 'type', 'controls', 'experimentName'];
+        var stateVariablesColsWithProjectAndExperiment = ['name', 'type', 'controls', 'projectName', 'experimentName'];
         var stateVariablesControlsConfig = {
             "Common": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && GEPPETTO.UserController.canUserEditProject()",
+                    "showCondition": "GEPPETTO.UserController.canUserEditExperiment() && (window.Project.getId() == $projectId$ && window.Project.getActiveExperiment().getId() == $experimentId$)",
                     "condition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return GEPPETTO.ExperimentsController.isWatched($instances$); } else { return false; } })();",
                     "false": {
                         "actions": ["var inst = Instances.getInstance('$instance$'); GEPPETTO.ExperimentsController.watchVariables([inst],true);"],
@@ -405,7 +427,7 @@ define(function(require) {
                     }
                 },
                 "plot": {
-                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
+                    "showCondition": "window.isLocalWatchedInstanceOrExternal($projectId$, $experimentId$, '$instance$');",
                     "id": "plot",
                     "actions": [
                         "window.PlotController.plotStateVariable($projectId$, $experimentId$, '$instance$')",
@@ -419,7 +441,7 @@ define(function(require) {
                 	"menu" :true,
                 	"menuMaker" : createMenuItems,
                 	"actions" :["GEPPETTO.ControlPanel.refresh();"],
-                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
+                    "showCondition": "window.isLocalWatchedInstanceOrExternal($projectId$, $experimentId$, '$instance$');",
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
@@ -476,7 +498,7 @@ define(function(require) {
                 "visible": true,
                 "displayName": "Value",
                 "actions": "$entity$.setValue($VALUE$)",
-                "readOnlyCondition": "!GEPPETTO.UserController.canUserEditProject()",
+                "readOnlyCondition": "!GEPPETTO.UserController.canUserEditExperiment() || !(window.Project.getId() == $projectId$ && window.Project.getActiveExperiment().getId() == $experimentId$)",
                 "cssClassName": "control-panel-value-column",
             }
         ];
@@ -571,10 +593,48 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
                     break;
                 case 'show_project_recorded_state_variables':
-                    // TODO: this will display potential instances with state variables col meta / controls
-                    // TODO: get all experiments from current project
-                        // TODO: get all state variables
-                        // TODO: add to records to show
+                    // this will display potential instances with state variables col meta / controls
+                    GEPPETTO.ControlPanel.setFilter('');
+                    GEPPETTO.ControlPanel.clearData();
+                    GEPPETTO.ControlPanel.setColumns(stateVariablesColsWithExperiment);
+                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
+                    GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
+                    GEPPETTO.ControlPanel.setControls(stateVariablesControls);
+
+                    var recordedStateVarInstances = [];
+                    var projects = GEPPETTO.ProjectsController.getUserProjects();
+                    // get all experiments from current project
+                    for(var i=0; i<projects.length; i++){
+                        if(projects[i].id == window.Project.getId()){
+                            // get all state variables for completed experiments
+                            var experiments = projects[i].experiments;
+                            for (var j = 0; j < experiments.length; j++) {
+                                if (experiments[j].status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
+                                    recordedStateVarInstances = recordedStateVarInstances.concat(
+                                        experiments[j].aspectConfigurations[0].watchedVariables.map(
+                                        function (item) {
+                                            return {
+                                                path: item,
+                                                name: item,
+                                                type: ['Model.common.StateVariable'],
+                                                projectId: projects[i].id,
+                                                projectName: projects[i].name,
+                                                experimentId: experiments[j].id,
+                                                experimentName: experiments[j].name,
+                                                getPath: function () {
+                                                    return this.path;
+                                                }
+                                            }
+                                        })
+                                    );
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    // set data (delay update to avoid race conditions with react dealing with new columns)
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVarInstances); }, 5);
                     break;
                 case 'show_global_recorded_state_variables':
                     // TODO: this will display potential instances with state variables col meta / controls
