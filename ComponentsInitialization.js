@@ -8,76 +8,8 @@ define(function(require) {
         link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
         document.getElementsByTagName("head")[0].appendChild(link);
 
-        // utility function to check for if user has write permission
-        window.doesUserHaveWritePermission = function(){
-            var hasPermission = false;
-
-            if(
-                window.Project != undefined &&
-                window.Project.persisted &&
-                GEPPETTO.UserController.isLoggedIn() &&
-                GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT) &&
-                window.Project.getActiveExperiment() != null &&
-                window.Project.getActiveExperiment() != undefined &&
-                window.Project.getActiveExperiment().getStatus() == GEPPETTO.Resources.ExperimentStatus.DESIGN
-            ){
-                hasPermission = true;
-            }
-
-            return hasPermission;
-        };
-
-        // utility function to plot any state variable given path and project/experiment ids
-        window.plotStateVariable = function(projectId, experimentId, path, plotWidget){
-            if(window.Project.getId() === projectId && window.Project.getActiveExperiment().getId() === experimentId){
-                // try to resolve path
-                var inst = undefined;
-                try {
-                    inst = window.Instances.getInstance(path);
-                } catch (e) {}
-
-                // check if we already have data
-                if (inst != undefined && inst.getTimeSeries() != undefined) {
-                    // plot, we have data
-                    if(plotWidget != undefined){
-                        plotWidget.plotData(inst);
-                    } else {
-                        G.addWidget(0).plotData(inst);
-                    }
-                } else {
-                    var cb = function(){
-                        var i = window.Instances.getInstance(path);
-                        if(plotWidget != undefined){
-                            plotWidget.plotData(i);
-                        } else {
-                            G.addWidget(0).plotData(i);
-                        }
-                    };
-                    // trigger get experiment data with projectId, experimentId and path, and callback to plot
-                    GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], cb);
-                }
-            } else {
-                // we are dealing with external instances, define re-usable callback for plotting external instances
-                var plotExternalCallback = function(){
-                    var i = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
-                    var t = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, 'time(StateVariable)');
-                    if(plotWidget != undefined){
-                        plotWidget.plotXYData(i,t);
-                    } else {
-                        G.addWidget(0).plotXYData(i,t);
-                    }
-                };
-
-                var externalInstance = GEPPETTO.ExperimentsController.getExternalInstance(projectId, experimentId, path);
-                if(externalInstance != undefined){
-                    // if not undefined, plot
-                    plotExternalCallback();
-                } else {
-                    // if undefined trigger get experiment state
-                    GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], plotExternalCallback);
-                }
-            }
-        };
+        PlotCtrlr = require('widgets/plot/controllers/PlotsController');
+        window.PlotController = new PlotCtrlr();
 
         window.isLocalWatchedInstance = function(projectId, experimentId, path){
             var watched = false;
@@ -217,7 +149,7 @@ define(function(require) {
 				for(var i =0 ; i<plots.length; i++){
 					menuButtonItems.push({
 						label: "Add to " +plots[i].getId(),
-                        action:"window.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "'," + plots[i].getId() + ")",
+                        action:"window.PlotController.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "'," + plots[i].getId() + ")",
 						value: "plot_variable"
 					});
 				}
@@ -225,7 +157,7 @@ define(function(require) {
 				//add default item
 				menuButtonItems.push({
 					label: "Add new plot ",
-					action:"window.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "')",
+					action:"window.PlotController.plotStateVariable(" + projectId + "," + experimentId + ",'" + instance + "')",
 					value: "plot_variable"
 				});
 			}
@@ -356,7 +288,7 @@ define(function(require) {
             },
             "StateVariableCapability": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && window.doesUserHaveWritePermission(Project.getActiveExperiment().getId())",
+                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && GEPPETTO.UserController.canUserEditProject()",
                     "condition": "GEPPETTO.ExperimentsController.isWatched($instances$);",
                     "false": {
                         "actions": ["GEPPETTO.ExperimentsController.watchVariables($instances$,true);"],
@@ -374,7 +306,7 @@ define(function(require) {
                 "plot": {
                     "id": "plot",
                     "actions": [
-                        "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
+                        "window.PlotController.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
                     "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "icon": "fa-area-chart",
@@ -457,7 +389,7 @@ define(function(require) {
         var stateVariablesControlsConfig = {
             "Common": {
                 "watch": {
-                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && window.doesUserHaveWritePermission(Project.getActiveExperiment().getId())",
+                    "showCondition": "Project.getActiveExperiment() != null && Project.getActiveExperiment().getStatus() != 'RUNNING' && GEPPETTO.UserController.canUserEditProject()",
                     "condition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined){ return GEPPETTO.ExperimentsController.isWatched($instances$); } else { return false; } })();",
                     "false": {
                         "actions": ["var inst = Instances.getInstance('$instance$'); GEPPETTO.ExperimentsController.watchVariables([inst],true);"],
@@ -476,7 +408,7 @@ define(function(require) {
                     "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "id": "plot",
                     "actions": [
-                        "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
+                        "window.PlotController.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
                     "icon": "fa-area-chart",
                     "label": "Plot",
@@ -544,7 +476,7 @@ define(function(require) {
                 "visible": true,
                 "displayName": "Value",
                 "actions": "$entity$.setValue($VALUE$)",
-                "readOnlyCondition": "!window.doesUserHaveWritePermission()",
+                "readOnlyCondition": "!GEPPETTO.UserController.canUserEditProject()",
                 "cssClassName": "control-panel-value-column",
             }
         ];
