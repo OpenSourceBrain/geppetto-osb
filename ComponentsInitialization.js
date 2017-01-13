@@ -27,6 +27,7 @@ define(function(require) {
             return hasPermission;
         };
 
+        // utility function to plot any state variable given path and project/experiment ids
         window.plotStateVariable = function(projectId, experimentId, path, plotWidget){
             if(window.Project.getId() === projectId && window.Project.getActiveExperiment().getId() === experimentId){
                 // try to resolve path
@@ -76,6 +77,22 @@ define(function(require) {
                     GEPPETTO.ExperimentsController.getExperimentState(projectId, experimentId, [path], plotExternalCallback);
                 }
             }
+        };
+
+        window.isLocalWatchedInstance = function(projectId, experimentId, path){
+            var watched = false;
+
+            if(projectId == window.Project.getId() && experimentId == window.Project.getActiveExperiment().getId()){
+                var watchList = window.Project.getActiveExperiment().getWatchedVariables();
+                for(var i=0; i<watchList.length; i++){
+                    if(watchList[i] == path){
+                        watched = true;
+                        break;
+                    }
+                }
+            }
+
+            return watched;
         };
 
         //Change this to prompt the user to switch to lines or not
@@ -359,6 +376,7 @@ define(function(require) {
                     "actions": [
                         "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
                     ],
+                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "icon": "fa-area-chart",
                     "label": "Plot",
                     "tooltip": "Plot state variable in a new widget"
@@ -368,7 +386,7 @@ define(function(require) {
                 	"menu" :true,
                 	"menuMaker" : createMenuItems,
                 	"actions" :["GEPPETTO.ControlPanel.refresh();"],
-                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
+                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
@@ -455,7 +473,7 @@ define(function(require) {
                     }
                 },
                 "plot": {
-                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
+                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "id": "plot",
                     "actions": [
                         "window.plotStateVariable($projectId$, $experimentId$, '$instance$')",
@@ -469,7 +487,7 @@ define(function(require) {
                 	"menu" :true,
                 	"menuMaker" : createMenuItems,
                 	"actions" :["GEPPETTO.ControlPanel.refresh();"],
-                    "showCondition": "(function(){ var inst = undefined; try {inst = eval('$instance$');}catch(e){} if(inst != undefined && inst.getTimeSeries() != undefined){ return true; } else { return false; } })()",
+                    "showCondition": "window.isLocalWatchedInstance($projectId$, $experimentId$, '$instance$');",
                     "id": "plot2",
                     "icon": "fa-line-chart",
                     "label": "Plot2",
