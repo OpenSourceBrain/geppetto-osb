@@ -519,6 +519,18 @@ define(function(require) {
                 "actions": "G.addWidget(3).setData($entity$).setName('$entity$')",
                 "cssClassName": "control-panel-type-column"
             },
+            {
+                "columnName": "unit",
+                "order": 9,
+                "locked": false,
+                "visible": false
+            },
+            {
+                "columnName": "fetched_value",
+                "order": 10,
+                "locked": false,
+                "visible": false
+            }
         ];
         var paramsCols = ['name', 'type', 'value'];
         var paramsColsWithExperiment = ['name', 'type', 'value', 'experimentName'];
