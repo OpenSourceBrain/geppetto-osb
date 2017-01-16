@@ -31,6 +31,15 @@
 	width: 60%;
 }
 
+.control-panel-parameter-path-column {
+	width: 50%;
+}
+
 .control-panel-value-column {
-	width: 30%;
+	width: 28%;
+}
+
+.control-panel-type-column {
+	width: 100px;
+	text-align: center;
 }

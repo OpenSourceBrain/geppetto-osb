@@ -205,18 +205,8 @@ define(function(require) {
                 "cssClassName": "control-panel-path-column",
             },
             {
-                "columnName": "type",
-                "order": 5,
-                "locked": false,
-                "visible": true,
-                "customComponent": null,
-                "displayName": "Type(s)",
-                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
-                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
-            },
-            {
                 "columnName": "controls",
-                "order": 6,
+                "order": 5,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -224,7 +214,18 @@ define(function(require) {
                 "source": "",
                 "actions": "GEPPETTO.ControlPanel.refresh();",
                 "cssClassName": "controlpanel-controls-column"
-            }
+            },
+            {
+                "columnName": "type",
+                "order": 6,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "source": "$entity$.getTypes().map(function (t) {return t.getPath()})",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')",
+                "cssClassName": "control-panel-type-column"
+            },
         ];
         var instancesCols = ['name', 'type', 'controls'];
         var instancesControlsConfiguration = {
@@ -385,17 +386,8 @@ define(function(require) {
                 "cssClassName": "control-panel-path-column",
             },
             {
-                "columnName": "type",
-                "order": 7,
-                "locked": false,
-                "visible": true,
-                "customComponent": null,
-                "displayName": "Type(s)",
-                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
-            },
-            {
                 "columnName": "controls",
-                "order": 8,
+                "order": 7,
                 "locked": false,
                 "visible": true,
                 "customComponent": null,
@@ -403,6 +395,16 @@ define(function(require) {
                 "source": "",
                 "actions": "GEPPETTO.ControlPanel.refresh();",
                 "cssClassName": "controlpanel-controls-column"
+            },
+            {
+                "columnName": "type",
+                "order": 8,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')",
+                "cssClassName": "control-panel-type-column"
             }
         ];
         var stateVariablesCols = ['name', 'type', 'controls'];
@@ -479,14 +481,14 @@ define(function(require) {
                 "order": 4,
                 "locked": false,
                 "visible": true,
-                "displayName": "Project Name",
+                "displayName": "Project",
             },
             {
                 "columnName": "experimentName",
                 "order": 5,
                 "locked": false,
                 "visible": true,
-                "displayName": "Experiment Name",
+                "displayName": "Experiment",
             },
             {
                 "columnName": "name",
@@ -494,27 +496,28 @@ define(function(require) {
                 "locked": false,
                 "visible": true,
                 "displayName": "Name",
-                "cssClassName": "control-panel-path-column",
-            },
-            {
-                "columnName": "type",
-                "order": 7,
-                "locked": false,
-                "visible": true,
-                "customComponent": null,
-                "displayName": "Type(s)",
-                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')"
+                "cssClassName": "control-panel-parameter-path-column",
             },
             {
                 "columnName": "value",
-                "order": 8,
+                "order": 7,
                 "locked": false,
                 "visible": true,
                 "displayName": "Value",
                 "actions": "$entity$.setValue($VALUE$)",
                 "readOnlyCondition": "!GEPPETTO.UserController.canUserEditExperiment() || !(window.Project.getId() == $projectId$ && window.Project.getActiveExperiment().getId() == $experimentId$)",
                 "cssClassName": "control-panel-value-column",
-            }
+            },
+            {
+                "columnName": "type",
+                "order": 8,
+                "locked": false,
+                "visible": true,
+                "customComponent": null,
+                "displayName": "Type(s)",
+                "actions": "G.addWidget(3).setData($entity$).setName('$entity$')",
+                "cssClassName": "control-panel-type-column"
+            },
         ];
         var paramsCols = ['name', 'type', 'value'];
         var paramsColsWithExperiment = ['name', 'type', 'value', 'experimentName'];
@@ -522,16 +525,25 @@ define(function(require) {
         var parametersControlsConfig = {};
         var parametersControls = { "Common": [] };
 
+        var resetControlPanel = function(columns, colMeta, controls, controlsConfig){
+            // reset filter and wipe data
+            GEPPETTO.ControlPanel.setFilter('');
+            GEPPETTO.ControlPanel.clearData();
+
+            // reset params
+            GEPPETTO.ControlPanel.setColumns(columns);
+            GEPPETTO.ControlPanel.setColumnMeta(colMeta);
+            GEPPETTO.ControlPanel.setControlsConfig(controlsConfig);
+            GEPPETTO.ControlPanel.setControls(controls);
+        };
+
         // control panel menu button configuration
         var panelMenuClickHandler = function(value){
             switch(value) {
                 case 'show_visual_instances':
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(instancesCols);
-                    GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
-                    GEPPETTO.ControlPanel.setControls(instancesControls);
+                    // displays actual instances
+                    resetControlPanel(instancesCols, instancesColumnMeta, instancesControls, instancesControlsConfiguration);
+
                     // do filtering (always the same)
                     var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances).map(
                         function(item){
@@ -551,12 +563,9 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
                 case 'show_local_state_variables':
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(stateVariablesCols);
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(stateVariablesControls);
+                    // displays potential instances
+                    resetControlPanel(stateVariablesCols, stateVariablesColMeta, stateVariablesControls, stateVariablesControlsConfig);
+
                     // take all potential state variables instances
                     var filteredPaths = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).filter(
                         function(item){
@@ -583,12 +592,9 @@ define(function(require) {
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialStateVarInstances); }, 5);
                     break;
                 case 'show_recorded_state_variables':
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(instancesCols);
-                    GEPPETTO.ControlPanel.setColumnMeta(instancesColumnMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(instancesControlsConfiguration);
-                    GEPPETTO.ControlPanel.setControls(instancesControls);
+                    // displays actual instances
+                    resetControlPanel(instancesCols, instancesColumnMeta, instancesControls, instancesControlsConfiguration);
+
                     // show all state variable instances (means they are recorded)
                     var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances).map(
                         function(item){
@@ -610,99 +616,26 @@ define(function(require) {
                     break;
                 case 'show_project_recorded_state_variables':
                     // this will display potential instances with state variables col meta / controls
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(stateVariablesColsWithExperiment);
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(stateVariablesControls);
+                    resetControlPanel(stateVariablesColsWithExperiment, stateVariablesColMeta, stateVariablesControls, stateVariablesControlsConfig);
 
-                    var recordedStateVarInstances = [];
-                    var projects = GEPPETTO.ProjectsController.getUserProjects();
-                    // get all experiments from current project
-                    for(var i=0; i<projects.length; i++){
-                        if(projects[i].id == window.Project.getId()){
-                            // get all state variables for completed experiments
-                            var experiments = projects[i].experiments;
-                            for (var j = 0; j < experiments.length; j++) {
-                                if (experiments[j].status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
-                                    recordedStateVarInstances = recordedStateVarInstances.concat(
-                                        experiments[j].aspectConfigurations[0].watchedVariables.map(
-                                        function (item) {
-                                            return {
-                                                path: item,
-                                                name: item,
-                                                type: ['Model.common.StateVariable'],
-                                                projectId: projects[i].id,
-                                                projectName: projects[i].name,
-                                                experimentId: experiments[j].id,
-                                                experimentName: experiments[j].name,
-                                                getPath: function () {
-                                                    return this.path;
-                                                }
-                                            }
-                                        })
-                                    );
-                                }
-                            }
-                            break;
-                        }
-                    }
+                    var projectStateVars = GEPPETTO.ProjectsController.getProjectStateVariables(window.Project.getId());
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVarInstances); }, 5);
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(projectStateVars); }, 5);
                     break;
                 case 'show_global_recorded_state_variables':
                     // this will display potential instances with state variables col meta / controls
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(stateVariablesColsWithProjectAndExperiment);
-                    GEPPETTO.ControlPanel.setColumnMeta(stateVariablesColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(stateVariablesControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(stateVariablesControls);
+                    resetControlPanel(stateVariablesColsWithProjectAndExperiment, stateVariablesColMeta, stateVariablesControls, stateVariablesControlsConfig);
 
-                    var recordedStateVarInstances = [];
-                    var projects = GEPPETTO.ProjectsController.getUserProjects();
-                    // get all experiments from projects other than current project
-                    for(var i=0; i<projects.length; i++){
-                        if(projects[i].id != window.Project.getId()){
-                            // get all state variables for completed experiments
-                            var experiments = projects[i].experiments;
-                            for (var j = 0; j < experiments.length; j++) {
-                                if (experiments[j].status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
-                                    recordedStateVarInstances = recordedStateVarInstances.concat(
-                                        experiments[j].aspectConfigurations[0].watchedVariables.map(
-                                            function (item) {
-                                                return {
-                                                    path: item,
-                                                    name: item,
-                                                    type: ['Model.common.StateVariable'],
-                                                    projectId: projects[i].id,
-                                                    projectName: projects[i].name,
-                                                    experimentId: experiments[j].id,
-                                                    experimentName: experiments[j].name,
-                                                    getPath: function () {
-                                                        return this.path;
-                                                    }
-                                                }
-                                            })
-                                    );
-                                }
-                            }
-                            break;
-                        }
-                    }
+                    var globalStateVars = GEPPETTO.ProjectsController.getGlobalStateVariables(window.Project.getId(), false);
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVarInstances); }, 5);
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(globalStateVars); }, 5);
                     break;
                 case 'show_parameters':
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(paramsCols);
-                    GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(parametersControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(parametersControls);
+                    // displays indexed parameters / similar to potential instances
+                    resetControlPanel(paramsCols, parametersColMeta, parametersControls, parametersControlsConfig);
+
                     // take all parameters potential instances
                     var potentialParamInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('ParameterType', undefined, true).map(
                         function(item){
@@ -724,92 +657,21 @@ define(function(require) {
                     break;
                 case 'show_project_parameters':
                     // this will display potential instances with parameters col meta / controls
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(paramsColsWithExperiment);
-                    GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(parametersControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(parametersControls);
+                    resetControlPanel(paramsColsWithExperiment, parametersColMeta, parametersControls, parametersControlsConfig);
 
-                    var editedParameters = [];
-                    var projects = GEPPETTO.ProjectsController.getUserProjects();
-                    // get all experiments from current project
-                    for(var i=0; i<projects.length; i++){
-                        if(projects[i].id == window.Project.getId()){
-                            // get all parameters for completed experiments
-                            var experiments = projects[i].experiments;
-                            for (var j = 0; j < experiments.length; j++) {
-                                if (experiments[j].status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
-                                    editedParameters = editedParameters.concat(
-                                        experiments[j].aspectConfigurations[0].modelParameter.map(
-                                            function (item) {
-                                                return {
-                                                    path: item,
-                                                    name: item,
-                                                    type: ['Model.common.Parameter'],
-                                                    projectId: projects[i].id,
-                                                    projectName: projects[i].name,
-                                                    experimentId: experiments[j].id,
-                                                    experimentName: experiments[j].name,
-                                                    getPath: function () {
-                                                        return this.path;
-                                                    }
-                                                }
-                                            })
-                                    );
-                                }
-                            }
-                            break;
-                        }
-                    }
+                    var projectEditedParameters  = GEPPETTO.ProjectsController.getProjectParameters(window.Project.getId());
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(editedParameters); }, 5);
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(projectEditedParameters); }, 5);
                     break;
                 case 'show_global_parameters':
                     // this will display potential instances with parameters col meta / controls
-                    GEPPETTO.ControlPanel.setFilter('');
-                    GEPPETTO.ControlPanel.clearData();
-                    GEPPETTO.ControlPanel.setColumns(paramsColsWithProjectAndExperiment);
-                    GEPPETTO.ControlPanel.setColumnMeta(parametersColMeta);
-                    GEPPETTO.ControlPanel.setControlsConfig(parametersControlsConfig);
-                    GEPPETTO.ControlPanel.setControls(parametersControls);
+                    resetControlPanel(paramsColsWithProjectAndExperiment, parametersColMeta, parametersControls, parametersControlsConfig);
 
-                    var editedParameters = [];
-                    var projects = GEPPETTO.ProjectsController.getUserProjects();
-                    // get all experiments from projects other than current project
-                    for(var i=0; i<projects.length; i++){
-                        if(projects[i].id != window.Project.getId()){
-                            // get all parameters for completed experiments
-                            var experiments = projects[i].experiments;
-                            for (var j = 0; j < experiments.length; j++) {
-                                if (experiments[j].status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
-                                    editedParameters = editedParameters.concat(
-                                        experiments[j].aspectConfigurations[0].modelParameter.map(
-                                            function (item) {
-                                                return {
-                                                    path: item,
-                                                    name: item,
-                                                    type: ['Model.common.Parameter'],
-                                                    projectId: projects[i].id,
-                                                    projectName: projects[i].name,
-                                                    experimentId: experiments[j].id,
-                                                    experimentName: experiments[j].name,
-                                                    getPath: function () {
-                                                        return this.path;
-                                                    }
-                                                }
-                                            })
-                                    );
-                                }
-                            }
-                            break;
-                        }
-                    }
+                    var globalEditedParameters = GEPPETTO.ProjectsController.getGlobalParameters(window.Project.getId(), false);
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
-                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(editedParameters); }, 5);
-                    break;
+                    setTimeout(function(){ GEPPETTO.ControlPanel.setData(globalEditedParameters); }, 5);
                     break;
             }
         };
