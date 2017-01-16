@@ -476,7 +476,7 @@ define(function(require) {
             },
             {
                 "columnName": "projectName",
-                "order": 14,
+                "order": 4,
                 "locked": false,
                 "visible": true,
                 "displayName": "Project Name",
