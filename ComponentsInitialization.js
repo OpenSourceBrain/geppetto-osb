@@ -546,20 +546,24 @@ define(function(require) {
                     resetControlPanel(instancesCols, instancesColumnMeta, instancesControls, instancesControlsConfiguration);
 
                     // do filtering (always the same)
-                    var visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances).map(
-                        function(item){
-                            return {
-                                path: item.getPath(),
-                                name: item.getPath(),
-                                type: [item.getType().getPath()],
-                                projectId: window.Project.getId(),
-                                experimentId: window.Project.getActiveExperiment().getId(),
-                                getPath: function(){
-                                    return this.path;
+                    var visualInstances = [];
+                    if(window.Project.getActiveExperiment() != undefined){
+                        visualInstances = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.VISUAL_CAPABILITY, window.Instances).map(
+                            function(item){
+                                return {
+                                    path: item.getPath(),
+                                    name: item.getPath(),
+                                    type: [item.getType().getPath()],
+                                    projectId: window.Project.getId(),
+                                    experimentId: window.Project.getActiveExperiment().getId(),
+                                    getPath: function(){
+                                        return this.path;
+                                    }
                                 }
                             }
-                        }
-                    );
+                        );
+                    }
+
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(visualInstances); }, 5);
                     break;
@@ -567,27 +571,30 @@ define(function(require) {
                     // displays potential instances
                     resetControlPanel(stateVariablesCols, stateVariablesColMeta, stateVariablesControls, stateVariablesControlsConfig);
 
-                    // take all potential state variables instances
-                    var filteredPaths = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).filter(
-                        function(item){
-                            // only include paths without stars (real paths)
-                            return item.path.indexOf('*') == -1;
-                        }
-                    );
-                    var potentialStateVarInstances = filteredPaths.map(
-                        function(item){
-                            return {
-                                path: item.path,
-                                name: item.path,
-                                type: ['Model.common.StateVariable'],
-                                projectId: window.Project.getId(),
-                                experimentId: window.Project.getActiveExperiment().getId(),
-                                getPath: function(){
-                                    return this.path;
+                    var potentialStateVarInstances = [];
+                    if(window.Project.getActiveExperiment() != undefined) {
+                        // take all potential state variables instances
+                        var filteredPaths = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('StateVariableType', undefined, true).filter(
+                            function (item) {
+                                // only include paths without stars (real paths)
+                                return item.path.indexOf('*') == -1;
+                            }
+                        );
+                        potentialStateVarInstances = filteredPaths.map(
+                            function (item) {
+                                return {
+                                    path: item.path,
+                                    name: item.path,
+                                    type: ['Model.common.StateVariable'],
+                                    projectId: window.Project.getId(),
+                                    experimentId: window.Project.getActiveExperiment().getId(),
+                                    getPath: function () {
+                                        return this.path;
+                                    }
                                 }
                             }
-                        }
-                    );
+                        );
+                    }
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialStateVarInstances); }, 5);
@@ -596,21 +603,24 @@ define(function(require) {
                     // displays actual instances
                     resetControlPanel(instancesCols, instancesColumnMeta, instancesControls, instancesControlsConfiguration);
 
-                    // show all state variable instances (means they are recorded)
-                    var recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances).map(
-                        function(item){
-                            return {
-                                path: item.getPath(),
-                                name: item.getPath(),
-                                type: ['Model.common.StateVariable'],
-                                projectId: window.Project.getId(),
-                                experimentId: window.Project.getActiveExperiment().getId(),
-                                getPath: function(){
-                                    return this.path;
+                    var recordedStateVars = [];
+                    if(window.Project.getActiveExperiment() != undefined) {
+                        // show all state variable instances (means they are recorded)
+                        recordedStateVars = GEPPETTO.ModelFactory.getAllInstancesWithCapability(GEPPETTO.Resources.STATE_VARIABLE_CAPABILITY, window.Instances).map(
+                            function (item) {
+                                return {
+                                    path: item.getPath(),
+                                    name: item.getPath(),
+                                    type: ['Model.common.StateVariable'],
+                                    projectId: window.Project.getId(),
+                                    experimentId: window.Project.getActiveExperiment().getId(),
+                                    getPath: function () {
+                                        return this.path;
+                                    }
                                 }
                             }
-                        }
-                    );
+                        );
+                    }
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(recordedStateVars); }, 5);
@@ -637,21 +647,24 @@ define(function(require) {
                     // displays indexed parameters / similar to potential instances
                     resetControlPanel(paramsCols, parametersColMeta, parametersControls, parametersControlsConfig);
 
-                    // take all parameters potential instances
-                    var potentialParamInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('ParameterType', undefined, true).map(
-                        function(item){
-                            return {
-                                path: item.path,
-                                name: item.path.replace(/Model\.neuroml\./gi, ''),
-                                type: ['Model.common.Parameter'],
-                                projectId: window.Project.getId(),
-                                experimentId: window.Project.getActiveExperiment().getId(),
-                                getPath: function(){
-                                    return this.path;
+                    var potentialParamInstances = [];
+                    if(window.Project.getActiveExperiment() != undefined) {
+                        // take all parameters potential instances
+                        potentialParamInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesOfMetaType('ParameterType', undefined, true).map(
+                            function (item) {
+                                return {
+                                    path: item.path,
+                                    name: item.path.replace(/Model\.neuroml\./gi, ''),
+                                    type: ['Model.common.Parameter'],
+                                    projectId: window.Project.getId(),
+                                    experimentId: window.Project.getActiveExperiment().getId(),
+                                    getPath: function () {
+                                        return this.path;
+                                    }
                                 }
                             }
-                        }
-                    );
+                        );
+                    }
 
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(potentialParamInstances); }, 5);
