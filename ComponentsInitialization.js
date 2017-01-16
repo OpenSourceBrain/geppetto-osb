@@ -1100,7 +1100,7 @@ define(function(require) {
         	var posX = 90;
         	var posY = 5;
         	var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-        	target.setPosition(posX, posY).showTitleBar(false);
+        	target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
         	$("#" + target.id).find(".btn-lg").css("font-size","15px");
         };
 
