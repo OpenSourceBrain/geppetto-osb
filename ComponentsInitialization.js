@@ -642,7 +642,7 @@ define(function(require) {
                         function(item){
                             return {
                                 path: item.path,
-                                name: item.path.replace(/Model\.neuroml\./gi, '').replace(/\b(\w+)\b([\w\W]*)\b\1\b/gi, '$1$2').replace(/\.\./g, '.'),
+                                name: item.path.replace(/Model\.neuroml\./gi, ''),
                                 type: ['Model.common.Parameter'],
                                 projectId: window.Project.getId(),
                                 experimentId: window.Project.getActiveExperiment().getId(),
