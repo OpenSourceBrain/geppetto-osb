@@ -14,7 +14,6 @@ define(function(require) {
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
-        
 
         PlotCtrlr = require('widgets/plot/controllers/PlotsController');
         window.PlotController = new PlotCtrlr();
@@ -40,12 +39,6 @@ define(function(require) {
 
             return watchedOrExternal;
         };
-
-
-
-        //OSB Components are added here
-        
-        //OSB Form component 
 
         //This function will be called when the run button is clicked
         GEPPETTO.showExecutionDialog = function(callback) {
@@ -151,7 +144,6 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
         	tutorialData: osbTutorial
 		}, document.getElementById("tutorial"));
-
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
