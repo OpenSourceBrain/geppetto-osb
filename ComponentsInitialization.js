@@ -687,6 +687,38 @@ define(function(require) {
 
                     var projectEditedParameters  = GEPPETTO.ProjectsController.getProjectParameters(window.Project.getId());
 
+                    // add any parameters edited in the current experiment that haven't been fetched
+                    var parametersDictionary = {};
+                    for(var i=0; i<projectEditedParameters.length; i++){
+                        // if matching project/experiment id add to dictionary
+                        if(projectEditedParameters[i].projectId == window.Project.getId() &&
+                            projectEditedParameters[i].experimentId == window.Project.getActiveExperiment().getId()) {
+                            parametersDictionary[projectEditedParameters[i].path] = projectEditedParameters[i];
+                        }
+                    }
+
+                    // loop through parameters current experiment state to check if any parameters have been edited
+                    var localParamEdit = window.Project.getActiveExperiment().setParameters;
+                    for (var key in localParamEdit){
+                        // query the other dictionary, anything not found add to projectEditedParameters in the same format
+                        if(parametersDictionary[key] == undefined){
+                            projectEditedParameters.unshift({
+                                path: key,
+                                name: key,
+                                fetched_value: localParamEdit[key],
+                                unit: undefined,
+                                type: ['Model.common.Parameter'],
+                                projectId: window.Project.getId(),
+                                projectName: window.Project.getName(),
+                                experimentId: window.Project.getActiveExperiment().getId(),
+                                experimentName: window.Project.getActiveExperiment().getName(),
+                                getPath: function () {
+                                    return this.path;
+                                }
+                            });
+                        }
+                    }
+
                     // set data (delay update to avoid race conditions with react dealing with new columns)
                     setTimeout(function(){ GEPPETTO.ControlPanel.setData(projectEditedParameters); }, 5);
                     break;
