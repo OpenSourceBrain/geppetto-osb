@@ -265,7 +265,7 @@ define(function(require) {
 
         GEPPETTO.on(Events.Experiment_loaded, function() {
             // reset control panel with defaults
-            //GEPPETTO.ControlPanel.resetControlPanel(instancesCols, instancesColumnMeta, instancesControls, instancesControlsConfiguration);
+            GEPPETTO.ControlPanel.clearData();
         });
 
 
