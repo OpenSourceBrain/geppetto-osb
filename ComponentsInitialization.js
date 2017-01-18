@@ -123,6 +123,45 @@ define(function(require) {
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
+        var toggleClickHandler = function(){
+        	if(!window.Project.isPublic()){
+        		var title = "Copy URL to Share Public Project"
+        		GEPPETTO.FE.infoDialog(title, window.location.href);
+        	}
+        }
+        
+        var toggleEventHandler = function(component){
+    		GEPPETTO.on(Events.Project_loaded,function(){
+    			component.evaluateState();
+    		});
+    		
+    		GEPPETTO.on(Events.Project_made_public,function(){
+    			component.evaluateState();
+    		});
+        }
+
+        var configuration = {
+        		id: "PublicProjectButton",
+        		hideCondition : "window.Project.isReadOnly()",
+        		clickHandler : toggleClickHandler,
+        		eventHandler : toggleEventHandler,
+        		condition: "window.Project.isPublic()",
+        		"false": {
+        			"action": "window.Project.makePublic(true)",
+        			"icon": "fa fa-share-alt",
+        			"label": " Set Public",
+        			"tooltip": "This Project is now public"
+        		},
+        		"true": {
+        			"action": "window.Project.makePublic(false)",
+        			"icon": "fa fa-share-alt",
+        			"label": " Set Private",
+        			"tooltip": "This Project is now private"
+        		}
+        };
+
+        GEPPETTO.ComponentFactory.addComponent('PUBLICPROJECT', {configuration: configuration}, document.getElementById("PublicProject"));
+
         //Control panel initialization
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
             useBuiltInFilters: true,
