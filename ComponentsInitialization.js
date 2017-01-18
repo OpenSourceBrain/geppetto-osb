@@ -138,11 +138,11 @@ define(function(require) {
     		GEPPETTO.on(Events.Project_made_public,function(){
     			component.evaluateState();
     		});
-        }
+        };
 
         var configuration = {
         		id: "PublicProjectButton",
-        		hideCondition : "window.Project.isReadOnly()",
+        		disableCondition : "window.Project.isReadOnly()",
         		clickHandler : toggleClickHandler,
         		eventHandler : toggleEventHandler,
         		condition: "window.Project.isPublic()",
