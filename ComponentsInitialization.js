@@ -147,13 +147,14 @@ define(function(require) {
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
-        
+
         var toggleClickHandler = function(){
         	if(!window.Project.isPublic()){
-        		window.prompt("Copy to clipboard: Ctrl+C, Enter", window.location.href);
+        		var title = "Copy URL to Share Public Project"
+        		GEPPETTO.FE.infoDialog(title, window.location.href);
         	}
         }
-        
+
         var configuration = {
         		id: "PublicProjectButton",
         		hideCondition : "window.Project.isReadOnly()",
