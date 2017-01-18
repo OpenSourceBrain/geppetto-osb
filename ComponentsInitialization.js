@@ -154,11 +154,22 @@ define(function(require) {
         		GEPPETTO.FE.infoDialog(title, window.location.href);
         	}
         }
+        
+        var toggleEventHandler = function(component){
+    		GEPPETTO.on(Events.Project_loaded,function(){
+    			component.evaluateState();
+    		});
+    		
+    		GEPPETTO.on(Events.Project_made_public,function(){
+    			component.evaluateState();
+    		});
+        }
 
         var configuration = {
         		id: "PublicProjectButton",
         		hideCondition : "window.Project.isReadOnly()",
         		clickHandler : toggleClickHandler,
+        		eventHandler : toggleEventHandler,
         		condition: "window.Project.isPublic()",
         		"false": {
         			"action": "window.Project.makePublic(true)",
