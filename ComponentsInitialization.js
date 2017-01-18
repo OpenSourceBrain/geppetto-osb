@@ -147,6 +147,33 @@ define(function(require) {
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
+        
+        var toggleClickHandler = function(){
+        	if(!window.Project.isPublic()){
+        		window.prompt("Copy to clipboard: Ctrl+C, Enter", window.location.href);
+        	}
+        }
+        
+        var configuration = {
+        		id: "PublicProjectButton",
+        		hideCondition : "window.Project.isReadOnly()",
+        		clickHandler : toggleClickHandler,
+        		condition: "window.Project.isPublic()",
+        		"false": {
+        			"action": "window.Project.makePublic(true)",
+        			"icon": "fa fa-share-alt",
+        			"label": " Set Public",
+        			"tooltip": "This Project is now public"
+        		},
+        		"true": {
+        			"action": "window.Project.makePublic(false)",
+        			"icon": "fa fa-share-alt",
+        			"label": " Set Private",
+        			"tooltip": "This Project is now private"
+        		}
+        };
+
+        GEPPETTO.ComponentFactory.addComponent('PUBLICPROJECT', {configuration: configuration}, document.getElementById("PublicProject"));
 
         //Control panel initialization
         var createMenuItems = function(projectId, experimentId, instance){
