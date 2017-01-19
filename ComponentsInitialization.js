@@ -137,6 +137,7 @@ define(function(require) {
     		
     		GEPPETTO.on(Events.Project_made_public,function(){
     			component.evaluateState();
+    			component.showToolTip();
     		});
         };
 
@@ -150,13 +151,13 @@ define(function(require) {
         			"action": "window.Project.makePublic(true)",
         			"icon": "fa fa-share-alt",
         			"label": " Set Public",
-        			"tooltip": "This Project is now public"
+        			"tooltip": "This Project is now private"
         		},
         		"true": {
         			"action": "window.Project.makePublic(false)",
         			"icon": "fa fa-share-alt",
         			"label": " Set Private",
-        			"tooltip": "This Project is now private"
+        			"tooltip": "This Project is now public"
         		}
         };
 
@@ -304,7 +305,9 @@ define(function(require) {
 
         GEPPETTO.on(Events.Experiment_loaded, function() {
             // reset control panel with defaults
-            GEPPETTO.ControlPanel.clearData();
+        	if(GEPPETTO.ControlPanel != undefined){
+        		GEPPETTO.ControlPanel.clearData();
+        	}
         });
 
 
