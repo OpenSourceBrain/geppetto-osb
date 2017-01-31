@@ -175,11 +175,11 @@ define(function(require) {
             	var lightUpSample = {
                     "label": "Link morphology colour to recorded membrane potentials",
                     "actions": [
-                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), function(x){return (x+0.07)/0.1;});"
+                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.rainbow);"
                     ],
                     "icon": "fa-lightbulb-o"
                 };
-            	
+                
             	GEPPETTO.Spotlight.addSuggestion(recordSoma, GEPPETTO.Resources.RUN_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(recordAll, GEPPETTO.Resources.RUN_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(lightUpSample, GEPPETTO.Resources.PLAY_FLOW);
@@ -200,7 +200,7 @@ define(function(require) {
             },
             menuSize: {
                 height: "auto",
-                width: 300
+                width: "auto"
             },
             menuItems: [{
                 label: "Plot all recorded variables",
@@ -219,26 +219,26 @@ define(function(require) {
                 action: "Project.getActiveExperiment().play({step:100});",
                 value: "play_speed_100"
             }, {
+                label: "Show simulation time",
+                action: "G.addWidget(5).setName('Simulation time').setVariable(time);",
+                value: "simulation_time"
+            }, {
                 label: "Apply voltage colouring to morphologies",
                 condition: "GEPPETTO.G.isBrightnessFunctionSet()",
                 value: "apply_voltage",
                 false: {
-                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), function(x){return (x+0.07)/0.1;});"
+                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.rainbow); var c=G.addWidget(GEPPETTO.Widgets.COLORBAR); c.setup(window.getRecordedMembranePotentials(), window.rainbow, 'Electric Potential (V)');"
                 },
                 true: {
-                    action: "G.removeBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(),false);"
+                    action: "G.removeBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(),false); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
                 }
-            }, {
-                label: "Show simulation time",
-                action: "G.addWidget(5).setName('Simulation time').setVariable(time);",
-                value: "simulation_time"
             }]
         };
-
+        
         //Home button initialization
-        GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {
-            configuration: configuration
-        }, document.getElementById("ControlsMenuButton"));
+         GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {
+                configuration: configuration
+        }, document.getElementById("ControlsMenuButton"), function(comp){window.controlsMenuButton = comp;});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -262,7 +262,6 @@ define(function(require) {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
                 $('#mainContainer').append('<div class="alert alert-warning osb-notification alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="osb-notification-text">' + Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. <a href="javascript:loadConnections();" class="alert-link">Click here to load the connections.</a> (Note: depending on the size of the network this could take some time).</span></div>');
             }
-
         });
 
         GEPPETTO.on(Events.Project_loading, function() {
@@ -270,9 +269,24 @@ define(function(require) {
         });
         
 
-
         //OSB Utility functions
-        
+
+        // for colorbar, to be passed to SceneController.lightUpEntity
+        window.rainbow = function(x) {
+            x = (x+0.07)/0.1; // normalization
+            if (x < 0) { x = 0; }
+            if (x > 1) { x = 1; }
+            if (x < 0.25) {
+                return [0, x*4, 1];
+            } else if (x < 0.5) {
+                return [0, 1, (1-(x-0.25)*4)];
+            } else if (x < 0.75) {
+                return [(x-0.5)*4, 1, 0];
+            } else {
+                return [1, (1-(x-0.75)*4), 0];
+            }
+        };
+
         window.loadConnections = function() {
             Model.neuroml.resolveAllImportTypes(function() {
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
