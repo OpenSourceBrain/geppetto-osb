@@ -177,6 +177,27 @@ define(function(require) {
             GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
         });
 
+        GEPPETTO.on(Events.Model_loaded, function() {
+            var addCaSuggestion = function() {
+                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
+                if (caSpecies.length > 0){
+                    var recordCaConc = {
+                        "label": "Record Ca2+ concentrations",
+                        // essentially we watch caConc on any population that has intracellularProperties.ca
+                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
+                        "icon": "fa-dot-circle-o"
+                    };
+                    GEPPETTO.Spotlight.addSuggestion(recordCaConc, GEPPETTO.Resources.RUN_FLOW);
+                }
+            };
+
+            if (GEPPETTO.Spotlight == undefined) {
+                GEPPETTO.on(Events.Spotlight_loaded, addCaSuggestion);
+            } else {
+                addCaSuggestion();
+            }
+        });
+
         //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
             	var recordAll = {
@@ -352,6 +373,17 @@ define(function(require) {
             return v;
         };
 
+        window.getRecordedCaConcs = function() {
+            var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
+            var v = [];
+            for (var i = 0; i < instances.length; i++) {
+                if (instances[i].getInstancePath().endsWith(".caConc")) {
+                    v.push(instances[i]);
+                }
+            }
+            return v;
+        };
+
         //OSB Widgets configuration
         
         var widthScreen = this.innerWidth;
@@ -483,16 +515,27 @@ define(function(require) {
         	}
         	mainPopup.setData(model,[GEPPETTO.Resources.HTML_TYPE]);	
         };
-        
+
         window.executeOnSelection = function(callback) {
-        	if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell){
-        		var csel = G.getSelection()[0];
-        		if (typeof csel !== 'undefined') {
-        			callback(csel);
-        		} else {
-        			G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
-        		}
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell){
+        	var csel = G.getSelection()[0];
+                var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
+        	if (typeof csel !== 'undefined') {
+        	    callback(csel);
         	}
+                // Check if there is one single cell select it
+                else if (population.length == 2) { // 2 == 1 pop + 1 supertype
+                    for (var i = 0; i<population.length; i++) {
+        		if (typeof population[i].getSize === "function" && population[i].getSize() == 1) {
+                            GEPPETTO.ModelFactory.getAllInstancesOf(population[i])[0][0].select();
+                            csel = G.getSelection()[0];
+        		}
+        	    }
+                    callback(csel);
+        	} else {
+        	    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+        	}
+            }
         };
 
         window.showSelection = function(csel) {
@@ -525,22 +568,12 @@ define(function(require) {
 	        	G.setCameraPosition(-60,-250,370);
 	        	break;
         	case "cell":
-                window.initialiseControlPanel(cellControlPanel, id);
-        		id.select();
-        		break;
+                    window.initialiseControlPanel(cellControlPanel, id);
+        	    id.select();
+        	    break;
         	case "network":
-                window.initialiseControlPanel(networkControlPanel, id);
-        		// Check if there is one single cell and select it so that TreeVisualisers work from the beginning 
-        		var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
-        		// If there are two cells -> SuperType and cell
-        		if (population.length == 2){
-        			for (var i = 0; i<population.length; i++){
-        				if (typeof population[i].getSize === "function" && population[i].getSize() == 1){
-        					population[i].select();
-        				}
-        			}
-        		}
-        		break;
+                    window.initialiseControlPanel(networkControlPanel, id);
+        	    break;
         	case "synapse":
         	case "channel":
         		var plotMaxWidth = 450;
