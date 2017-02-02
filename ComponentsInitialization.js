@@ -125,10 +125,10 @@ define(function(require) {
 
         var toggleClickHandler = function(){
         	if(!window.Project.isPublic()){
-        		var title = "Copy URL to Share Public Project"
+        		var title = "Copy URL to Share Public Project";
         		GEPPETTO.FE.infoDialog(title, window.location.href);
         	}
-        }
+        };
         
         var toggleEventHandler = function(component){
     		GEPPETTO.on(Events.Project_loaded,function(){
