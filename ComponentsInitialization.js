@@ -165,9 +165,12 @@ define(function(require) {
 
         //Control panel initialization
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
-            useBuiltInFilters: true,
-            listenToInstanceCreationEvents: false
-        }, document.getElementById("controlpanel"), function () {
+                useBuiltInFilters: true,
+                listenToInstanceCreationEvents: false,
+                enablePagination:true,
+                resultsPerPage: 10
+        }, document.getElementById("controlpanel"),
+            function () {
             // whatever gets passed we keep
             var passThroughDataFilter = function (entities) {
                 return entities;
@@ -211,7 +214,6 @@ define(function(require) {
             	GEPPETTO.Spotlight.addSuggestion(GEPPETTO.Spotlight.plotSample, GEPPETTO.Resources.PLAY_FLOW);
         });
 
-
         window.getRecordedMembranePotentials = function() {
             var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
             var v = [];
@@ -223,13 +225,6 @@ define(function(require) {
             return v;
         };
 
-        //Menu button initialization
-        var clickHandler = function(value) {
-            //Do Something with value returned
-            if (value != null) {
-                GEPPETTO.Console.log(value);
-            }
-        };
         var configuration = {
             id: "controlsMenuButton",
             openByDefault: false,
