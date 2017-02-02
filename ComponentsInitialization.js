@@ -146,18 +146,19 @@ define(function(require) {
         		disableCondition : "window.Project.isReadOnly()",
         		clickHandler : toggleClickHandler,
         		eventHandler : toggleEventHandler,
+        		tooltipPosition : { my: "right center", at : "left-28 center"},
         		condition: "window.Project.isPublic()",
         		"false": {
         			"action": "window.Project.makePublic(true)",
         			"icon": "fa fa-share-alt",
-        			"label": " Set Public",
-        			"tooltip": "This Project is now private"
+        			"label": "",
+        			"tooltip": "This project is private, click to make it public."
         		},
         		"true": {
         			"action": "window.Project.makePublic(false)",
         			"icon": "fa fa-share-alt",
-        			"label": " Set Private",
-        			"tooltip": "This Project is now public"
+        			"label": "",
+        			"tooltip": "This project is public, click to make it private."
         		}
         };
 
