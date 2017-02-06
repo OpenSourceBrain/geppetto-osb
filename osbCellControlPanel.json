@@ -8,15 +8,7 @@
                 "icon": "gpt-pyramidal-cell",
                 "label": "Model Description",
                 "tooltip": "Information on the model"
-            },
-            "CellVisual": {
-		      "actions": [
-		      	"executeOnSelection(showVisualTreeView)"
-		      ],
-		      "icon": "gpt-pyramidal-cell",
-		      "label": "Cell Visual",
-		      "tooltip": "Visual information on the cell"
-		    }
+            }
         }
     }
 }
