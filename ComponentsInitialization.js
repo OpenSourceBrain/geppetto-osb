@@ -146,7 +146,7 @@ define(function(require) {
         		disableCondition : "window.Project.isReadOnly()",
         		clickHandler : toggleClickHandler,
         		eventHandler : toggleEventHandler,
-        		tooltipPosition : { my: "right center", at : "left-28 center"},
+        		tooltipPosition : { my: "right center", at : "left-10 center"},
         		condition: "window.Project.isPublic()",
         		"false": {
         			"action": "window.Project.makePublic(true)",
