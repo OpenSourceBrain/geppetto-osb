@@ -209,14 +209,14 @@ define(function(require) {
                 value: "apply_voltage",
                 false: {
                     action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, 'Voltage color scale', 'Electric Potential (V)');"
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
                     action: "G.clearBrightnessFunctions(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
                 }
             }]
         };
-        
+
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {
                 configuration: configuration
@@ -258,7 +258,7 @@ define(function(require) {
                         value: "apply_ca",
                         false: {
                             action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.ca_color);" +
-                                "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
+                                "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
                             action: "G.clearBrightnessFunctions(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
@@ -317,7 +317,7 @@ define(function(require) {
             });
         };
 
-        window.setupColorbar = function(instances, scalefn, name, axistitle) {
+        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             var c = G.addWidget(GEPPETTO.Widgets.PLOT);
             c.setName(name);
             c.setSize(125, 350);
@@ -331,7 +331,7 @@ define(function(require) {
                     c.updateXAxisRange(instance.getTimeSeries());
                 }
 
-                var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scalefn);
+                var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scalefn, normalize);
                 c.plotGeneric(data);
             };
 
@@ -384,8 +384,19 @@ define(function(require) {
             return v;
         };
 
+        window.getRecordedCaConcs = function() {
+            var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
+            var v = [];
+            for (var i = 0; i < instances.length; i++) {
+                if (instances[i].getInstancePath().endsWith(".caConc")) {
+                    v.push(instances[i]);
+                }
+            }
+            return v;
+        };
+
         //OSB Widgets configuration
-        
+
         var widthScreen = this.innerWidth;
         var heightScreen = this.innerHeight;
 

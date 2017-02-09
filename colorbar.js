@@ -17,6 +17,7 @@ define(function(require) {
                     range: [],
                     autotick: true,
                     ticks: 'outside',
+                    showticklabels: true,
                     nticks: 8,
                     ticklen: 4,
                     tickcolor: '#000'
@@ -46,10 +47,15 @@ define(function(require) {
             return colorscale;
         },
 
-        setScale: function(min, max, scalefn){
+        setScale: function(min, max, scalefn, normalize){
             // Three.js uses float 0-1 RGB values, here we convert to 0-255
             var scalefn_255 = function(scalefn) {
                 return function(x){
+                    if (normalize) {
+                        x = x/max;
+                        if (x < 0) { x = 0; }
+                        if (x > 1) { x = 1; }
+                    }
                     var r,g,b;
                     [r,g,b] = scalefn(x).map(function(y){ return y*255; });
                     return "rgb(" + r + "," + g + "," + b + ")";
