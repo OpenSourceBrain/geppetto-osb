@@ -132,27 +132,6 @@ define(function(require) {
         //Control panel initialization
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"));
 
-        GEPPETTO.on(Events.Model_loaded, function() {
-            var addCaSuggestion = function() {
-                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
-                if (caSpecies.length > 0){
-                    var recordCaConc = {
-                        "label": "Record Ca2+ concentrations",
-                        // essentially we watch caConc on any population that has intracellularProperties.ca
-                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
-                        "icon": "fa-dot-circle-o"
-                    };
-                    GEPPETTO.Spotlight.addSuggestion(recordCaConc, GEPPETTO.Resources.RUN_FLOW);
-                }
-            };
-
-            if (GEPPETTO.Spotlight == undefined) {
-                GEPPETTO.on(Events.Spotlight_loaded, addCaSuggestion);
-            } else {
-                addCaSuggestion();
-            }
-        });
-
         //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
             	var recordAll = {
@@ -263,12 +242,12 @@ define(function(require) {
 
         GEPPETTO.on(Events.Model_loaded, function() {
             var addCaSuggestion = function() {
-                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
+                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
                 if (caSpecies.length > 0) {
                     var caSpotlightSuggestion = {
                         "label": "Record Ca2+ concentrations",
                         // essentially we watch caConc on any population that has intracellularProperties.ca
-                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
+                        "actions": ["ExperimentsController.watchVariables(Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc')),true);"],
                         "icon": "fa-dot-circle-o"
                     };
 
