@@ -1,0 +1,76 @@
+{
+	"name": "Open Source Brain Tutorial",
+	"steps": [{
+		"icon" : "gpt-osb",
+		"title": " Guided tour",
+		"message": "<strong>Welcome to Open Source Brain!</strong> This is a <strong>tutorial</strong> to help you understand what you can do with OSB.",
+		"action": ""
+	}, {
+		"title": " Model",
+		"message": "You are looking at the morphologies defined in a NeuroML model. You can visualize model metadata for this model by clicking on the Model Description button on the menu bar.",
+		"action": "$('div.toolbar button :eq(1)').effect('highlight', {}, 6000);"
+	}, {
+		"title": " Model",
+		"message": "You can have multiple experiments for your model, and only one experiment can be active at a given time. What you see now on screen is the content of the active experiment.",
+		"action": ""
+	}, {
+		"title": " Simulation Controls",
+		"message": "On the top right you can find the Simulation Controls, with them you can run/play/pause/stop an experiment.",
+		"action": "$('#sim-toolbar').effect('highlight', {}, 3000);"
+	}, {
+		"title": " Experiments Table",
+		"icon" : "fa fa-flask",
+		"message": "The experiments table displays all the experiments within the loaded project.",
+		"action": "$('#experimentsButton').click();"
+	}, {
+		"title": " Experiments Table",
+		"icon" : "fa fa-flask",
+		"message": "Icons on the right side of the table allow for; setting an experiment active, downloading an experiment's model and results, deleting/cloning the experiment.",
+		"action": "$('.iconsDiv').effect('pulsate', {}, 3000)"
+	}, {
+		"title": " Experiments Table",
+		"icon" : "fa fa-flask",
+		"message": "Clicking on a given experiment row will show additional information, such as simulator of choice, parameters values and simulation time step. You can edit most of these fields by clicking on the values.",
+		"action": "$('div[class*=collapsable-]').first().show().delay(2000).queue(function () { $('table.expandableTable > thead.experimentsTableColumn').first().effect('highlight', {}, 3000).dequeue(); });"
+	}, {
+		"title": " Console",
+		"icon" : "fa fa-terminal",
+		"message": "The console allows you to control the experiment via command line as an alternative to the simulation controls on the UI. Every UI action maps to a console command, you can learn about commands by doing something on the UI and the looking at what shows up in the console.",
+		"action": "$('#consoleButton').click();"
+	}, {
+		"title": " Persisting your project",
+		"icon" : "fa fa-star",
+		"message": "On the top bar you can find the persist button, in the shape of a star, with it you can add this model to your model collection for easy access. The button will be disabled if the model is already persisted.",
+		"action": "$('.saveButton').effect('pulsate', {}, 3000);"
+	}, {
+		"title": " Camera Controls",
+		"message": "On the left side of the screen, you'll find the camera controls. With this you can explore the 3D morphologies by zooming in and out, and rotating the camera.",
+		"action": "$('#panLeftBtn').effect('highlight', {}, 3000); $('#panUpBtn').effect('highlight', {}, 3000); $('#panDownBtn').effect('highlight', {}, 3000); $('#panRightBtn').effect('highlight', {}, 3000); $('#panHomeBtn').effect('highlight', {}, 3000); $('#rotateLeftBtn').effect('highlight', {}, 3000); $('#rotateRightBtn').effect('highlight', {}, 3000); $('#rotateUpBtn').effect('highlight', {}, 3000); $('#rotateDownBtn').effect('highlight', {}, 3000); $('#rotateHomeBtn').effect('highlight', {}, 3000); $('#zoomInBtn').effect('highlight', {}, 3000); $('#zoomOutBtn').effect('highlight', {}, 3000);"
+
+	}, {
+		"title": " Control Panel",
+		"icon" : "fa fa-list",
+		"message": "The control panel allows you to visualize and interact with the morphologies in a given model. The control panel can be opened and closed with the button on the left side bar or with the CTRL+P shortcut.",
+		"action": "$('#controlPanelBtn').effect('highlight', {}, 3000);"
+	}, {
+		"title": " Search",
+		"icon" : "fa fa-search",
+		"message": "You can use the search to find and interact with anything in your model by name, including state variables to be recorded and parameters to be set. The spotlight can be opened and closed with the button on the left side bar or with the CTRL+SPACE shortcut.",
+		"action": "$('#spotlightBtn').effect('highlight', {}, 3000);"
+	},{
+		"title": " Help",
+		"icon" : "fa fa-info-circle",
+		"message": "To get more information about the OSB environment, launch the help window located above this window. In it you'll find more detailed documentation.",
+		"action": "$('#genericHelpBtn').effect('highlight', {}, 3000);"
+	},{
+		"title": " Open Tutorial Again",
+		"icon" : "fa fa-leanpub",
+		"message": "At anytime, if you wish to you can re-open this tutorial, look for the button on the left hand side of the screen.",
+		"action": "$('#tutorialBtn').effect('highlight', {}, 3000);"
+	},{
+		"title": " End of Guided Tour",
+		"icon" : "fa fa-leanpub",
+		"message": "You reached the end of this tutorial, you can restart the tutorial or you can keep exploring on your own!",
+		"action": ""
+	}]
+}
