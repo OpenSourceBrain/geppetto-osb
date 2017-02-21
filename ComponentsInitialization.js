@@ -205,14 +205,16 @@ define(function(require) {
             }, {
                 label: "Apply voltage colouring to morphologies",
                 radio: true,
-                condition: "GEPPETTO.G.isBrightnessFunctionSet()",
+                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'v')",
                 value: "apply_voltage",
                 false: {
+                    // either nothing is lit up, or nothing lit up based on membrane potential
                     action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
-                    action: "G.clearBrightnessFunctions(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
+                    // we have active membrane potential coloring
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
                 }
             }]
         };
@@ -246,22 +248,22 @@ define(function(require) {
                 if (caSpecies.length > 0) {
                     var caSpotlightSuggestion = {
                         "label": "Record Ca2+ concentrations",
-                        // essentially we watch caConc on any population that has intracellularProperties.ca
-                        "actions": ["ExperimentsController.watchVariables(Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc')),true);"],
+                        "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc'));",
+                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
                         "icon": "fa-dot-circle-o"
                     };
 
                     var caMenuItem = {
                         label: "Apply Ca2+ concentration colouring to morphologies",
                         radio: true,
-                        condition: "GEPPETTO.G.isBrightnessFunctionSet()",
+                        condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'caConc')",
                         value: "apply_ca",
                         false: {
                             action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.ca_color);" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
-                            action: "G.clearBrightnessFunctions(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
                         }
                     };
 
@@ -318,36 +320,37 @@ define(function(require) {
         };
 
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
-            var c = G.addWidget(GEPPETTO.Widgets.PLOT);
-            c.setName(name);
-            c.setSize(125, 350);
-            c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+            if (instances.length > 0) {
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT);
+                c.setName(name);
+                c.setSize(125, 350);
+                c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
 
-            c.plotOptions = colorbar.defaultLayout();
-            c.plotOptions.xaxis.title = axistitle;
+                c.plotOptions = colorbar.defaultLayout();
+                c.plotOptions.xaxis.title = axistitle;
 
-            var callback = function() {
-                for (var instance of instances) {
-                    c.updateXAxisRange(instance.getTimeSeries());
-                }
+                var callback = function() {
+                    for (var instance of instances) {
+                        c.updateXAxisRange(instance.getTimeSeries());
+                    }
 
-                var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scalefn, normalize);
-                c.plotGeneric(data);
-            };
+                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scalefn, normalize);
+                    c.plotGeneric(data);
+                };
 
-            if (Project.getActiveExperiment().status == "COMPLETED") {
-                // only fetch instances for which state not already locally defined
-                var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
-                var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
-                if (unfetched_paths.length > 0) {
-                    GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
+                if (Project.getActiveExperiment().status == "COMPLETED") {
+                    // only fetch instances for which state not already locally defined
+                    var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
+                    var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
+                    if (unfetched_paths.length > 0) {
+                        GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
+                    } else {
+                        $.proxy(callback, this)();
+                    }
                 } else {
-                    $.proxy(callback, this)();
+                    GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
                 }
-            } else {
-                GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
             }
-
         }
 
         window.plotAllRecordedVariables = function() {
