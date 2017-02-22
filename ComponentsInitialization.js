@@ -155,7 +155,7 @@ define(function(require) {
             	var lightUpSample = {
                     "label": "Link morphology colour to recorded membrane potentials",
                     "actions": [
-                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.rainbow);"
+                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
                     ],
                     "icon": "fa-lightbulb-o"
                 };
