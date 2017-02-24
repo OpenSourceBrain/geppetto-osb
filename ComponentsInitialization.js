@@ -16,10 +16,6 @@ define(function(require) {
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
 
-        //OSB Components are added here
-        
-        //OSB Form component 
-
         //This function will be called when the run button is clicked
         GEPPETTO.showExecutionDialog = function(callback) {
             var formCallback = callback;
@@ -125,12 +121,66 @@ define(function(require) {
         	tutorialData: osbTutorial
 		}, document.getElementById("tutorial"));
 
-
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
+        var toggleClickHandler = function(){
+        	if(!window.Project.isPublic()){
+        		var title = "Copy URL to Share Public Project";
+        		GEPPETTO.FE.infoDialog(title, window.location.href);
+        	}
+        };
+        
+        var toggleEventHandler = function(component){
+    		GEPPETTO.on(Events.Project_loaded,function(){
+    			component.evaluateState();
+    		});
+    		
+    		GEPPETTO.on(Events.Project_made_public,function(){
+    			component.evaluateState();
+    			component.showToolTip();
+    		});
+        };
+
+        var configuration = {
+        		id: "PublicProjectButton",
+        		disableCondition : "window.Project.isReadOnly()",
+        		clickHandler : toggleClickHandler,
+        		eventHandler : toggleEventHandler,
+        		tooltipPosition : { my: "right center", at : "left-10 center"},
+        		condition: "window.Project.isPublic()",
+        		"false": {
+        			"action": "window.Project.makePublic(true)",
+        			"icon": "fa fa-share-alt",
+        			"label": "",
+        			"tooltip": "This project is private, click to make it public."
+        		},
+        		"true": {
+        			"action": "window.Project.makePublic(false)",
+        			"icon": "fa fa-share-alt",
+        			"label": "",
+        			"tooltip": "This project is public, click to make it private."
+        		}
+        };
+
+        GEPPETTO.ComponentFactory.addComponent('PUBLICPROJECT', {configuration: configuration}, document.getElementById("PublicProject"));
+
         //Control panel initialization
-        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {}, document.getElementById("controlpanel"));
+        GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
+                useBuiltInFilters: true,
+                listenToInstanceCreationEvents: false,
+                enablePagination:true,
+                resultsPerPage: 10
+        }, document.getElementById("controlpanel"),
+            function () {
+            // whatever gets passed we keep
+            var passThroughDataFilter = function (entities) {
+                return entities;
+            };
+
+            // set data filter
+            GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+        });
 
         //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
@@ -166,6 +216,16 @@ define(function(require) {
             	GEPPETTO.Spotlight.addSuggestion(GEPPETTO.Spotlight.plotSample, GEPPETTO.Resources.PLAY_FLOW);
         });
 
+        window.getRecordedMembranePotentials = function() {
+            var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
+            var v = [];
+            for (var i = 0; i < instances.length; i++) {
+                if (instances[i].getInstancePath().endsWith(".v")) {
+                    v.push(instances[i]);
+                }
+            }
+            return v;
+        };
 
         var configuration = {
             id: "controlsMenuButton",
@@ -241,7 +301,6 @@ define(function(require) {
 
 
         //OSB Geppetto events handling
-
         GEPPETTO.on(Events.Model_loaded, function() {
             var addCaSuggestion = function() {
                 var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
@@ -288,7 +347,13 @@ define(function(require) {
         GEPPETTO.on(Events.Project_loading, function() {
             $('.osb-notification').remove();
         });
-        
+
+        GEPPETTO.on(Events.Experiment_loaded, function() {
+            // reset control panel with defaults
+        	if(GEPPETTO.ControlPanel != undefined){
+        		GEPPETTO.ControlPanel.clearData();
+        	}
+        });
 
         //OSB Utility functions
 
@@ -430,7 +495,7 @@ define(function(require) {
         	var posX = 90;
         	var posY = 5;
         	var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-        	target.setPosition(posX, posY).showTitleBar(false);
+        	target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
         	$("#" + target.id).find(".btn-lg").css("font-size","15px");
         };
 
@@ -645,7 +710,7 @@ define(function(require) {
         				}
         			}
 
-        			for ( var plottableNodesIndex in plottableNodes) {
+        			for ( var plottableNodesIndex in plottableNodes) { 
         				var plotObject = G.addWidget(Widgets.PLOT);
         				plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
         				plotObject.setSize(plotHeight, plotWidth);

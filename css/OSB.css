@@ -23,12 +23,36 @@
 }
 
 .controlsMenuButton:disabled {
-    background: 0;
-    color: @orange;
+	background: 0;
+	color: @orange;
 }
 
-#toggle3D {
-    position: absolute;
-    top: 450px;
-    left: 43px;
+.control-panel-path-column {
+	width: 60%;
+}
+
+.control-panel-parameter-path-column {
+	width: 50%;
+}
+
+.control-panel-value-column {
+	width: 25%;
+}
+
+.control-panel-type-column {
+	width: 100px;
+	text-align: center;
+}
+
+.PublicProjectButton {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  z-index: 2;
+  height:27px
+}
+
+.PublicProjectButton:disabled{
+	background:0;
+	color:@orange;
 }
