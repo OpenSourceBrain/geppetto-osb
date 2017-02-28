@@ -318,7 +318,7 @@ define(function(require) {
                         condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'caConc')",
                         value: "apply_ca",
                         false: {
-                            action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.ca_color);" +
+                            action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
@@ -356,34 +356,6 @@ define(function(require) {
         });
 
         //OSB Utility functions
-
-        // for colorbar, to be passed to SceneController.lightUpEntity
-        window.voltage_color = function(x) {
-            x = (x+0.07)/0.1; // normalization
-            if (x < 0) { x = 0; }
-            if (x > 1) { x = 1; }
-            if (x < 0.25) {
-                return [0, x*4, 1];
-            } else if (x < 0.5) {
-                return [0, 1, (1-(x-0.25)*4)];
-            } else if (x < 0.75) {
-                return [(x-0.5)*4, 1, 0];
-            } else {
-                return [1, (1-(x-0.75)*4), 0];
-            }
-        };
-
-        window.ca_color = function(x) {
-            // [0,0.31,0.02]-[0,1,0.02]
-            return [0, 0.31+(0.686*x), 0.02];
-        };
-
-        window.loadConnections = function() {
-            Model.neuroml.resolveAllImportTypes(function() {
-                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-            });
-        };
-
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
                 var c = G.addWidget(GEPPETTO.Widgets.PLOT);
@@ -398,8 +370,15 @@ define(function(require) {
                     for (var instance of instances) {
                         c.updateXAxisRange(instance.getTimeSeries());
                     }
+                    // this should be generalized beyond ca
+                    if (normalize) {
+                        window.color_norm = scalefn(c.plotOptions.xaxis.max);
+                        //scalefn = window.ca_color;
+                        G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);
+                        G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
+                    }
 
-                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scalefn, normalize);
+                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, window.color_norm, false);
                     c.plotGeneric(data);
                 };
 
@@ -417,6 +396,12 @@ define(function(require) {
                 }
             }
         }
+
+        window.loadConnections = function() {
+            Model.neuroml.resolveAllImportTypes(function() {
+                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+            });
+        };
 
         window.plotAllRecordedVariables = function() {
             Project.getActiveExperiment().playAll();
