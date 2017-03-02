@@ -365,6 +365,7 @@ define(function(require) {
 
                 c.plotOptions = colorbar.defaultLayout();
                 c.plotOptions.xaxis.title = axistitle;
+                c.yaxisAutoRange = true; // for correct reseting of axes
 
                 var callback = function() {
                     for (var instance of instances) {
@@ -378,7 +379,7 @@ define(function(require) {
                         G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
                     }
 
-                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, window.color_norm, false);
+                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
                     c.plotGeneric(data);
                 };
 
