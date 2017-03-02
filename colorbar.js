@@ -2,47 +2,6 @@ define(function(require) {
 
     // global functions: required for menu actions (ie. eval'd strings...)
     
-    window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
-        if (instances.length > 0) {
-            var c = G.addWidget(GEPPETTO.Widgets.PLOT);
-            c.setName(name);
-            c.setSize(125, 350);
-            c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
-
-            c.plotOptions = colorbar.defaultLayout();
-            c.plotOptions.xaxis.title = axistitle;
-
-            var callback = function() {
-                for (var instance of instances) {
-                    c.updateXAxisRange(instance.getTimeSeries());
-                }
-                // this should be generalized beyond ca
-                if (normalize) {
-                    window.color_norm = scalefn(c.plotOptions.xaxis.max);
-                    //scalefn = window.ca_color;
-                    G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);
-                    G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
-                }
-
-                var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, window.color_norm, false);
-                c.plotGeneric(data);
-            };
-
-            if (Project.getActiveExperiment().status == "COMPLETED") {
-                // only fetch instances for which state not already locally defined
-                var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
-                var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
-                if (unfetched_paths.length > 0) {
-                    GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
-                } else {
-                    $.proxy(callback, this)();
-                }
-            } else {
-                GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
-            }
-        }
-    }
-
     // to be passed to SceneController.lightUpEntity
     window.voltage_color = function(x) {
         x = (x+0.07)/0.1; // normalization
