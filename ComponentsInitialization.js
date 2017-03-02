@@ -381,6 +381,8 @@ define(function(require) {
 
                     var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
                     c.plotGeneric(data);
+
+                    window.controlsMenuButton.refresh();
                 };
 
                 if (Project.getActiveExperiment().status == "COMPLETED") {

@@ -36,10 +36,10 @@ define(function(require) {
                 width : '100%',
                 height : '100%',
                 margin: {
-                    l: 0,
-                    r: 0,
+                    l: 10,
+                    r: 10,
                     b: 40,
-                    t: 0,
+                    t: 10,
                     pad: 4
                 },
                 xaxis: {
