@@ -196,7 +196,7 @@ define(function(require) {
             	var recordSoma = {
             	        "label": "Record all membrane potentials at soma",
             	        "actions": [
-            	            "var instances=window.getMembranePotentialsAtSoma();",
+                            "var instances=window.getSomaVariableInstances('v');",
             	            "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
             	        ],
             	        "icon": "fa-dot-circle-o"
@@ -305,9 +305,15 @@ define(function(require) {
             var addCaSuggestion = function() {
                 var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
                 if (caSpecies.length > 0) {
-                    var caSpotlightSuggestion = {
+                    var caSuggestion = {
                         "label": "Record Ca2+ concentrations",
                         "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc'));",
+                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                        "icon": "fa-dot-circle-o"
+                    };
+                    var caSomaSuggestion = {
+                        "label": "Record Ca2+ concentrations at soma",
+                        "actions": ["var instances=window.getSomaVariableInstances('caConc')",
                                     "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
                         "icon": "fa-dot-circle-o"
                     };
@@ -327,7 +333,8 @@ define(function(require) {
                     };
 
                     window.controlsMenuButton.addMenuItem(caMenuItem);
-                    GEPPETTO.Spotlight.addSuggestion(caSpotlightSuggestion, GEPPETTO.Resources.RUN_FLOW);
+                    GEPPETTO.Spotlight.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
+                    GEPPETTO.Spotlight.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
                 }
             };
 
@@ -415,17 +422,23 @@ define(function(require) {
                 });
         };
 
-        window.getMembranePotentialsAtSoma = function() {
-            var trail = ".v";
-            var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(trail);
-            var instancesToRecord = [];
-            for (var i = 0; i < instances.length; i++) {
-                var s = instances[i].split(trail)[0];
-                if (s.endsWith("_0") || s.endsWith("]")) {
-                    instancesToRecord.push(instances[i]);
-                }
-            }
-            return Instances.getInstance(instancesToRecord);
+        window.getSomaVariableInstances = function(stateVar) {
+            var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.' + stateVar);
+            return instances
+                .map(function(x) { return Instances.getInstance(x); })
+                // we look at the name of the type of the parent of each state variable instance
+                // when the name contains 'root', it has no parent in the NeuroML and thus is soma
+                .filter(function(x) {
+                    return Instances.getInstance(x)
+                        .getParent()
+                        .getType()
+                        .getName()
+                        .indexOf("root") > -1
+                })
+                // remove duplicates
+                .filter(function(value, index, self) {
+                    return self.indexOf(value) === index;
+                });
         };
 
 
