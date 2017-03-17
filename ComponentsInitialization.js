@@ -1,9 +1,8 @@
 define(function(require) {
 
-    var cellControlPanel = require('json!../../geppetto-osb/osbCellControlPanel.json');
-    var networkControlPanel = require('json!../../geppetto-osb/osbNetworkControlPanel.json');
-    var osbTutorial = require('json!../../geppetto-osb/osbTutorial.json');
-    var colorbar = require('../../extensions/geppetto-osb/colorbar');
+	var cellControlPanel = require('./osbCellControlPanel.json');
+	var networkControlPanel = require('./osbNetworkControlPanel.json');
+	var osbTutorial = require('./osbTutorial.json');
 	
     return function(GEPPETTO) {
 
@@ -132,11 +131,11 @@ define(function(require) {
         };
         
         var toggleEventHandler = function(component){
-    		GEPPETTO.on(Events.Project_loaded,function(){
+    		GEPPETTO.on(GEPPETTO.Events.Project_loaded,function(){
     			component.evaluateState();
     		});
     		
-    		GEPPETTO.on(Events.Project_made_public,function(){
+    		GEPPETTO.on(GEPPETTO.Events.Project_made_public,function(){
     			component.evaluateState();
     			component.showToolTip();
     		});
@@ -163,7 +162,7 @@ define(function(require) {
         		}
         };
 
-        GEPPETTO.ComponentFactory.addComponent('PUBLICPROJECT', {configuration: configuration}, document.getElementById("PublicProject"));
+        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', {configuration: configuration}, document.getElementById("PublicProject"));
 
         //Control panel initialization
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
@@ -280,7 +279,7 @@ define(function(require) {
         };
 
         //Home button initialization
-         GEPPETTO.ComponentFactory.addComponent('CONTROLSMENUBUTTON', {
+         GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: configuration
         }, document.getElementById("ControlsMenuButton"), function(comp){window.controlsMenuButton = comp;});
 
@@ -301,7 +300,7 @@ define(function(require) {
 
 
         //OSB Geppetto events handling
-        GEPPETTO.on(Events.Model_loaded, function() {
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             var addCaSuggestion = function() {
                 var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
                 if (caSpecies.length > 0) {
@@ -345,17 +344,17 @@ define(function(require) {
             }
         });
 
-        GEPPETTO.on(Events.Model_loaded, function() {
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
                 $('#mainContainer').append('<div class="alert alert-warning osb-notification alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="osb-notification-text">' + Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. <a href="javascript:loadConnections();" class="alert-link">Click here to load the connections.</a> (Note: depending on the size of the network this could take some time).</span></div>');
             }
         });
 
-        GEPPETTO.on(Events.Project_loading, function() {
+        GEPPETTO.on(GEPPETTO.Events.Project_loading, function() {
             $('.osb-notification').remove();
         });
 
-        GEPPETTO.on(Events.Experiment_loaded, function() {
+        GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             // reset control panel with defaults
         	if(GEPPETTO.ControlPanel != undefined){
         		GEPPETTO.ControlPanel.clearData();
