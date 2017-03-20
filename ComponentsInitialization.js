@@ -428,8 +428,7 @@ define(function(require) {
                 // we look at the name of the type of the parent of each state variable instance
                 // when the name contains 'root', it has no parent in the NeuroML and thus is soma
                 .filter(function(x) {
-                    return Instances.getInstance(x)
-                        .getParent()
+                    return x.getParent()
                         .getType()
                         .getName()
                         .indexOf("root") > -1
