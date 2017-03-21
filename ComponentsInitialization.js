@@ -2,7 +2,8 @@ define(function(require) {
 
 	var cellControlPanel = require('./osbCellControlPanel.json');
 	var networkControlPanel = require('./osbNetworkControlPanel.json');
-	var osbTutorial = require('./osbTutorial.json');
+        var osbTutorial = require('./osbTutorial.json');
+        var colorbar = require('./colorbar');
 	
     return function(GEPPETTO) {
 
@@ -273,7 +274,7 @@ define(function(require) {
                 },
                 true: {
                     // we have active membrane potential coloring
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
             }]
         };
@@ -327,7 +328,7 @@ define(function(require) {
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances); G.removeWidget(GEPPETTO.Widgets.COLORBAR);"
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                         }
                     };
 
