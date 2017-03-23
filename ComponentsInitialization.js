@@ -117,8 +117,9 @@ define(function(require) {
 
         //Tutorial component initialization
         GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
+        	name: 'Open Source Brain Tutorial',
         	tutorialData: osbTutorial
-		}, document.getElementById("tutorial"));
+		});
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
@@ -655,5 +656,9 @@ define(function(require) {
         GEPPETTO.SceneFactory.setLinesUserInput(false);
         
         GEPPETTO.G.autoFocusConsole(false);
+        
+		GEPPETTO.on(GEPPETTO.Events.Experiment_loaded,function(){
+			$("#tutorial_dialog").dialog('moveToTop');
+		});
     };
 });

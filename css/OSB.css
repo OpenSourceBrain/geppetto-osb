@@ -56,3 +56,7 @@
 	background:0;
 	color:@orange;
 }
+
+#tutorial_dialog b{
+	color:#37abc8;
+}
