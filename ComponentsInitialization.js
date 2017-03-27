@@ -276,6 +276,20 @@ define(function(require) {
                     // we have active membrane potential coloring
                     action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
+            }, {
+                label: "Apply soma voltage colouring to entire cell",
+                radio: true,
+                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].getMetaType() === 'ArrayElementInstance')",
+                value: "apply_voltage_entire_cell",
+                false: {
+                    // either nothing is lit up, or nothing lit up based on membrane potential
+                    action: "window.soma_v_entire_cell();" +
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
+                },
+                true: {
+                    // we have active membrane potential coloring
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                }
             }]
         };
 
@@ -363,6 +377,17 @@ define(function(require) {
         });
 
         //OSB Utility functions
+        window.soma_v_entire_cell = function() {
+            var recordedMemV = window.getRecordedMembranePotentials();
+            var somaVInstances = window.getSomaVariableInstances('v');
+            // get the intersection of recorded potentials and soma potential instances
+            var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
+            for (var i=0; i<recordedSomaV.length; ++i) {
+                var cell = recordedSomaV[i].getParent().getParent();
+                GEPPETTO.G.addBrightnessFunction(cell, [recordedSomaV[i]], window.voltage_color);
+            }
+        }
+
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
                 var c = G.addWidget(GEPPETTO.Widgets.PLOT);
