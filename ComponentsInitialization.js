@@ -180,6 +180,35 @@ define(function(require) {
 
             // set data filter
             GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+
+                GEPPETTO.ControlPanel.addControlsConfig({
+                    "VisualCapability" : {
+                        "material": {
+                            "condition": "'MeshBasicMaterial' in GEPPETTO.SceneController.getMaterial($instance$)",
+                            "false" : {
+                                "id": "material",
+                                "actions" : [
+                                    "GEPPETTO.SceneController.toggleMaterial($instance$);"
+                                ],
+                                "icon": "fa-paint-brush",
+                                "label": "Material",
+                                "tooltip": "Material"
+                            },
+                            "true": {
+                                "id": "material",
+                                "actions" : [
+                                    "GEPPETTO.SceneController.toggleMaterial($instance$);"
+                                ],
+                                "icon": "fa-paint-brush",
+                                "label": "Material",
+                                "tooltip": "Material"
+                            }
+                        }
+                    }
+                });
+
+                GEPPETTO.ControlPanel.addControls({"VisualCapability": ["material"]});
+
         });
 
         //Spotlight initialization
