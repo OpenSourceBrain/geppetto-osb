@@ -265,7 +265,7 @@ define(function(require) {
             }, {
                 label: "Apply voltage colouring to morphologies",
                 radio: true,
-                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'v')",
+                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o'",
                 value: "apply_voltage",
                 false: {
                     // either nothing is lit up, or nothing lit up based on membrane potential
@@ -279,7 +279,7 @@ define(function(require) {
             }, {
                 label: "Apply soma voltage colouring to entire cell",
                 radio: true,
-                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].getMetaType() === 'ArrayElementInstance')",
+                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell.state.icon != 'fa fa-circle-o'",
                 value: "apply_voltage_entire_cell",
                 false: {
                     // either nothing is lit up, or nothing lit up based on membrane potential
@@ -335,7 +335,7 @@ define(function(require) {
                     var caMenuItem = {
                         label: "Apply Ca2+ concentration colouring to morphologies",
                         radio: true,
-                        condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'caConc')",
+                        condition: "window.controlsMenuButton.refs.dropDown.refs.apply_ca.state.icon != 'fa fa-circle-o'",
                         value: "apply_ca",
                         false: {
                             action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
@@ -384,7 +384,7 @@ define(function(require) {
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
             for (var i=0; i<recordedSomaV.length; ++i) {
                 var cell = recordedSomaV[i].getParent().getParent();
-                GEPPETTO.G.addBrightnessFunction(cell, [recordedSomaV[i]], window.voltage_color);
+                GEPPETTO.G.addBrightnessFunction(cell, recordedSomaV[i], window.voltage_color);
             }
         }
 
