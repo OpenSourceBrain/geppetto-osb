@@ -268,12 +268,13 @@ define(function(require) {
                 condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o'",
                 value: "apply_voltage",
                 false: {
-                    // either nothing is lit up, or nothing lit up based on membrane potential
-                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                    // not selected
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                        "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
-                    // we have active membrane potential coloring
+                    // is selected
                     action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
             }, {
@@ -282,12 +283,13 @@ define(function(require) {
                 condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell.state.icon != 'fa fa-circle-o'",
                 value: "apply_voltage_entire_cell",
                 false: {
-                    // either nothing is lit up, or nothing lit up based on membrane potential
-                    action: "window.soma_v_entire_cell();" +
+                    // not selected
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                        "window.soma_v_entire_cell();" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
-                    // we have active membrane potential coloring
+                    // is selected
                     action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
             }]
@@ -338,10 +340,13 @@ define(function(require) {
                         condition: "window.controlsMenuButton.refs.dropDown.refs.apply_ca.state.icon != 'fa fa-circle-o'",
                         value: "apply_ca",
                         false: {
-                            action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            // not selected
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                                "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
+                            // is selected
                             action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                         }
                     };
