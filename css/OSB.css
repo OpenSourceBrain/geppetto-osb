@@ -56,15 +56,3 @@
 	background:0;
 	color:@orange;
 }
-
-.DownloadProjectButton{
-    position: fixed;
-    top: 5px;
-    right: 569px;
-    height: 27px;
-}
-
-.DownloadProjectButton:disabled{
-	background:0;
-	color:@orange;
-}
