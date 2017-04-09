@@ -1,5 +1,7 @@
 {
 	"name": "Open Source Brain Tutorial",
+	"height": "300",
+    "width": "400",
 	"steps": [{
 		"icon" : "gpt-osb",
 		"title": " Guided tour",

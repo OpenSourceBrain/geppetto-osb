@@ -119,6 +119,11 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
             name: 'Open Source Brain Tutorial',
             tutorialData: osbTutorial
+        }, undefined, function() {
+            //temporary until sessions allow to customise the tutorial component
+            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh/hh_intro.json?dl=1")
+            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh_neuroml/hh_neuroml.json?dl=1")
+            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh_practical/hh_practical.json?dl=1")
         });
 
         //Save initialization 
