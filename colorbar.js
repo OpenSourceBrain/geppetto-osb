@@ -50,12 +50,24 @@ define(function(require) {
                     showticklabels: true,
                     nticks: 8,
                     ticklen: 4,
-                    tickcolor: '#000'
+                    tickcolor : 'rgb(255, 255, 255)',
+		    tickfont: {
+			family: 'Helvetica Neue',
+			size : 11,
+			color: 'rgb(255, 255, 255)'
+		    },
+		    titlefont : {
+			family: 'Helvetica Neue',
+			size : 12,
+			color: 'rgb(255, 255, 255)'
+		    },
                 },
                 yaxis: {
                     ticks: '',
-                    showticklabels: false,
-                }
+                    showticklabels: false
+                },
+                paper_bgcolor: 'rgba(66, 59, 59, 0.90)',
+		plot_bgcolor: 'transparent'
             };
         },
 
