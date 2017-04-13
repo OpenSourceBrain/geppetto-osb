@@ -2,7 +2,8 @@ define(function(require) {
 
 	var cellControlPanel = require('./osbCellControlPanel.json');
 	var networkControlPanel = require('./osbNetworkControlPanel.json');
-	var osbTutorial = require('./osbTutorial.json');
+        var osbTutorial = require('./osbTutorial.json');
+        var colorbar = require('./colorbar');
 	
     return function(GEPPETTO) {
 
@@ -222,27 +223,6 @@ define(function(require) {
             GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
         });
 
-        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
-            var addCaSuggestion = function() {
-                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
-                if (caSpecies.length > 0){
-                    var recordCaConc = {
-                        "label": "Record Ca2+ concentrations",
-                        // essentially we watch caConc on any population that has intracellularProperties.ca
-                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
-                        "icon": "fa-dot-circle-o"
-                    };
-                    GEPPETTO.Spotlight.addSuggestion(recordCaConc, GEPPETTO.Resources.RUN_FLOW);
-                }
-            };
-
-            if (GEPPETTO.Spotlight == undefined) {
-                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
-            } else {
-                addCaSuggestion();
-            }
-        });
-
         //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
             	var recordAll = {
@@ -257,7 +237,7 @@ define(function(require) {
             	var recordSoma = {
             	        "label": "Record all membrane potentials at soma",
             	        "actions": [
-            	            "var instances=window.getMembranePotentialsAtSoma();",
+                            "var instances=window.getSomaVariableInstances('v');",
             	            "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
             	        ],
             	        "icon": "fa-dot-circle-o"
@@ -266,11 +246,11 @@ define(function(require) {
             	var lightUpSample = {
                     "label": "Link morphology colour to recorded membrane potentials",
                     "actions": [
-                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), function(x){return (x+0.07)/0.1;});"
+                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
                     ],
                     "icon": "fa-lightbulb-o"
                 };
-            	
+                
             	GEPPETTO.Spotlight.addSuggestion(recordSoma, GEPPETTO.Resources.RUN_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(recordAll, GEPPETTO.Resources.RUN_FLOW);
             	GEPPETTO.Spotlight.addSuggestion(lightUpSample, GEPPETTO.Resources.PLAY_FLOW);
@@ -299,7 +279,10 @@ define(function(require) {
                 top: 40,
                 right: 550
             },
-            menuSize: null,
+            menuSize: {
+                height: "auto",
+                width: "auto"
+            },
             menuItems: [{
                 label: "Plot all recorded variables",
                 action: "window.plotAllRecordedVariables();",
@@ -317,22 +300,30 @@ define(function(require) {
                 action: "Project.getActiveExperiment().play({step:100});",
                 value: "play_speed_100"
             }, {
-                label: "Apply voltage colouring to morphologies",
-                condition: "GEPPETTO.G.isBrightnessFunctionSet()",
-                value: "apply_voltage",
-                false: {
-                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), function(x){return (x+0.07)/0.1;});"
-                },
-                true: {
-                    action: "G.removeBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(),false);"
-                }
-            }, {
                 label: "Show simulation time",
                 action: "G.addWidget(5).setName('Simulation time').setVariable(time);",
                 value: "simulation_time"
+            }, {
+                label: "Apply voltage colouring to morphologies",
+                radio: true,
+                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'v')",
+                value: "apply_voltage",
+                false: {
+                    // either nothing is lit up, or nothing lit up based on membrane potential
+                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
+                },
+                true: {
+                    // we have active membrane potential coloring
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                }
             }]
         };
-        GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', { configuration: configuration }, document.getElementById("ControlsMenuButton"));
+
+        //Home button initialization
+         GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
+                configuration: configuration
+        }, document.getElementById("ControlsMenuButton"), function(comp){window.controlsMenuButton = comp;});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -352,6 +343,50 @@ define(function(require) {
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
+            var addCaSuggestion = function() {
+                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
+                if (caSpecies.length > 0) {
+                    var caSuggestion = {
+                        "label": "Record Ca2+ concentrations",
+                        "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc'));",
+                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                        "icon": "fa-dot-circle-o"
+                    };
+                    var caSomaSuggestion = {
+                        "label": "Record Ca2+ concentrations at soma",
+                        "actions": ["var instances=window.getSomaVariableInstances('caConc')",
+                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                        "icon": "fa-dot-circle-o"
+                    };
+
+                    var caMenuItem = {
+                        label: "Apply Ca2+ concentration colouring to morphologies",
+                        radio: true,
+                        condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'caConc')",
+                        value: "apply_ca",
+                        false: {
+                            action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
+                                "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
+                        },
+                        true: {
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                        }
+                    };
+
+                    window.controlsMenuButton.addMenuItem(caMenuItem);
+                    GEPPETTO.Spotlight.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
+                    GEPPETTO.Spotlight.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
+                }
+            };
+
+            if (GEPPETTO.Spotlight == undefined) {
+                GEPPETTO.on(Events.Spotlight_loaded, addCaSuggestion);
+            } else {
+                addCaSuggestion();
+            }
+        });
+
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
                 $('#mainContainer').append('<div class="alert alert-warning osb-notification alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="osb-notification-text">' + Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. <a href="javascript:loadConnections();" class="alert-link">Click here to load the connections.</a> (Note: depending on the size of the network this could take some time).</span></div>');
             }
@@ -368,14 +403,57 @@ define(function(require) {
         	}
         });
 
-
         //OSB Utility functions
+        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
+            if (instances.length > 0) {
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT);
+                c.setName(name);
+                c.setSize(125, 350);
+                c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+
+                c.plotOptions = colorbar.defaultLayout();
+                c.plotOptions.xaxis.title = axistitle;
+                c.yaxisAutoRange = true; // for correct reseting of axes
+
+                var callback = function() {
+                    for (var instance of instances) {
+                        c.updateXAxisRange(instance.getTimeSeries());
+                    }
+                    // this should be generalized beyond ca
+                    if (normalize) {
+                        window.color_norm = scalefn(c.plotOptions.xaxis.max);
+                        //scalefn = window.ca_color;
+                        G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);
+                        G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
+                    }
+
+                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
+                    c.plotGeneric(data);
+
+                    window.controlsMenuButton.refresh();
+                };
+
+                if (Project.getActiveExperiment().status == "COMPLETED") {
+                    // only fetch instances for which state not already locally defined
+                    var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
+                    var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
+                    if (unfetched_paths.length > 0) {
+                        GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
+                    } else {
+                        $.proxy(callback, this)();
+                    }
+                } else {
+                    GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
+                }
+            }
+        }
+
         window.loadConnections = function() {
             Model.neuroml.resolveAllImportTypes(function() {
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
             });
         };
-        
+
         window.plotAllRecordedVariables = function() {
             Project.getActiveExperiment().playAll();
             var plt = G.addWidget(0).setName('Recorded Variables');
@@ -385,17 +463,22 @@ define(function(require) {
                 });
         };
 
-        window.getMembranePotentialsAtSoma = function() {
-            var trail = ".v";
-            var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(trail);
-            var instancesToRecord = [];
-            for (var i = 0; i < instances.length; i++) {
-                var s = instances[i].split(trail)[0];
-                if (s.endsWith("_0") || s.endsWith("]")) {
-                    instancesToRecord.push(instances[i]);
-                }
-            }
-            return Instances.getInstance(instancesToRecord);
+        window.getSomaVariableInstances = function(stateVar) {
+            var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.' + stateVar);
+            return instances
+                .map(function(x) { return Instances.getInstance(x); })
+                // we look at the name of the type of the parent of each state variable instance
+                // when the name contains 'root', it has no parent in the NeuroML and thus is soma
+                .filter(function(x) {
+                    return x.getParent()
+                        .getType()
+                        .getName()
+                        .indexOf("root") > -1
+                })
+                // remove duplicates
+                .filter(function(value, index, self) {
+                    return self.indexOf(value) === index;
+                });
         };
 
 
@@ -422,7 +505,7 @@ define(function(require) {
         };
 
         //OSB Widgets configuration
-        
+
         var widthScreen = this.innerWidth;
         var heightScreen = this.innerHeight;
 
