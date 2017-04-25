@@ -129,6 +129,8 @@ define(function(require) {
         var eventHandler = function(component){
 			GEPPETTO.on(GEPPETTO.Events.Project_downloaded, function(){
 				component.showToolTip("The project was downloaded!");
+				component.setState({icon:"fa fa-download"});
+				component.hideToolTip();
 			});
 
 			GEPPETTO.on("geppetto:error", function(){
@@ -137,11 +139,11 @@ define(function(require) {
 			});
 
 			GEPPETTO.on('spin_download', function() {
-				component.showToolTip("The project is getting downloaded...");
 				component.setState({icon:"fa  fa-download fa-spin"});
 			}.bind($("#DownloadProjectButton")));
 
 			GEPPETTO.on('stop_spin_download', function() {
+				component.hideToolTip();
 				component.setState({icon:"fa fa-download"});
 			}.bind($("#DownloadProjectButton")));
 		};
@@ -155,7 +157,7 @@ define(function(require) {
 				id: "DownloadProjectButton",
 				onClick : clickHandler,
 				eventHandler : eventHandler,
-				tooltipPosition : { my: "right center", at : "left-25 center"},
+				tooltipPosition : { my: "right center", at : "left center"},
 				tooltipLabel : "Click to download project!",
 				icon : "fa fa-download",
 				className : "btn DownloadProjectButton pull-right",
