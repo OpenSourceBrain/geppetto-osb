@@ -5,6 +5,7 @@ define(function(require) {
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
     return function(GEPPETTO) {
+        G.enableLocalStorage(true);
 
         var link = document.createElement("link");
         link.type = "text/css";
@@ -121,9 +122,9 @@ define(function(require) {
             tutorialData: osbTutorial
         }, undefined, function() {
             //temporary until sessions allow to customise the tutorial component
-            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh/hh_intro.json?dl=1")
-            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh_neuroml/hh_neuroml.json?dl=1")
-            GEPPETTO.Tutorial.addTutorial("https://dl.dropboxusercontent.com/u/7538688/practicals/1_hh_practical/hh_practical.json?dl=1")
+            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
+            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
+            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
         });
 
         var eventHandler = function(component){
@@ -157,7 +158,7 @@ define(function(require) {
 				id: "DownloadProjectButton",
 				onClick : clickHandler,
 				eventHandler : eventHandler,
-				tooltipPosition : { my: "right center", at : "left center"},
+				tooltipPosition : { my: "right center", at : "left-5 center"},
 				tooltipLabel : "Click to download project!",
 				icon : "fa fa-download",
 				className : "btn DownloadProjectButton pull-right",
