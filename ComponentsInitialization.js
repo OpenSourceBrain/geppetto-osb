@@ -129,13 +129,10 @@ define(function(require) {
 
         var eventHandler = function(component){
 			GEPPETTO.on(GEPPETTO.Events.Project_downloaded, function(){
-				component.showToolTip("The project was downloaded!");
 				component.setState({icon:"fa fa-download"});
-				component.hideToolTip();
 			});
 
 			GEPPETTO.on("geppetto:error", function(){
-				component.showToolTip("The project has failed download!");
 				component.setState({icon:"fa fa-download"});
 			});
 
@@ -144,7 +141,6 @@ define(function(require) {
 			}.bind($("#DownloadProjectButton")));
 
 			GEPPETTO.on('stop_spin_download', function() {
-				component.hideToolTip();
 				component.setState({icon:"fa fa-download"});
 			}.bind($("#DownloadProjectButton")));
 		};
