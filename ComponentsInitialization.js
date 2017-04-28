@@ -386,8 +386,8 @@ define(function(require) {
                 }
             };
 
-            if (GEPPETTO.Spotlight == undefined) {
-                GEPPETTO.on(Events.Spotlight_loaded, addCaSuggestion);
+            if (GEPPETTO.Spotlight == undefined || window.controlsMenuButton == undefined) {
+                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
             } else {
                 addCaSuggestion();
             }
