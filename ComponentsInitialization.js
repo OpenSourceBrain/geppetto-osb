@@ -177,7 +177,7 @@ define(function(require) {
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
                 var title = "Copy URL to Share Public Project";
-                GEPPETTO.FE.infoDialog(title, window.location.href);
+                GEPPETTO.ModalFactory.infoDialog(title, window.location.href);
             }
         };
 
@@ -472,7 +472,7 @@ define(function(require) {
                         $.proxy(callback, this)();
                     }
                 } else {
-                    GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
+                    GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
                 }
             }
         }
