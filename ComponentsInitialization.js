@@ -15,6 +15,11 @@ define(function(require) {
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
+        
+		//Canvas initialisation
+		GEPPETTO.ComponentFactory.addComponent('CANVAS3D', {}, document.getElementById("sim"), function () {
+            this.displayAllInstances();
+        });
 
         //This function will be called when the run button is clicked
         GEPPETTO.showExecutionDialog = function(callback) {
@@ -270,7 +275,7 @@ define(function(require) {
             	var lightUpSample = {
                     "label": "Link morphology colour to recorded membrane potentials",
                     "actions": [
-                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
+                        "GEPPETTO.SceneController.addColorFunction(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
                     ],
                     "icon": "fa-lightbulb-o"
                 };
@@ -330,16 +335,16 @@ define(function(require) {
             }, {
                 label: "Apply voltage colouring to morphologies",
                 radio: true,
-                condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'v')",
+                condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'v')",
                 value: "apply_voltage",
                 false: {
                     // either nothing is lit up, or nothing lit up based on membrane potential
-                    action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                    action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
                     // we have active membrane potential coloring
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }]
         };
@@ -386,14 +391,14 @@ define(function(require) {
                     var caMenuItem = {
                         label: "Apply Ca2+ concentration colouring to morphologies",
                         radio: true,
-                        condition: "(GEPPETTO.G.litUpInstances.length > 0) && (GEPPETTO.G.litUpInstances[0].id == 'caConc')",
+                        condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'caConc')",
                         value: "apply_ca",
                         false: {
-                            action: "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                            action: "GEPPETTO.SceneController.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());"
                         }
                     };
 
@@ -447,8 +452,8 @@ define(function(require) {
                     if (normalize) {
                         window.color_norm = scalefn(c.plotOptions.xaxis.max);
                         //scalefn = window.ca_color;
-                        G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);
-                        G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
+                        G.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());
+                        GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
                     }
 
                     var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
@@ -673,7 +678,7 @@ define(function(require) {
 
         window.executeOnSelection = function(callback) {
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell) {
-                var csel = G.getSelection()[0];
+                var csel = GEPPETTO.SceneController.getSelection()[0];
                 var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
                 if (typeof csel !== 'undefined') {
                     callback(csel);
@@ -683,7 +688,7 @@ define(function(require) {
                     for (var i = 0; i < population.length; i++) {
                         if (typeof population[i].getSize === "function" && population[i].getSize() == 1) {
                             GEPPETTO.ModelFactory.getAllInstancesOf(population[i])[0][0].select();
-                            csel = G.getSelection()[0];
+                            csel = GEPPETTO.SceneController.getSelection()[0];
                         }
                     }
                     callback(csel);
@@ -720,7 +725,7 @@ define(function(require) {
 
                     showModelDescription((typeof(id) === 'undefined') ? GEPPETTO.ModelFactory.geppettoModel.neuroml[idString] : id.getType());
 
-                    G.setCameraPosition(-60, -250, 370);
+                    Canvas1.setCameraPosition(-60, -250, 370);
                     break;
                 case "cell":
                     window.initialiseControlPanel(cellControlPanel, id);
