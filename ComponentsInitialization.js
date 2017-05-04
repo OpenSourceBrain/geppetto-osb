@@ -17,7 +17,7 @@ define(function(require) {
         GEPPETTO.Spinner.setLogo("gpt-osb");
         
 		//Canvas initialisation
-		GEPPETTO.ComponentFactory.addComponent('CANVAS3D', {}, document.getElementById("sim"), function () {
+		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
         });
 
