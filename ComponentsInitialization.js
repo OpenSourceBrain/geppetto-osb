@@ -615,14 +615,31 @@ define(function(require) {
             }
         };
 
-        window.quickExperiment = function(parameterPath, value) {
+        /**
+         * This method creates a quick experiment
+         * @param prefix it gets prepended to the experiment name
+         * @param parameterMap a map of the form where i,k and na are the labels used in the experiment name
+         *      {
+         *       ['i']:{'Model.neuroml.pulseGen1.amplitude':$('#currentValue').val()},
+         *       ['k']:{'Model.neuroml.k.conductance':$('#kValue').val()},
+         *       ['na']:{'Model.neuroml.na.conductance':$('#naValue').val()}
+         *      }
+         */
+        window.quickExperiment = function(prefix, parameterMap) {
             GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
                 //When the experiment is completed plot the variables
                 window.plotAllRecordedVariables();
             });
             Project.getActiveExperiment().clone(function() {
-                eval(parameterPath).setValue(value);
-                Project.getActiveExperiment().setName(parameterPath + '=' + value);
+                var experimentName = prefix + " - ";
+                for(var label in parameterMap){
+                    experimentName += label+"=";
+                    for(var p in parameterMap[label]){
+                        eval(p).setValue(parameterMap[label][p]);
+                        experimentName += parameterMap[label][p]+",";
+                    }
+                }
+                Project.getActiveExperiment().setName(experimentName.slice(0, -1));
                 Project.getActiveExperiment().run();
             });
         };
