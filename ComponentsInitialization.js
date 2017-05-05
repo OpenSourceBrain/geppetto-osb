@@ -182,7 +182,7 @@ define(function(require) {
                     // build parameters map
                     var amplitude = formData.ampStart + formData.timeStep*i;
                     var parameterMap = {}; parameterMap['A'] = {};
-                    parameterMap['A']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
+                    parameterMap['Amp']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
 
                     // clone project
                     Project.getActiveExperiment().clone(function() {
@@ -201,6 +201,7 @@ define(function(require) {
                         Project.getActiveExperiment().simulatorConfigurations[simConfig].setTimeStep(formData.timeStep);
                         Project.getActiveExperiment().simulatorConfigurations[simConfig].setLength(formData.simDuration);
                         // TODO: set pulse start / stop
+                        // TODO: set all voltage to recorded
                         // TODO: run experiment
                         //Project.getActiveExperiment().run();
                     });
