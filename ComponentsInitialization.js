@@ -108,6 +108,94 @@ define(function(require) {
             });
         };
 
+        // Brings up the add protocol dialog
+        GEPPETTO.showAddProtocolDialog = function(callback) {
+            var formCallback = callback;
+
+            var formId = "addProtocolForm";
+
+            var formName = "Add & Run Protocol";
+
+            var schema = {
+                type: "object",
+                required: [
+                    "protocolName",
+                    "pulseStart",
+                    "pulseStop",
+                    "ampStart",
+                    "ampStop",
+                    "timeStep",
+                    "simDuration"
+                ],
+                properties: {
+                    protocolName: {
+                        type: "string",
+                        title: "Protocol Name"
+                    },
+                    pulseStart: {
+                        type: "number",
+                        title: "Pulse Start"
+                    },
+                    pulseStop: {
+                        type: "number",
+                        title: "Pulse Stop"
+                    },
+                    ampStart: {
+                        type: "number",
+                        title: "Pulse Start"
+                    },
+                    ampStop: {
+                        type: "number",
+                        title: "Pulse Stop"
+                    },
+                    timeStep: {
+                        type: 'number',
+                        title: 'Time Step (s)'
+                    },
+                    simDuration: {
+                        type: "number",
+                        title: "Sim duration (s)"
+                    }
+                }
+            };
+
+            var formData = {
+                protocolName: 'Name your protocol',
+                pulseStart: 50,
+                pulseStop: 550,
+                ampStart: -0.1,
+                ampStop: 0.3,
+                timeStep: 0.02,
+                simDuration: 600
+            };
+
+            var submitHandler = function() {
+                // what does it do when the button is pressed
+            };
+
+            var errorHandler = function() {
+                // error handling
+            };
+
+            var changeHandler = function(formObject) {
+                // handle any changes on form data
+            };
+
+            var formWidget = null;
+
+            GEPPETTO.ComponentFactory.addComponent('FORM', {
+                id: formId,
+                name: formName,
+                schema: schema,
+                formData: formData,
+                submitHandler: submitHandler,
+                errorHandler: errorHandler,
+                changeHandler: changeHandler
+            }, undefined, function(renderedComponent) {
+                formWidget = renderedComponent;
+            });
+        };
+
         //Function to add a dialog when run button is pressed
         GEPPETTO.Flows.addCompulsoryAction('GEPPETTO.showExecutionDialog', GEPPETTO.Resources.RUN_FLOW);
 
@@ -128,26 +216,10 @@ define(function(require) {
         });
 
         var eventHandler = function(component){
-			GEPPETTO.on(GEPPETTO.Events.Project_downloaded, function(){
-				component.setState({icon:"fa fa-download"});
-			});
-
-			GEPPETTO.on("geppetto:error", function(){
-				component.setState({icon:"fa fa-download"});
-			});
-
-			GEPPETTO.on('spin_download', function() {
-				component.setState({icon:"fa  fa-download fa-spin"});
-			}.bind($("#DownloadProjectButton")));
-
-			GEPPETTO.on('stop_spin_download', function() {
-				component.setState({icon:"fa fa-download"});
-			}.bind($("#DownloadProjectButton")));
 		};
 
 		var clickHandler = function(){
 			GEPPETTO.Console.executeCommand("Project.download();");
-			GEPPETTO.trigger("spin_download");
 		};
 
 		var configuration = {
@@ -341,7 +413,11 @@ define(function(require) {
                     // we have active membrane potential coloring
                     action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
-            }]
+            }, {
+                label: "Add protocol",
+                action: "GEPPETTO.showAddProtocolDialog();",
+                value: "add_protocol"
+            },]
         };
 
         //Home button initialization
@@ -470,7 +546,7 @@ define(function(require) {
                     GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
                 }
             }
-        }
+        };
 
         window.loadConnections = function() {
             Model.neuroml.resolveAllImportTypes(function() {
