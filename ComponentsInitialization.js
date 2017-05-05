@@ -100,7 +100,7 @@ define(function(require) {
 
             var formWidget = null;
 
-            GEPPETTO.ComponentFactory.addComponent('FORM', {
+            GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
                 schema: schema,
@@ -108,7 +108,7 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, undefined, function(renderedComponent) {
+            }, function(renderedComponent) {
                 formWidget = renderedComponent;
             });
         };
@@ -122,14 +122,14 @@ define(function(require) {
         }, document.getElementById("geppettologo"));
 
         //Tutorial component initialization
-        GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
+        GEPPETTO.ComponentFactory.addWidget('TUTORIAL', {
             name: 'Open Source Brain Tutorial',
             tutorialData: osbTutorial
-        }, undefined, function() {
+        }, function() {
             //temporary until sessions allow to customise the tutorial component
-            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
-            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
-            GEPPETTO.Tutorial.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
         });
 
         var eventHandler = function(component){
@@ -352,7 +352,7 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: configuration
-        }, document.getElementById("ControlsMenuButton"), function(comp){window.controlsMenuButton = comp;});
+        }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -365,10 +365,6 @@ define(function(require) {
 
         //Simulation controls initialization
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {}, document.getElementById("sim-toolbar"));
-
-        //Camera controls initialization
-        GEPPETTO.ComponentFactory.addComponent('CAMERACONTROLS', {}, document.getElementById("camera-controls"));
-
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
@@ -409,7 +405,7 @@ define(function(require) {
             };
 
             if (GEPPETTO.Spotlight == undefined) {
-                GEPPETTO.on(Events.Spotlight_loaded, addCaSuggestion);
+                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
             } else {
                 addCaSuggestion();
             }
@@ -814,9 +810,6 @@ define(function(require) {
         GEPPETTO.G.setIdleTimeOut(-1);
 
         GEPPETTO.SceneController.setLinesThreshold(20000);
-
-        //Change this to prompt the user to switch to lines or not
-        GEPPETTO.SceneFactory.setLinesUserInput(false);
 
         GEPPETTO.G.autoFocusConsole(false);
 
