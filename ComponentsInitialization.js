@@ -46,7 +46,6 @@ define(function(require) {
                         enum: ["neuronSimulator", "lemsSimulator", "neuronNSGSimulator"],
                         enumNames: ["Neuron", "jLems", "Neuron on NSG"]
                     },
-
                     numberProcessors: {
                         type: 'number',
                         title: 'Number of Processors'
@@ -169,8 +168,43 @@ define(function(require) {
                 simDuration: 600
             };
 
-            var submitHandler = function() {
+            var submitHandler = function(formData) {
                 // what does it do when the button is pressed
+                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
+                    // TODO: When an experiment is completed check if all experiments for this protocol are completed
+                    // TODO: if all completed plot all recorded variables for all protocols experiments in one plot
+                    //window.plotAllRecordedVariables();
+                });
+
+                // loop based on amplitude delta / timestep
+                var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
+                for(var i=0; i<experimentsNo; i++){
+                    // build parameters map
+                    var amplitude = formData.ampStart + formData.timeStep*i;
+                    var parameterMap = {}; parameterMap['A'] = {};
+                    parameterMap['A']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
+
+                    // clone project
+                    Project.getActiveExperiment().clone(function() {
+                        // build experiment name based on parameters map
+                        var experimentName = "[PROTOCOL] " + formData.protocolName + " - ";
+                        for(var label in parameterMap){
+                            experimentName += label+"=";
+                            for(var p in parameterMap[label]){
+                                eval(p).setValue(parameterMap[label][p]);
+                                experimentName += parameterMap[label][p]+",";
+                            }
+                        }
+
+                        var simConfig = window.Instances[0].getId();
+                        Project.getActiveExperiment().setName(experimentName.slice(0, -1));
+                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setTimeStep(formData.timeStep);
+                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setLength(formData.simDuration);
+                        // TODO: set pulse start / stop
+                        // TODO: run experiment
+                        //Project.getActiveExperiment().run();
+                    });
+                }
             };
 
             var errorHandler = function() {
@@ -665,7 +699,7 @@ define(function(require) {
 
                 var ionChannel = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel);
                 var ionChannelFiltered = [];
-                for (ionChannelIndex in ionChannel) {
+                for (var ionChannelIndex in ionChannel) {
                     var ionChannelItem = ionChannel[ionChannelIndex];
                     if (ionChannelItem.getId() != 'ionChannel') {
                         ionChannelFiltered.push(ionChannelItem);
@@ -680,7 +714,7 @@ define(function(require) {
                 var tv = initialiseTreeWidget('Inputs on ' + csel.getId(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
                 var pulseGenerator = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator);
                 var pulseGeneratorFiltered = [];
-                for (pulseGeneratorIndex in pulseGenerator) {
+                for (var pulseGeneratorIndex in pulseGenerator) {
                     var pulseGeneratorItem = pulseGenerator[pulseGeneratorIndex];
                     if (pulseGeneratorItem.getId() != 'pulseGenerator') {
                         pulseGeneratorFiltered.push(pulseGeneratorItem);
