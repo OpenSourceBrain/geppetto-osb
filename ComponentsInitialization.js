@@ -51,7 +51,6 @@ define(function(require) {
                         enum: ["neuronSimulator", "lemsSimulator", "neuronNSGSimulator"],
                         enumNames: ["Neuron", "jLems", "Neuron on NSG"]
                     },
-
                     numberProcessors: {
                         type: 'number',
                         title: 'Number of Processors'
@@ -113,6 +112,132 @@ define(function(require) {
             });
         };
 
+        // Brings up the add protocol dialog
+        GEPPETTO.showAddProtocolDialog = function(callback) {
+            var formCallback = callback;
+
+            var formId = "addProtocolForm";
+
+            var formName = "Add & Run Protocol";
+
+            var schema = {
+                type: "object",
+                required: [
+                    "protocolName",
+                    "pulseStart",
+                    "pulseStop",
+                    "ampStart",
+                    "ampStop",
+                    "timeStep",
+                    "simDuration"
+                ],
+                properties: {
+                    protocolName: {
+                        type: "string",
+                        title: "Protocol Name"
+                    },
+                    pulseStart: {
+                        type: "number",
+                        title: "Pulse Start (ms)"
+                    },
+                    pulseStop: {
+                        type: "number",
+                        title: "Pulse Stop (ms)"
+                    },
+                    ampStart: {
+                        type: "number",
+                        title: "Amplitude Start (nA)"
+                    },
+                    ampStop: {
+                        type: "number",
+                        title: "Amplitude Stop (nA)"
+                    },
+                    timeStep: {
+                        type: 'number',
+                        title: 'Time Step (s)'
+                    },
+                    simDuration: {
+                        type: "number",
+                        title: "Sim duration (s)"
+                    }
+                }
+            };
+
+            var formData = {
+                protocolName: 'Name your protocol',
+                pulseStart: 50,
+                pulseStop: 550,
+                ampStart: -0.1,
+                ampStop: 0.3,
+                timeStep: 0.02,
+                simDuration: 600
+            };
+
+            var submitHandler = function(formData) {
+                // what does it do when the button is pressed
+                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
+                    // TODO: When an experiment is completed check if all experiments for this protocol are completed
+                    // TODO: if all completed plot all recorded variables for all protocols experiments in one plot
+                    //window.plotAllRecordedVariables();
+                });
+
+                // loop based on amplitude delta / timestep
+                var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
+                for(var i=0; i<experimentsNo; i++){
+                    // build parameters map
+                    var amplitude = formData.ampStart + formData.timeStep*i;
+                    var parameterMap = {}; parameterMap['A'] = {};
+                    parameterMap['i']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
+                    parameterMap['pulseStart']['Model.neuroml.pulseGen1.delay'] = formData.pulseStart;
+                    parameterMap['pulseDuration']['Model.neuroml.pulseGen1.duration'] = formData.pulseStop-formData.pulseStart;
+
+                    // clone project
+                    Project.getActiveExperiment().clone(function() {
+                        // build experiment name based on parameters map
+                        var experimentName = "[P] " + formData.protocolName + " - ";
+                        for(var label in parameterMap){
+                            experimentName += label+"=";
+                            for(var p in parameterMap[label]){
+                                eval(p).setValue(parameterMap[label][p]);
+                                experimentName += parameterMap[label][p]+",";
+                            }
+                        }
+
+                        var simConfig = window.Instances[0].getId();
+                        Project.getActiveExperiment().setName(experimentName.slice(0, -1));
+                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setTimeStep(formData.timeStep);
+                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setLength(formData.simDuration);
+                        var instances=window.getSomaVariableInstances('v');
+                        GEPPETTO.ExperimentsController.watchVariables(instances,true);
+                        // TODO: run experiment
+                        //Project.getActiveExperiment().run();
+                    });
+                }
+            };
+
+            var errorHandler = function() {
+                // error handling
+            };
+
+            var changeHandler = function(formObject) {
+                // handle any changes on form data
+            };
+
+            var formWidget = null;
+
+            GEPPETTO.ComponentFactory.addComponent('FORM', {
+                id: formId,
+                name: formName,
+                schema: schema,
+                formData: formData,
+                submitHandler: submitHandler,
+                errorHandler: errorHandler,
+                changeHandler: changeHandler
+            }, undefined, function(renderedComponent) {
+                formWidget = renderedComponent;
+            });
+        };
+
         //Function to add a dialog when run button is pressed
         GEPPETTO.Flows.addCompulsoryAction('GEPPETTO.showExecutionDialog', GEPPETTO.Resources.RUN_FLOW);
 
@@ -133,26 +258,10 @@ define(function(require) {
         });
 
         var eventHandler = function(component){
-			GEPPETTO.on(GEPPETTO.Events.Project_downloaded, function(){
-				component.setState({icon:"fa fa-download"});
-			});
-
-			GEPPETTO.on("geppetto:error", function(){
-				component.setState({icon:"fa fa-download"});
-			});
-
-			GEPPETTO.on('spin_download', function() {
-				component.setState({icon:"fa  fa-download fa-spin"});
-			}.bind($("#DownloadProjectButton")));
-
-			GEPPETTO.on('stop_spin_download', function() {
-				component.setState({icon:"fa fa-download"});
-			}.bind($("#DownloadProjectButton")));
 		};
 
 		var clickHandler = function(){
 			GEPPETTO.Console.executeCommand("Project.download();");
-			GEPPETTO.trigger("spin_download");
 		};
 
 		var configuration = {
@@ -346,7 +455,11 @@ define(function(require) {
                     // we have active membrane potential coloring
                     action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
-            }]
+            }, {
+                label: "Add protocol",
+                action: "GEPPETTO.showAddProtocolDialog();",
+                value: "add_protocol"
+            },]
         };
 
         //Home button initialization
@@ -471,7 +584,7 @@ define(function(require) {
                     GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
                 }
             }
-        }
+        };
 
         window.loadConnections = function() {
             Model.neuroml.resolveAllImportTypes(function() {
@@ -590,7 +703,7 @@ define(function(require) {
 
                 var ionChannel = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel);
                 var ionChannelFiltered = [];
-                for (ionChannelIndex in ionChannel) {
+                for (var ionChannelIndex in ionChannel) {
                     var ionChannelItem = ionChannel[ionChannelIndex];
                     if (ionChannelItem.getId() != 'ionChannel') {
                         ionChannelFiltered.push(ionChannelItem);
@@ -605,7 +718,7 @@ define(function(require) {
                 var tv = initialiseTreeWidget('Inputs on ' + csel.getId(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
                 var pulseGenerator = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator);
                 var pulseGeneratorFiltered = [];
-                for (pulseGeneratorIndex in pulseGenerator) {
+                for (var pulseGeneratorIndex in pulseGenerator) {
                     var pulseGeneratorItem = pulseGenerator[pulseGeneratorIndex];
                     if (pulseGeneratorItem.getId() != 'pulseGenerator') {
                         pulseGeneratorFiltered.push(pulseGeneratorItem);
