@@ -133,19 +133,19 @@ define(function(require) {
                     },
                     pulseStart: {
                         type: "number",
-                        title: "Pulse Start"
+                        title: "Pulse Start (ms)"
                     },
                     pulseStop: {
                         type: "number",
-                        title: "Pulse Stop"
+                        title: "Pulse Stop (ms)"
                     },
                     ampStart: {
                         type: "number",
-                        title: "Pulse Start"
+                        title: "Amplitude Start (nA)"
                     },
                     ampStop: {
                         type: "number",
-                        title: "Pulse Stop"
+                        title: "Amplitude Stop (nA)"
                     },
                     timeStep: {
                         type: 'number',
@@ -182,12 +182,14 @@ define(function(require) {
                     // build parameters map
                     var amplitude = formData.ampStart + formData.timeStep*i;
                     var parameterMap = {}; parameterMap['A'] = {};
-                    parameterMap['Amp']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
+                    parameterMap['i']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
+                    parameterMap['pulseStart']['Model.neuroml.pulseGen1.delay'] = formData.pulseStart;
+                    parameterMap['pulseDuration']['Model.neuroml.pulseGen1.duration'] = formData.pulseStop-formData.pulseStart;
 
                     // clone project
                     Project.getActiveExperiment().clone(function() {
                         // build experiment name based on parameters map
-                        var experimentName = "[PROTOCOL] " + formData.protocolName + " - ";
+                        var experimentName = "[P] " + formData.protocolName + " - ";
                         for(var label in parameterMap){
                             experimentName += label+"=";
                             for(var p in parameterMap[label]){
@@ -200,8 +202,8 @@ define(function(require) {
                         Project.getActiveExperiment().setName(experimentName.slice(0, -1));
                         Project.getActiveExperiment().simulatorConfigurations[simConfig].setTimeStep(formData.timeStep);
                         Project.getActiveExperiment().simulatorConfigurations[simConfig].setLength(formData.simDuration);
-                        // TODO: set pulse start / stop
-                        // TODO: set all voltage to recorded
+                        var instances=window.getSomaVariableInstances('v');
+                        GEPPETTO.ExperimentsController.watchVariables(instances,true);
                         // TODO: run experiment
                         //Project.getActiveExperiment().run();
                     });
