@@ -225,7 +225,7 @@ define(function(require) {
 
             var formWidget = null;
 
-            GEPPETTO.ComponentFactory.addComponent('FORM', {
+            GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
                 schema: schema,
