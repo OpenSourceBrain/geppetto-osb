@@ -173,7 +173,9 @@ define(function(require) {
                 simDuration: 600
             };
 
-            var submitHandler = function(formData) {
+            var submitHandler = function(data) {
+                var formData = data.formData;
+
                 // what does it do when the button is pressed
                 GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
                     // TODO: When an experiment is completed check if all experiments for this protocol are completed
@@ -186,10 +188,11 @@ define(function(require) {
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = formData.ampStart + formData.timeStep*i;
-                    var parameterMap = {}; parameterMap['A'] = {};
-                    parameterMap['i']['Model.neuroml.pulseGen1.amplitude'] = amplitude;
-                    parameterMap['pulseStart']['Model.neuroml.pulseGen1.delay'] = formData.pulseStart;
-                    parameterMap['pulseDuration']['Model.neuroml.pulseGen1.duration'] = formData.pulseStop-formData.pulseStart;
+                    var parameterMap = {
+                        i: {'Model.neuroml.pulseGen1.amplitude': amplitude},
+                        pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
+                        pulseDuration: {'Model.neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
+                    };
 
                     // clone project
                     Project.getActiveExperiment().clone(function() {
@@ -225,7 +228,7 @@ define(function(require) {
 
             var formWidget = null;
 
-            GEPPETTO.ComponentFactory.addComponent('FORM', {
+            GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
                 schema: schema,
