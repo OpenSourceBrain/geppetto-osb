@@ -38,7 +38,7 @@ USER developer
 RUN cd workspace/org.geppetto/utilities/source_setup && yes n | python setup.py && python gitall.py pull && python gitall.py reset && python gitall.py checkout development && python gitall.py checkout view-state && python gitall.py checkout 3dcanvasextraction
 
 #PUT GEPPETTO-OSB IN THE FRONTEND
-RUN cd workspace/org.geppetto.frontend/src/main/webapp/extensions && git clone https://1b3ffaa7901b2e233b8dff6316583aa039bb12ee@github.com/opensourcebrain/geppetto-osb && cd geppetto-osb && git checkout 3dcanvasextraction
+RUN cd workspace/org.geppetto.frontend/src/main/webapp/extensions && git clone https://github.com/OpenSourceBrain/geppetto-osb.git && cd geppetto-osb && git checkout 3dcanvasextraction
 
 #FORCE EXTENSIONS CONFIGURATION
 ADD extensionsConfiguration.json workspace/org.geppetto.frontend/src/main/webapp/extensions/
