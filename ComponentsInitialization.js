@@ -755,10 +755,15 @@ define(function(require) {
             Project.getActiveExperiment().clone(function() {
                 var experimentName = prefix + " - ";
                 for(var label in parameterMap){
-                    experimentName += label+"=";
+                	//if a label starts with _ we don't show it as part of the experiment name
+                	if(!label.startsWith("_")){
+                		experimentName += label+"=";
+                	}
                     for(var p in parameterMap[label]){
                         eval(p).setValue(parameterMap[label][p]);
-                        experimentName += parameterMap[label][p]+",";
+                        if(!label.startsWith("_")){
+                        	experimentName += parameterMap[label][p]+",";	
+                        }
                     }
                 }
                 Project.getActiveExperiment().setName(experimentName.slice(0, -1));
