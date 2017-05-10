@@ -109,6 +109,13 @@
 	background-color: #39a8c3!important;
 }
 
+.tutorialQuestion{
+	margin-top:10px;
+	font-size: 15px;
+    background-color: #fc6320;
+    padding: 8px;
+}
+
 .tutorialForm input[type=text] {
     border-radius: 0;
     margin: 5px;
