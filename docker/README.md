@@ -1,4 +1,4 @@
-# Docker Files for geppetto-hm
+# Docker Files for geppetto-osb
 
 To build
 --------
