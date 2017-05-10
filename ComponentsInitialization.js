@@ -272,7 +272,7 @@ define(function(require) {
 				onClick : clickHandler,
 				eventHandler : eventHandler,
 				tooltipPosition : { my: "right center", at : "left-5 center"},
-				tooltipLabel : "Click to download project!",
+				tooltipLabel : "Download your current project",
 				icon : "fa fa-download",
 				className : "btn DownloadProjectButton pull-right",
 				disabled : false,
@@ -597,10 +597,16 @@ define(function(require) {
 
         window.plotAllRecordedVariables = function() {
             Project.getActiveExperiment().playAll();
-            var plt = G.addWidget(0).setName('Recorded Variables');
+            var plots={};
             $.each(Project.getActiveExperiment().getWatchedVariables(true, false),
                 function(index, value) {
-                    plt.plotData(value)
+            		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
+            		var plot = plots[end];
+            		if(plots[end]==undefined){
+            			plots[end]=G.addWidget(0).setName("Recorded variables: "+end);
+            			plot = plots[end];
+            		}
+                    plot.plotData(value)
                 });
         };
 
