@@ -185,37 +185,48 @@ define(function(require) {
 
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
-                for(var i=0; i<experimentsNo; i++){
+                var experimentNames = [];
+                var experimentsDataMap = {};
+                for(var i=0; i<=experimentsNo; i++){
                     // build parameters map
-                    var amplitude = formData.ampStart + formData.timeStep*i;
+                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2);
                     var parameterMap = {
                         i: {'Model.neuroml.pulseGen1.amplitude': amplitude},
                         pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
                         pulseDuration: {'Model.neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
 
-                    // clone project
-                    Project.getActiveExperiment().clone(function() {
-                        // build experiment name based on parameters map
-                        var experimentName = "[P] " + formData.protocolName + " - ";
-                        for(var label in parameterMap){
-                            experimentName += label+"=";
-                            for(var p in parameterMap[label]){
-                                eval(p).setValue(parameterMap[label][p]);
-                                experimentName += parameterMap[label][p]+",";
-                            }
+                    // build experiment name based on parameters map
+                    var experimentName = "[P] " + formData.protocolName + " - ";
+                    for(var label in parameterMap){
+                        experimentName += label+"=";
+                        for(var p in parameterMap[label]){
+                            experimentName += parameterMap[label][p]+",";
                         }
+                    }
+                    experimentName = experimentName.slice(0, -1);
 
-                        var simConfig = window.Instances[0].getId();
-                        Project.getActiveExperiment().setName(experimentName.slice(0, -1));
-                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setTimeStep(formData.timeStep);
-                        Project.getActiveExperiment().simulatorConfigurations[simConfig].setLength(formData.simDuration);
-                        var instances=window.getSomaVariableInstances('v');
-                        GEPPETTO.ExperimentsController.watchVariables(instances,true);
-                        // TODO: run experiment
-                        //Project.getActiveExperiment().run();
-                    });
+                    experimentNames.push(experimentName);
+                    experimentsDataMap[experimentName] = {
+                        parameters: parameterMap,
+                        timeStep: formData.timeStep,
+                        simDuration: formData.simDuration
+                    }
                 }
+
+                var setExperimentData = function(){
+                    alert('test callback after experiment creation');
+
+                    // TODO: set parameter values from experimentsDataMap
+                    // TODO: set time step and sim duration
+                    // TODO: set variables to watch
+                    // var instances=window.getSomaVariableInstances('v');
+                    // GEPPETTO.ExperimentsController.watchVariables(instances,true);
+                    // TODO: run experiment
+                    //Project.getActiveExperiment().run();
+                };
+
+                Project.newExperimentBatch(experimentNames, setExperimentData);
             };
 
             var errorHandler = function() {
