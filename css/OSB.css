@@ -82,3 +82,46 @@
 #tutorial_dialog .formula{
 	color:#37abc8;
 }
+
+.tutorialForm{
+	width:390px;
+}
+
+.tutorialForm .tutorialLabel{
+	width:200px;
+	font-weight:600;
+	float: left;
+    margin: 10px;
+    clear: left;
+}
+
+.tutorialForm .btn{
+    background-color: #297385!important;
+    color: white!important;
+    float: left;
+    clear: both;
+    width: 380px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tutorialForm .btn:hover{
+	background-color: #39a8c3!important;
+}
+
+.tutorialQuestion{
+	margin-top:10px;
+	font-size: 15px;
+    background-color: #fc6320;
+    padding: 8px;
+}
+
+.tutorialForm input[type=text] {
+    border-radius: 0;
+    margin: 5px;
+    background-color: #297385;
+    border: 0;
+    color: white;
+    clear: right;
+    float: left;
+}
