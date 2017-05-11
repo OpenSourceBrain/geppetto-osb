@@ -185,13 +185,12 @@ define(function(require) {
 
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
-                var experimentNames = [];
                 var experimentsDataMap = {};
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = formData.ampStart + formData.timeStep*i;
                     var parameterMap = {
-                        i: {'Model.neuroml.pulseGen1.amplitude': amplitude},
+                        i: {'Model.neuroml.pulseGen1.amplitude': amplitude.toFixed(2)},
                         pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
                         pulseDuration: {'Model.neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
@@ -206,27 +205,20 @@ define(function(require) {
                     }
                     experimentName = experimentName.slice(0, -1);
 
-                    experimentNames.push(experimentName);
                     experimentsDataMap[experimentName] = {
                         parameters: parameterMap,
                         timeStep: formData.timeStep,
-                        simDuration: formData.simDuration
+                        duration: formData.simDuration
                     }
                 }
 
                 var setExperimentData = function(){
                     alert('test callback after experiment creation');
-
-                    // TODO: set parameter values from experimentsDataMap
-                    // TODO: set time step and sim duration
-                    // TODO: set variables to watch
-                    // var instances=window.getSomaVariableInstances('v');
-                    // GEPPETTO.ExperimentsController.watchVariables(instances,true);
-                    // TODO: run experiment
+                    // TODO: retrieve all protocol expriments and run them
                     //Project.getActiveExperiment().run();
                 };
 
-                Project.newExperimentBatch(experimentNames, setExperimentData);
+                Project.newExperimentBatch(experimentsDataMap, setExperimentData);
             };
 
             var errorHandler = function() {
