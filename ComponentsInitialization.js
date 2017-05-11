@@ -182,9 +182,9 @@ define(function(require) {
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
                 var experimentNames = [];
                 var experimentsDataMap = {};
-                for(var i=0; i<experimentsNo; i++){
+                for(var i=0; i<=experimentsNo; i++){
                     // build parameters map
-                    var amplitude = formData.ampStart + formData.timeStep*i;
+                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2);
                     var parameterMap = {
                         i: {'Model.neuroml.pulseGen1.amplitude': amplitude},
                         pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
