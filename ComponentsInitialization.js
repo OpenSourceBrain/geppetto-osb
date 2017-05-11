@@ -188,7 +188,7 @@ define(function(require) {
                 var experimentsDataMap = {};
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
-                    var amplitude = formData.ampStart + formData.timeStep*i;
+                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2);
                     var parameterMap = {
                         i: {'Model.neuroml.pulseGen1.amplitude': amplitude.toFixed(2)},
                         pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
@@ -261,6 +261,7 @@ define(function(require) {
             this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
             this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
             this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_exercises/hh_exercises.json");
         });
 
         var eventHandler = function(component){
@@ -275,7 +276,7 @@ define(function(require) {
 				onClick : clickHandler,
 				eventHandler : eventHandler,
 				tooltipPosition : { my: "right center", at : "left-5 center"},
-				tooltipLabel : "Click to download project!",
+				tooltipLabel : "Download your current project",
 				icon : "fa fa-download",
 				className : "btn DownloadProjectButton pull-right",
 				disabled : false,
@@ -600,10 +601,16 @@ define(function(require) {
 
         window.plotAllRecordedVariables = function() {
             Project.getActiveExperiment().playAll();
-            var plt = G.addWidget(0).setName('Recorded Variables');
+            var plots={};
             $.each(Project.getActiveExperiment().getWatchedVariables(true, false),
                 function(index, value) {
-                    plt.plotData(value)
+            		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
+            		var plot = plots[end];
+            		if(plots[end]==undefined){
+            			plots[end]=G.addWidget(0).setName("Recorded variables: "+end);
+            			plot = plots[end];
+            		}
+                    plot.plotData(value)
                 });
         };
 
@@ -752,10 +759,15 @@ define(function(require) {
             Project.getActiveExperiment().clone(function() {
                 var experimentName = prefix + " - ";
                 for(var label in parameterMap){
-                    experimentName += label+"=";
+                	//if a label starts with _ we don't show it as part of the experiment name
+                	if(!label.startsWith("_")){
+                		experimentName += label+"=";
+                	}
                     for(var p in parameterMap[label]){
                         eval(p).setValue(parameterMap[label][p]);
-                        experimentName += parameterMap[label][p]+",";
+                        if(!label.startsWith("_")){
+                        	experimentName += parameterMap[label][p]+",";	
+                        }
                     }
                 }
                 Project.getActiveExperiment().setName(experimentName.slice(0, -1));
