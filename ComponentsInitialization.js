@@ -216,11 +216,13 @@ define(function(require) {
                 }
 
                 var setExperimentData = function(){
+                    GEPPETTO.trigger('stop_spin_logo');
                     alert('test callback after experiment creation');
                     // TODO: retrieve all protocol expriments and run them
                     //Project.getActiveExperiment().run();
                 };
 
+                GEPPETTO.trigger('spin_logo');
                 Project.newExperimentBatch(experimentsDataMap, setExperimentData);
             };
 
