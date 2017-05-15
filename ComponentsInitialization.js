@@ -188,11 +188,11 @@ define(function(require) {
                 var experimentsDataMap = {};
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
-                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2);
+                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
                     var parameterMap = {
-                        i: {'Model.neuroml.pulseGen1.amplitude': amplitude.toFixed(2)},
-                        pulseStart: {'Model.neuroml.pulseGen1.delay': formData.pulseStart},
-                        pulseDuration: {'Model.neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
+                        i: {'neuroml.pulseGen1.amplitude': amplitude},
+                        pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
+                        pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
 
                     // build experiment name based on parameters map
@@ -208,7 +208,10 @@ define(function(require) {
                     experimentsDataMap[experimentName] = {
                         parameters: parameterMap,
                         timeStep: formData.timeStep,
-                        duration: formData.simDuration
+                        duration: formData.simDuration,
+                        // TODO: add dropdown field to form to pick simulatorId
+                        simulator: 'neuronSimulator',
+                        aspectPath: Instances[0].getPath()
                     }
                 }
 
