@@ -193,7 +193,7 @@ define(function(require) {
 
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
-                var experimentsDataMap = {};
+                var experimentsData = [];
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
@@ -202,28 +202,31 @@ define(function(require) {
                         pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
                         pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
-
+                    
+                    
+                    var simpleModelParametersMap = {};
                     // build experiment name based on parameters map
                     var experimentName = "[P] " + formData.protocolName + " - ";
                     for(var label in parameterMap){
                         experimentName += label+"=";
                         for(var p in parameterMap[label]){
                             experimentName += parameterMap[label][p]+",";
+                            simpleModelParametersMap[p]=parameterMap[label][p];
                         }
                     }
                     experimentName = experimentName.slice(0, -1);
 
-                    experimentsDataMap[experimentName] = {
-                        parameters: parameterMap,
+                    experimentsData.push({
+                    	name : experimentName,
+                    	modelParameters: simpleModelParametersMap,
                         timeStep: formData.timeStep,
                         duration: formData.simDuration,
-                        // TODO: add dropdown field to form to pick simulatorId
                         simulator: 'neuronSimulator',
                         aspectPath: Instances[0].getInstancePath(true),
                         simulatorParameters: {
                             target: Instances[0].getType().getId()
                         }
-                    }
+                    });
                 }
 
                 var setExperimentData = function(){
@@ -234,7 +237,7 @@ define(function(require) {
                 };
 
                 GEPPETTO.trigger('spin_logo');
-                Project.newExperimentBatch(experimentsDataMap, setExperimentData);
+                Project.newExperimentBatch(experimentsData, setExperimentData);
             };
 
             var errorHandler = function() {
