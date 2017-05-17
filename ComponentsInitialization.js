@@ -63,10 +63,18 @@ define(function(require) {
                 numberProcessors: 1
             };
 
-            if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != null || undefined) {
-                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getTimeStep();
-                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getLength();
-                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getSimulator();
+            // figure out aspect configuration path ref
+            var pathRef = null;
+            if(Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != undefined){
+                pathRef = window.Instances[0].getId();
+            } else if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getInstancePath(true)] != undefined) {
+                pathRef = window.Instances[0].getInstancePath(true);
+            }
+
+            if (pathRef != null) {
+                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
+                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
+                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
             var submitHandler = function() {
@@ -211,7 +219,10 @@ define(function(require) {
                         duration: formData.simDuration,
                         // TODO: add dropdown field to form to pick simulatorId
                         simulator: 'neuronSimulator',
-                        aspectPath: Instances[0].getPath()
+                        aspectPath: Instances[0].getInstancePath(true),
+                        simulatorParameters: {
+                            target: Instances[0].getType().getId()
+                        }
                     }
                 }
 
