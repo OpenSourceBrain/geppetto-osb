@@ -193,6 +193,19 @@ define(function(require) {
                     //window.plotAllRecordedVariables();
                 });
 
+                // build list of paths for variables to watch
+                var watchedVars = [];
+                if(Project.getActiveExperiment() != undefined){
+                    watchedVars = Project.getActiveExperiment().getWatchedVariables();
+                }
+                // concat default paths
+                var defaultVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+                for(var v=0; v<defaultVars.length; v++){
+                    if(!watchedVars.includes(defaultVars[v])){
+                        watchedVars.push(defaultVars[v]);
+                    }
+                }
+
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
                 var experimentsData = [];
@@ -221,6 +234,7 @@ define(function(require) {
                     experimentsData.push({
                     	name : experimentName,
                     	modelParameters: simpleModelParametersMap,
+                        watchedVariables: watchedVars,
                         timeStep: formData.timeStep,
                         duration: formData.simDuration,
                         simulator: 'neuronSimulator',
