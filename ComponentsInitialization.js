@@ -79,7 +79,7 @@ define(function(require) {
 
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
-                $("#" + formWidget.props.id + "_dialog").remove();
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -115,14 +115,16 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
             });
         };
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
             var formCallback = callback;
+
+            var formWidget = null;
 
             var formId = "addProtocolForm";
 
@@ -193,7 +195,7 @@ define(function(require) {
 
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
-                var experimentsDataMap = {};
+                var experimentsData = [];
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
@@ -202,28 +204,31 @@ define(function(require) {
                         pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
                         pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
-
+                    
+                    
+                    var simpleModelParametersMap = {};
                     // build experiment name based on parameters map
                     var experimentName = "[P] " + formData.protocolName + " - ";
                     for(var label in parameterMap){
                         experimentName += label+"=";
                         for(var p in parameterMap[label]){
                             experimentName += parameterMap[label][p]+",";
+                            simpleModelParametersMap[p]=parameterMap[label][p];
                         }
                     }
                     experimentName = experimentName.slice(0, -1);
 
-                    experimentsDataMap[experimentName] = {
-                        parameters: parameterMap,
+                    experimentsData.push({
+                    	name : experimentName,
+                    	modelParameters: simpleModelParametersMap,
                         timeStep: formData.timeStep,
                         duration: formData.simDuration,
-                        // TODO: add dropdown field to form to pick simulatorId
                         simulator: 'neuronSimulator',
                         aspectPath: Instances[0].getInstancePath(true),
                         simulatorParameters: {
                             target: Instances[0].getType().getId()
                         }
-                    }
+                    });
                 }
 
                 var setExperimentData = function(){
@@ -234,7 +239,10 @@ define(function(require) {
                 };
 
                 GEPPETTO.trigger('spin_logo');
-                Project.newExperimentBatch(experimentsDataMap, setExperimentData);
+                Project.newExperimentBatch(experimentsData, setExperimentData);
+
+                // close widget
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -245,8 +253,6 @@ define(function(require) {
                 // handle any changes on form data
             };
 
-            var formWidget = null;
-
             GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
@@ -255,8 +261,9 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, undefined, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
+                formWidget.setPosition(100, 0);
             });
         };
 
