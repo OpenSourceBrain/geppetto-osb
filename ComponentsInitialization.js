@@ -308,8 +308,9 @@ define(function(require) {
 
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
-                var title = "Copy URL to Share Public Project";
-                GEPPETTO.ModalFactory.infoDialog(title, window.location.href);
+                var title = "Your project is now public. This is its URL for you to share!";
+                var url = window.osbURL + "?explorer_id="+Project.getId();
+                GEPPETTO.ModalFactory.infoDialog(title, url);
             }
         };
 
