@@ -79,7 +79,7 @@ define(function(require) {
 
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
-                $("#" + formWidget.props.id + "_dialog").remove();
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -115,14 +115,16 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
             });
         };
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
             var formCallback = callback;
+
+            var formWidget = null;
 
             var formId = "addProtocolForm";
 
@@ -238,6 +240,9 @@ define(function(require) {
 
                 GEPPETTO.trigger('spin_logo');
                 Project.newExperimentBatch(experimentsData, setExperimentData);
+
+                // close widget
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -248,8 +253,6 @@ define(function(require) {
                 // handle any changes on form data
             };
 
-            var formWidget = null;
-
             GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
@@ -258,8 +261,8 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, undefined, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
             });
         };
 
