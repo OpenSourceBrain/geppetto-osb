@@ -186,6 +186,8 @@ define(function(require) {
             var submitHandler = function(data) {
                 var formData = data.formData;
 
+                var experimentNamePattern = "[P] " + formData.protocolName + " - ";
+
                 // what does it do when the button is pressed
                 GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
                     // TODO: When an experiment is completed check if all experiments for this protocol are completed
@@ -221,7 +223,7 @@ define(function(require) {
                     
                     var simpleModelParametersMap = {};
                     // build experiment name based on parameters map
-                    var experimentName = "[P] " + formData.protocolName + " - ";
+                    var experimentName = experimentNamePattern;
                     for(var label in parameterMap){
                         experimentName += label+"=";
                         for(var p in parameterMap[label]){
@@ -235,8 +237,8 @@ define(function(require) {
                     	name : experimentName,
                     	modelParameters: simpleModelParametersMap,
                         watchedVariables: watchedVars,
-                        timeStep: formData.timeStep,
-                        duration: formData.simDuration,
+                        timeStep: formData.timeStep/1000,
+                        duration: formData.simDuration/1000,
                         simulator: 'neuronSimulator',
                         aspectPath: Instances[0].getInstancePath(true),
                         simulatorParameters: {
@@ -248,8 +250,16 @@ define(function(require) {
                 var setExperimentData = function(){
                     GEPPETTO.trigger('stop_spin_logo');
                     alert('test callback after experiment creation');
-                    // TODO: retrieve all protocol expriments and run them
-                    //Project.getActiveExperiment().run();
+
+                    // retrieve all protocol experiments and run them all
+                    var exps = Project.getExperiments();
+                    for(var e=0; e<exps.length; e++){
+                        // check if the experiment name starts with the correct pattern
+                        if(exps[e].getName().indexOf(experimentNamePattern) == 0){
+                            // it's part of the protocol, run it
+                            exps[e].run();
+                        }
+                    }
                 };
 
                 GEPPETTO.trigger('spin_logo');
