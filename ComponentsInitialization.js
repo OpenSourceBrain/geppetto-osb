@@ -71,7 +71,7 @@ define(function(require) {
 
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
-                $("#" + formWidget.props.id + "_dialog").remove();
+                $("#" + formId).remove();
             };
 
             var errorHandler = function() {
