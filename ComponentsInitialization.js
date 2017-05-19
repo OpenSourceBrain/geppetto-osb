@@ -63,15 +63,23 @@ define(function(require) {
                 numberProcessors: 1
             };
 
-            if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != null || undefined) {
-                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getTimeStep();
-                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getLength();
-                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getSimulator();
+            // figure out aspect configuration path ref
+            var pathRef = null;
+            if(Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != undefined){
+                pathRef = window.Instances[0].getId();
+            } else if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getInstancePath(true)] != undefined) {
+                pathRef = window.Instances[0].getInstancePath(true);
+            }
+
+            if (pathRef != null) {
+                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
+                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
+                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
-                $("#" + formId).remove();
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -107,14 +115,16 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
             });
         };
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
             var formCallback = callback;
+
+            var formWidget = null;
 
             var formId = "addProtocolForm";
 
@@ -176,6 +186,8 @@ define(function(require) {
             var submitHandler = function(data) {
                 var formData = data.formData;
 
+                var experimentNamePattern = "[P] " + formData.protocolName + " - ";
+
                 // what does it do when the button is pressed
                 GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
                     // TODO: When an experiment is completed check if all experiments for this protocol are completed
@@ -183,9 +195,22 @@ define(function(require) {
                     //window.plotAllRecordedVariables();
                 });
 
+                // build list of paths for variables to watch
+                var watchedVars = [];
+                if(Project.getActiveExperiment() != undefined){
+                    watchedVars = Project.getActiveExperiment().getWatchedVariables();
+                }
+                // concat default paths
+                var defaultVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+                for(var v=0; v<defaultVars.length; v++){
+                    if(!watchedVars.includes(defaultVars[v])){
+                        watchedVars.push(defaultVars[v]);
+                    }
+                }
+
                 // loop based on amplitude delta / timestep
                 var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
-                var experimentsDataMap = {};
+                var experimentsData = [];
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
@@ -194,36 +219,54 @@ define(function(require) {
                         pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
                         pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
                     };
-
+                    
+                    
+                    var simpleModelParametersMap = {};
                     // build experiment name based on parameters map
-                    var experimentName = "[P] " + formData.protocolName + " - ";
+                    var experimentName = experimentNamePattern;
                     for(var label in parameterMap){
                         experimentName += label+"=";
                         for(var p in parameterMap[label]){
                             experimentName += parameterMap[label][p]+",";
+                            simpleModelParametersMap[p]=parameterMap[label][p];
                         }
                     }
                     experimentName = experimentName.slice(0, -1);
 
-                    experimentsDataMap[experimentName] = {
-                        parameters: parameterMap,
-                        timeStep: formData.timeStep,
-                        duration: formData.simDuration,
-                        // TODO: add dropdown field to form to pick simulatorId
+                    experimentsData.push({
+                    	name : experimentName,
+                    	modelParameters: simpleModelParametersMap,
+                        watchedVariables: watchedVars,
+                        timeStep: formData.timeStep/1000,
+                        duration: formData.simDuration/1000,
                         simulator: 'neuronSimulator',
-                        aspectPath: Instances[0].getPath()
-                    }
+                        aspectPath: Instances[0].getInstancePath(true),
+                        simulatorParameters: {
+                            target: Instances[0].getType().getId()
+                        }
+                    });
                 }
 
                 var setExperimentData = function(){
                     GEPPETTO.trigger('stop_spin_logo');
                     alert('test callback after experiment creation');
-                    // TODO: retrieve all protocol expriments and run them
-                    //Project.getActiveExperiment().run();
+
+                    // retrieve all protocol experiments and run them all
+                    var exps = Project.getExperiments();
+                    for(var e=0; e<exps.length; e++){
+                        // check if the experiment name starts with the correct pattern
+                        if(exps[e].getName().indexOf(experimentNamePattern) == 0){
+                            // it's part of the protocol, run it
+                            exps[e].run();
+                        }
+                    }
                 };
 
                 GEPPETTO.trigger('spin_logo');
-                Project.newExperimentBatch(experimentsDataMap, setExperimentData);
+                Project.newExperimentBatch(experimentsData, setExperimentData);
+
+                // close widget
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -234,8 +277,6 @@ define(function(require) {
                 // handle any changes on form data
             };
 
-            var formWidget = null;
-
             GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
@@ -244,8 +285,9 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, undefined, function(renderedComponent) {
-                formWidget = renderedComponent;
+            }, function() {
+                formWidget = this;
+                formWidget.setPosition(100, 0);
             });
         };
 
@@ -297,8 +339,9 @@ define(function(require) {
 
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
-                var title = "Copy URL to Share Public Project";
-                GEPPETTO.ModalFactory.infoDialog(title, window.location.href);
+                var title = "Your project is now public. This is its URL for you to share!";
+                var url = window.osbURL + "?explorer_id="+Project.getId();
+                GEPPETTO.ModalFactory.infoDialog(title, url);
             }
         };
 
@@ -965,6 +1008,8 @@ define(function(require) {
         GEPPETTO.SceneController.setLinesThreshold(20000);
 
         GEPPETTO.G.autoFocusConsole(false);
+        
+        GEPPETTO.UnitsController.addUnit("V","Membrane potential");
 
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             $("#tutorial_dialog").dialog('moveToTop');
