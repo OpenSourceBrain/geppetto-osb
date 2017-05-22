@@ -257,7 +257,7 @@ define(function(require) {
                         // check if the experiment name starts with the correct pattern
                         if(exps[e].getName().indexOf(experimentNamePattern) == 0){
                             // it's part of the protocol, run it
-                            exps[e].run();
+                            //exps[e].run();
                         }
                     }
                 };
