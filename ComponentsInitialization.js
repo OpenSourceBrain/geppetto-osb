@@ -868,6 +868,40 @@ define(function(require) {
             mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
 
+        window.showProtocolSummary = function() {
+            // figure out if we have any protocol and organize into a map
+            var experiments = Project.getExperiments();
+            var protocolExperimentsMap = {};
+            for(var i=0; i<experiments.length; i++){
+                if(experiments[i].getName().startsWith('[P]')){
+                    // parse protocol pattern
+                    var experimentName = experiments[i].getName();
+                    var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
+                    if(protocolExperimentsMap[protocolName] == undefined){
+                        protocolExperimentsMap[protocolName] = [experiments[i]];
+                    } else {
+                        protocolExperimentsMap[protocolName].push(experiments[i]);
+                    }
+                }
+            }
+
+            // create markup for the protocol with protocol name and a 'plot results' shortcut link
+            var markup = '';
+            for(var protocol in protocolExperimentsMap){
+                var exps = protocolExperimentsMap[protocol];
+                // foreach protocol create markup
+                markup += "<p>[P] {0} ({1} experiments): <a href='#' id='{2}' style='color: white'>Plot membrane potentials</a></p>".format(protocol, exps.length, protocol.replace(' ', '__'));
+            }
+
+            // create popup and set markup if any
+            var protocolsPopup = null;
+            if(markup != ''){
+                protocolsPopup = G.addWidget(1).setName('Protocols Summary').setMessage(markup);
+            }
+
+            // TODO: setup custom handler for clicks on plot links
+        };
+
         window.executeOnSelection = function(callback) {
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell) {
                 var csel = GEPPETTO.SceneController.getSelection()[0];
@@ -1001,7 +1035,7 @@ define(function(require) {
                     break;
 
             }
-        }
+        };
 
         GEPPETTO.G.setIdleTimeOut(-1);
 
