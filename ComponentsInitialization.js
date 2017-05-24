@@ -628,7 +628,8 @@ define(function(require) {
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             // reset control panel with defaults
             if (GEPPETTO.ControlPanel != undefined) {
-                GEPPETTO.ControlPanel.clearData();
+                // reset to default tab
+                GEPPETTO.ControlPanel.setTab(undefined);
             }
         });
 
