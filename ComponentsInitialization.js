@@ -188,12 +188,46 @@ define(function(require) {
 
                 var experimentNamePattern = "[P] " + formData.protocolName + " - ";
 
+                function experimentCompleteHandler(){
+                    var experiments = Project.getExperiments();
+                    var protocolExperimentsMap = {};
+                    for(var i=0; i<experiments.length; i++){
+                        if(experiments[i].getName().startsWith('[P]')){
+                            // parse protocol pattern
+                            var experimentName = experiments[i].getName();
+                            var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
+                            if(protocolExperimentsMap[protocolName] == undefined){
+                                protocolExperimentsMap[protocolName] = [experiments[i]];
+                            } else {
+                                protocolExperimentsMap[protocolName].push(experiments[i]);
+                            }
+                        }
+                    }
+
+                    var protocolExperiments = [];
+                    for(var protocol in protocolExperimentsMap){
+                        // When an experiment is completed check if all experiments for this protocol are completed
+                        if(protocol == formData.protocolName){
+                            protocolExperiments = protocolExperimentsMap[protocol];
+                        }
+                    }
+
+                    var allCompleted = true;
+                    for(var i=0; i<protocolExperiments.length; i++){
+                        if(protocolExperiments[i].status != "COMPLETED"){
+                            allCompleted = false;
+                            break;
+                        }
+                    }
+
+                    if(allCompleted){
+                        window.showProtocolSummary();
+                        GEPPETTO.off(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
+                    }
+                }
+
                 // what does it do when the button is pressed
-                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
-                    // TODO: When an experiment is completed check if all experiments for this protocol are completed
-                    // TODO: if all completed plot all recorded variables for all protocols experiments in one plot
-                    //window.plotAllRecordedVariables();
-                });
+                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
 
                 // build list of paths for variables to watch
                 var watchedVars = [];
@@ -231,7 +265,9 @@ define(function(require) {
                             simpleModelParametersMap[p]=parameterMap[label][p];
                         }
                     }
-                    experimentName = experimentName.slice(0, -1);
+
+                    // keep only the first parameter in te experiment name to avoid making it too long
+                    experimentName = experimentName.slice(0, experimentName.indexOf(','));
 
                     experimentsData.push({
                     	name : experimentName,
@@ -257,7 +293,7 @@ define(function(require) {
                         // check if the experiment name starts with the correct pattern
                         if(exps[e].getName().indexOf(experimentNamePattern) == 0){
                             // it's part of the protocol, run it
-                            //exps[e].run();
+                            exps[e].run();
                         }
                     }
                 };
@@ -890,16 +926,47 @@ define(function(require) {
             for(var protocol in protocolExperimentsMap){
                 var exps = protocolExperimentsMap[protocol];
                 // foreach protocol create markup
-                markup += "<p>[P] {0} ({1} experiments): <a href='#' id='{2}' style='color: white'>Plot membrane potentials</a></p>".format(protocol, exps.length, protocol.replace(' ', '__'));
+                markup += "<p>[P] {0} ({1} experiments): <a href='#' instancepath='{2}' style='color: white'>Plot membrane potentials</a></p>".format(protocol, exps.length, protocol.replace(' ', '__'));
             }
 
             // create popup and set markup if any
             var protocolsPopup = null;
             if(markup != ''){
-                protocolsPopup = G.addWidget(1).setName('Protocols Summary').setMessage(markup);
+                protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary').setMessage(markup);
+                var docWidth = $(document).width();
+                protocolsPopup.setSize(300, 400).setPosition(docWidth - 410, 50);
             }
 
-            // TODO: setup custom handler for clicks on plot links
+            if(protocolsPopup != null){
+                // setup custom handler for clicks on links
+                var protocolSummaryCustomHandler = function(node, path, widget){
+                    var protocolName = path.replace('__', ' ');
+
+                    // look for experiments with that name
+                    var experiments = protocolExperimentsMap[protocolName];
+                    var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+                    var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
+                    var plotWidget = null;
+                    if(experiments.length > 0 && membranePotentials.length>0){
+                        plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials');
+                    }
+                    for(var i=0; i<experiments.length; i++){
+                        // loop and plot all membrane potentials
+                        if(experiments[i].getStatus() == 'COMPLETED'){
+                            for(var j=0; j<membranePotentials.length; j++){
+                                plotController.plotStateVariable(
+                                    Project.getId(),
+                                    experiments[i].getId(),
+                                    membranePotentials[j],
+                                    plotWidget
+                                );
+                            }
+                        }
+                    }
+                };
+
+                protocolsPopup.addCustomNodeHandler(protocolSummaryCustomHandler, 'click');
+            }
         };
 
         window.executeOnSelection = function(callback) {
