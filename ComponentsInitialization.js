@@ -503,9 +503,8 @@ define(function(require) {
                 value: "apply_voltage",
                 false: {
                     // not selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
-                        "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
+                    action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
                 },
                 true: {
                     // is selected
