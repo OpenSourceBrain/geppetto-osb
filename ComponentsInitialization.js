@@ -1,11 +1,11 @@
 define(function(require) {
 
-	var cellControlPanel = require('./osbCellControlPanel.json');
-	var networkControlPanel = require('./osbNetworkControlPanel.json');
-        var osbTutorial = require('./osbTutorial.json');
-        var colorbar = require('./colorbar');
-	
+    var cellControlPanel = require('./osbCellControlPanel.json');
+    var networkControlPanel = require('./osbNetworkControlPanel.json');
+    var osbTutorial = require('./osbTutorial.json');
+    var colorbar = require('./colorbar');
     return function(GEPPETTO) {
+        G.enableLocalStorage(true);
 
         var link = document.createElement("link");
         link.type = "text/css";
@@ -15,6 +15,11 @@ define(function(require) {
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
+        
+		//Canvas initialisation
+		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
+            this.displayAllInstances();
+        });
 
         //This function will be called when the run button is clicked
         GEPPETTO.showExecutionDialog = function(callback) {
@@ -46,7 +51,6 @@ define(function(require) {
                         enum: ["neuronSimulator", "lemsSimulator", "neuronNSGSimulator"],
                         enumNames: ["Neuron", "jLems", "Neuron on NSG"]
                     },
-
                     numberProcessors: {
                         type: 'number',
                         title: 'Number of Processors'
@@ -59,15 +63,23 @@ define(function(require) {
                 numberProcessors: 1
             };
 
-            if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != null || undefined) {
-                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getTimeStep();
-                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getLength();
-                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].getSimulator();
+            // figure out aspect configuration path ref
+            var pathRef = null;
+            if(Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()] != undefined){
+                pathRef = window.Instances[0].getId();
+            } else if (Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getInstancePath(true)] != undefined) {
+                pathRef = window.Instances[0].getInstancePath(true);
+            }
+
+            if (pathRef != null) {
+                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
+                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
+                formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
-                $("#" + formWidget.props.id + "_dialog").remove();
+                formWidget.destroy();
             };
 
             var errorHandler = function() {
@@ -94,8 +106,8 @@ define(function(require) {
             };
 
             var formWidget = null;
-            
-            GEPPETTO.ComponentFactory.addComponent('FORM', {
+
+            GEPPETTO.ComponentFactory.addWidget('FORM', {
                 id: formId,
                 name: formName,
                 schema: schema,
@@ -103,9 +115,180 @@ define(function(require) {
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
                 changeHandler: changeHandler
-            }, undefined, function(renderedComponent){
-            	formWidget=renderedComponent;
-        	});
+            }, function() {
+                formWidget = this;
+            });
+        };
+
+        // Brings up the add protocol dialog
+        GEPPETTO.showAddProtocolDialog = function(callback) {
+            var formCallback = callback;
+
+            var formWidget = null;
+
+            var formId = "addProtocolForm";
+
+            var formName = "Add & Run Protocol";
+
+            var schema = {
+                type: "object",
+                required: [
+                    "protocolName",
+                    "pulseStart",
+                    "pulseStop",
+                    "ampStart",
+                    "ampStop",
+                    "timeStep",
+                    "simDuration"
+                ],
+                properties: {
+                    protocolName: {
+                        type: "string",
+                        title: "Protocol Name"
+                    },
+                    pulseStart: {
+                        type: "number",
+                        title: "Pulse Start (ms)"
+                    },
+                    pulseStop: {
+                        type: "number",
+                        title: "Pulse Stop (ms)"
+                    },
+                    ampStart: {
+                        type: "number",
+                        title: "Amplitude Start (nA)"
+                    },
+                    ampStop: {
+                        type: "number",
+                        title: "Amplitude Stop (nA)"
+                    },
+                    timeStep: {
+                        type: 'number',
+                        title: 'Time Step (s)'
+                    },
+                    simDuration: {
+                        type: "number",
+                        title: "Sim duration (s)"
+                    }
+                }
+            };
+
+            var formData = {
+                protocolName: 'Name your protocol',
+                pulseStart: 50,
+                pulseStop: 550,
+                ampStart: -0.1,
+                ampStop: 0.3,
+                timeStep: 0.02,
+                simDuration: 600
+            };
+
+            var submitHandler = function(data) {
+                var formData = data.formData;
+
+                var experimentNamePattern = "[P] " + formData.protocolName + " - ";
+
+                // what does it do when the button is pressed
+                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
+                    // TODO: When an experiment is completed check if all experiments for this protocol are completed
+                    // TODO: if all completed plot all recorded variables for all protocols experiments in one plot
+                    //window.plotAllRecordedVariables();
+                });
+
+                // build list of paths for variables to watch
+                var watchedVars = [];
+                if(Project.getActiveExperiment() != undefined){
+                    watchedVars = Project.getActiveExperiment().getWatchedVariables();
+                }
+                // concat default paths
+                var defaultVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+                for(var v=0; v<defaultVars.length; v++){
+                    if(!watchedVars.includes(defaultVars[v])){
+                        watchedVars.push(defaultVars[v]);
+                    }
+                }
+
+                // loop based on amplitude delta / timestep
+                var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
+                var experimentsData = [];
+                for(var i=0; i<experimentsNo; i++){
+                    // build parameters map
+                    var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
+                    var parameterMap = {
+                        i: {'neuroml.pulseGen1.amplitude': amplitude},
+                        pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
+                        pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
+                    };
+                    
+                    
+                    var simpleModelParametersMap = {};
+                    // build experiment name based on parameters map
+                    var experimentName = experimentNamePattern;
+                    for(var label in parameterMap){
+                        experimentName += label+"=";
+                        for(var p in parameterMap[label]){
+                            experimentName += parameterMap[label][p]+",";
+                            simpleModelParametersMap[p]=parameterMap[label][p];
+                        }
+                    }
+                    experimentName = experimentName.slice(0, -1);
+
+                    experimentsData.push({
+                    	name : experimentName,
+                    	modelParameters: simpleModelParametersMap,
+                        watchedVariables: watchedVars,
+                        timeStep: formData.timeStep/1000,
+                        duration: formData.simDuration/1000,
+                        simulator: 'neuronSimulator',
+                        aspectPath: Instances[0].getInstancePath(true),
+                        simulatorParameters: {
+                            target: Instances[0].getType().getId()
+                        }
+                    });
+                }
+
+                var setExperimentData = function(){
+                    GEPPETTO.trigger('stop_spin_logo');
+                    alert('test callback after experiment creation');
+
+                    // retrieve all protocol experiments and run them all
+                    var exps = Project.getExperiments();
+                    for(var e=0; e<exps.length; e++){
+                        // check if the experiment name starts with the correct pattern
+                        if(exps[e].getName().indexOf(experimentNamePattern) == 0){
+                            // it's part of the protocol, run it
+                            exps[e].run();
+                        }
+                    }
+                };
+
+                GEPPETTO.trigger('spin_logo');
+                Project.newExperimentBatch(experimentsData, setExperimentData);
+
+                // close widget
+                formWidget.destroy();
+            };
+
+            var errorHandler = function() {
+                // error handling
+            };
+
+            var changeHandler = function(formObject) {
+                // handle any changes on form data
+            };
+
+            GEPPETTO.ComponentFactory.addWidget('FORM', {
+                id: formId,
+                name: formName,
+                schema: schema,
+                formData: formData,
+                submitHandler: submitHandler,
+                errorHandler: errorHandler,
+                changeHandler: changeHandler
+            }, function() {
+                formWidget = this;
+                formWidget.setPosition(100, 0);
+            });
         };
 
         //Function to add a dialog when run button is pressed
@@ -117,72 +300,123 @@ define(function(require) {
         }, document.getElementById("geppettologo"));
 
         //Tutorial component initialization
-        GEPPETTO.ComponentFactory.addComponent('TUTORIAL', {
-        	tutorialData: osbTutorial
-		}, document.getElementById("tutorial"));
+        GEPPETTO.ComponentFactory.addWidget('TUTORIAL', {
+            name: 'Open Source Brain Tutorial',
+            tutorialData: osbTutorial
+        }, function() {
+            //temporary until sessions allow to customise the tutorial component
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
+            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_exercises/hh_exercises.json");
+        });
+
+        var eventHandler = function(component){
+		};
+
+		var clickHandler = function(){
+			GEPPETTO.Console.executeCommand("Project.download();");
+		};
+
+		var configuration = {
+				id: "DownloadProjectButton",
+				onClick : clickHandler,
+				eventHandler : eventHandler,
+				tooltipPosition : { my: "right center", at : "left-5 center"},
+				tooltipLabel : "Download your current project",
+				icon : "fa fa-download",
+				className : "btn DownloadProjectButton pull-right",
+				disabled : false,
+				hidden : false
+		};
+
+		//Download Project Button initialization
+		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
+		
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
 
-        var toggleClickHandler = function(){
-        	if(!window.Project.isPublic()){
-        		var title = "Copy URL to Share Public Project";
-        		GEPPETTO.FE.infoDialog(title, window.location.href);
-        	}
+        var toggleClickHandler = function() {
+            if (!window.Project.isPublic()) {
+                var title = "Your project is now public. This is its URL for you to share!";
+                var url = window.osbURL + "?explorer_id="+Project.getId();
+                GEPPETTO.ModalFactory.infoDialog(title, url);
+            }
         };
-        
-        var toggleEventHandler = function(component){
-    		GEPPETTO.on(GEPPETTO.Events.Project_loaded,function(){
-    			component.evaluateState();
-    		});
-    		
-    		GEPPETTO.on(GEPPETTO.Events.Project_made_public,function(){
-    			component.evaluateState();
-    			component.showToolTip();
-    		});
+
+        var toggleEventHandler = function(component) {
+            GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
+                component.evaluateState();
+            });
+
+            GEPPETTO.on(GEPPETTO.Events.Project_made_public, function() {
+                component.evaluateState();
+                component.showToolTip();
+            });
         };
 
         var configuration = {
-        		id: "PublicProjectButton",
-        		disableCondition : "window.Project.isReadOnly()",
-        		clickHandler : toggleClickHandler,
-        		eventHandler : toggleEventHandler,
-        		tooltipPosition : { my: "right center", at : "left-10 center"},
-        		condition: "window.Project.isPublic()",
-        		"false": {
-        			"action": "window.Project.makePublic(true)",
-        			"icon": "fa fa-share-alt",
-        			"label": "",
-        			"tooltip": "This project is private, click to make it public."
-        		},
-        		"true": {
-        			"action": "window.Project.makePublic(false)",
-        			"icon": "fa fa-share-alt",
-        			"label": "",
-        			"tooltip": "This project is public, click to make it private."
-        		}
+            id: "PublicProjectButton",
+            disableCondition: "window.Project.isReadOnly()",
+            clickHandler: toggleClickHandler,
+            eventHandler: toggleEventHandler,
+            tooltipPosition: { my: "right center", at: "left-10 center" },
+            condition: "window.Project.isPublic()",
+            "false": {
+                "action": "window.Project.makePublic(true)",
+                "icon": "fa fa-share-alt",
+                "label": "",
+                "tooltip": "This project is private, click to make it public."
+            },
+            "true": {
+                "action": "window.Project.makePublic(false)",
+                "icon": "fa fa-share-alt",
+                "label": "",
+                "tooltip": "This project is public, click to make it private."
+            }
         };
 
-        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', {configuration: configuration}, document.getElementById("PublicProject"));
+        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', { configuration: configuration }, document.getElementById("PublicProject"));
 
         //Control panel initialization
         GEPPETTO.ComponentFactory.addComponent('CONTROLPANEL', {
                 useBuiltInFilters: true,
                 listenToInstanceCreationEvents: false,
-                enablePagination:true,
+                enablePagination: true,
                 resultsPerPage: 10
-        }, document.getElementById("controlpanel"),
-            function () {
-            // whatever gets passed we keep
-            var passThroughDataFilter = function (entities) {
-                return entities;
+            }, document.getElementById("controlpanel"),
+            function() {
+                // whatever gets passed we keep
+                var passThroughDataFilter = function(entities) {
+                    return entities;
+                };
+
+                // set data filter
+                GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+            });
+
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
+            var addCaSuggestion = function() {
+                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
+                if (caSpecies.length > 0) {
+                    var recordCaConc = {
+                        "label": "Record Ca2+ concentrations",
+                        // essentially we watch caConc on any population that has intracellularProperties.ca
+                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
+                        "icon": "fa-dot-circle-o"
+                    };
+                    GEPPETTO.Spotlight.addSuggestion(recordCaConc, GEPPETTO.Resources.RUN_FLOW);
+                }
             };
 
-            // set data filter
-            GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
+            if (GEPPETTO.Spotlight == undefined) {
+                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
+            } else {
+                addCaSuggestion();
+            }
         });
 
-        //Spotlight initialization
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
             	var recordAll = {
                     "label": "Record all membrane potentials",
@@ -205,7 +439,7 @@ define(function(require) {
             	var lightUpSample = {
                     "label": "Link morphology colour to recorded membrane potentials",
                     "actions": [
-                        "G.addBrightnessFunctionBulkSimplified(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
+                        "GEPPETTO.SceneController.addColorFunction(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
                     ],
                     "icon": "fa-lightbulb-o"
                 };
@@ -292,13 +526,17 @@ define(function(require) {
                     // is selected
                     action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
-            }]
+            }, {
+                label: "Add protocol",
+                action: "GEPPETTO.showAddProtocolDialog();",
+                value: "add_protocol"
+            },]
         };
 
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: configuration
-        }, document.getElementById("ControlsMenuButton"), function(comp){window.controlsMenuButton = comp;});
+        }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -311,10 +549,6 @@ define(function(require) {
 
         //Simulation controls initialization
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {}, document.getElementById("sim-toolbar"));
-
-        //Camera controls initialization
-        GEPPETTO.ComponentFactory.addComponent('CAMERACONTROLS', {}, document.getElementById("camera-controls"));
-
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
@@ -376,9 +610,9 @@ define(function(require) {
 
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             // reset control panel with defaults
-        	if(GEPPETTO.ControlPanel != undefined){
-        		GEPPETTO.ControlPanel.clearData();
-        	}
+            if (GEPPETTO.ControlPanel != undefined) {
+                GEPPETTO.ControlPanel.clearData();
+            }
         });
 
         //OSB Utility functions
@@ -412,8 +646,8 @@ define(function(require) {
                     if (normalize) {
                         window.color_norm = scalefn(c.plotOptions.xaxis.max);
                         //scalefn = window.ca_color;
-                        G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);
-                        G.addBrightnessFunctionBulkSimplified(window.getRecordedCaConcs(), window.color_norm);
+                        G.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());
+                        GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
                     }
 
                     var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
@@ -432,10 +666,10 @@ define(function(require) {
                         $.proxy(callback, this)();
                     }
                 } else {
-                    GEPPETTO.FE.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
+                    GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
                 }
             }
-        }
+        };
 
         window.loadConnections = function() {
             Model.neuroml.resolveAllImportTypes(function() {
@@ -445,10 +679,16 @@ define(function(require) {
 
         window.plotAllRecordedVariables = function() {
             Project.getActiveExperiment().playAll();
-            var plt = G.addWidget(0).setName('Recorded Variables');
+            var plots={};
             $.each(Project.getActiveExperiment().getWatchedVariables(true, false),
                 function(index, value) {
-                    plt.plotData(value)
+            		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
+            		var plot = plots[end];
+            		if(plots[end]==undefined){
+            			plots[end]=G.addWidget(0).setName("Recorded variables: "+end);
+            			plot = plots[end];
+            		}
+                    plot.plotData(value)
                 });
         };
 
@@ -506,90 +746,123 @@ define(function(require) {
         var defaultWidgetWidth = 450;
         var defaultWidgetHeight = 500;
 
-        var mainPopup=undefined;
-        
+        var mainPopup = undefined;
+
         window.initialiseTreeWidget = function(title, posX, posY, widgetWidth, widgetHeight) {
-        	widgetWidth = typeof widgetWidth !== 'undefined' ? widgetWidth : defaultWidgetWidth;
-        	widgetHeight = typeof widgetHeight !== 'undefined' ? widgetHeight : defaultWidgetHeight;
-        	
-        	var tv = G.addWidget(3);
-        	tv.setSize(widgetHeight, widgetWidth);
-        	tv.setName(title);
-        	tv.setPosition(posX, posY);
-        	return tv;
+            widgetWidth = typeof widgetWidth !== 'undefined' ? widgetWidth : defaultWidgetWidth;
+            widgetHeight = typeof widgetHeight !== 'undefined' ? widgetHeight : defaultWidgetHeight;
+
+            var tv = G.addWidget(3);
+            tv.setSize(widgetHeight, widgetWidth);
+            tv.setName(title);
+            tv.setPosition(posX, posY);
+            return tv;
         };
 
-        window.initialiseControlPanel = function(barDef, id){
-        	var modifiedBarDef = JSON.parse(JSON.stringify(barDef, id).split("$ENTER_ID").join(id.getId()));
-        	
-        	var posX = 90;
-        	var posY = 5;
-        	var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-        	target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
-        	$("#" + target.id).find(".btn-lg").css("font-size","15px");
+        window.initialiseControlPanel = function(barDef, id) {
+            var modifiedBarDef = JSON.parse(JSON.stringify(barDef, id).split("$ENTER_ID").join(id.getId()));
+
+            var posX = 90;
+            var posY = 5;
+            var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
+            target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
+            $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
 
-        window.showConnectivityMatrix = function(instance){
-        	loadConnections();
-        	if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined){
-        		G.addWidget(1).setMessage('No connection found in this network').setName('Warning Message');
-        	}else{
-        		G.addWidget(6).setData(instance,
-        				{linkType:
-        					function(c){
-        						if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined){
-        							var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(),GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-        							if(synapseType != undefined){
-        								return synapseType.getId();
-        							}
-        						}
-        						return c.getName().split("-")[0];
-        					}
-        				}).setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
-        	}
+        window.showConnectivityMatrix = function(instance) {
+            loadConnections();
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                G.addWidget(1).setMessage('No connection found in this network').setName('Warning Message');
+            } else {
+                G.addWidget(6).setData(instance, {
+                    linkType: function(c) {
+                        if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                            var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                            if (synapseType != undefined) {
+                                return synapseType.getId();
+                            }
+                        }
+                        return c.getName().split("-")[0];
+                    }
+                }).setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
+            }
         };
-        
+
         window.showChannelTreeView = function(csel) {
-        	if (GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel){
-        		var tv = initialiseTreeWidget('Ion Channels on cell ' + csel.getName(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
-        		
-        		var ionChannel = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel);
-        		var ionChannelFiltered = [];
-        		for (ionChannelIndex in ionChannel){
-        			var ionChannelItem = ionChannel[ionChannelIndex];
-        			if (ionChannelItem.getId()!='ionChannel'){
-        				ionChannelFiltered.push(ionChannelItem);
-        			}
-        		}
-        		tv.setData(ionChannelFiltered);
-        	}
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel) {
+                var tv = initialiseTreeWidget('Ion Channels on cell ' + csel.getName(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
+
+                var ionChannel = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.ionChannel);
+                var ionChannelFiltered = [];
+                for (var ionChannelIndex in ionChannel) {
+                    var ionChannelItem = ionChannel[ionChannelIndex];
+                    if (ionChannelItem.getId() != 'ionChannel') {
+                        ionChannelFiltered.push(ionChannelItem);
+                    }
+                }
+                tv.setData(ionChannelFiltered);
+            }
         };
 
         window.showInputTreeView = function(csel) {
-        	if (GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator){
-        		var tv = initialiseTreeWidget('Inputs on ' + csel.getId(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
-        		var pulseGenerator = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator);
-        		var pulseGeneratorFiltered = [];
-        		for (pulseGeneratorIndex in pulseGenerator){
-        			var pulseGeneratorItem = pulseGenerator[pulseGeneratorIndex];
-        			if (pulseGeneratorItem.getId()!='pulseGenerator'){
-        				pulseGeneratorFiltered.push(pulseGeneratorItem);
-        			}
-        		}
-        		tv.setData(pulseGeneratorFiltered);
-        	}
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator) {
+                var tv = initialiseTreeWidget('Inputs on ' + csel.getId(), widthScreen - marginLeft - defaultWidgetWidth, marginTop);
+                var pulseGenerator = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.pulseGenerator);
+                var pulseGeneratorFiltered = [];
+                for (var pulseGeneratorIndex in pulseGenerator) {
+                    var pulseGeneratorItem = pulseGenerator[pulseGeneratorIndex];
+                    if (pulseGeneratorItem.getId() != 'pulseGenerator') {
+                        pulseGeneratorFiltered.push(pulseGeneratorItem);
+                    }
+                }
+                tv.setData(pulseGeneratorFiltered);
+            }
+        };
+
+        /**
+         * This method creates a quick experiment
+         * @param prefix it gets prepended to the experiment name
+         * @param parameterMap a map of the form where i,k and na are the labels used in the experiment name
+         *      {
+         *       ['i']:{'Model.neuroml.pulseGen1.amplitude':$('#currentValue').val()},
+         *       ['k']:{'Model.neuroml.k.conductance':$('#kValue').val()},
+         *       ['na']:{'Model.neuroml.na.conductance':$('#naValue').val()}
+         *      }
+         */
+        window.quickExperiment = function(prefix, parameterMap) {
+            GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
+                //When the experiment is completed plot the variables
+                window.plotAllRecordedVariables();
+            });
+            Project.getActiveExperiment().clone(function() {
+                var experimentName = prefix + " - ";
+                for(var label in parameterMap){
+                	//if a label starts with _ we don't show it as part of the experiment name
+                	if(!label.startsWith("_")){
+                		experimentName += label+"=";
+                	}
+                    for(var p in parameterMap[label]){
+                        eval(p).setValue(parameterMap[label][p]);
+                        if(!label.startsWith("_")){
+                        	experimentName += parameterMap[label][p]+",";	
+                        }
+                    }
+                }
+                Project.getActiveExperiment().setName(experimentName.slice(0, -1));
+                Project.getActiveExperiment().run();
+            });
         };
 
         window.showVisualTreeView = function(csel) {
-        	var visualWidgetWidth = 350;
-        	var visualWidgetHeight = 400;
+            var visualWidgetWidth = 350;
+            var visualWidgetHeight = 400;
 
-        	var tv = initialiseTreeWidget('Visual information on cell ' + csel.getName(), widthScreen - marginLeft - visualWidgetWidth, heightScreen - marginBottom - visualWidgetHeight, visualWidgetWidth, visualWidgetHeight);
-        	tv.setData(csel.getType().getVisualType(), {
-        		expandNodes : true
-        	});
+            var tv = initialiseTreeWidget('Visual information on cell ' + csel.getName(), widthScreen - marginLeft - visualWidgetWidth, heightScreen - marginBottom - visualWidgetHeight, visualWidgetWidth, visualWidgetHeight);
+            tv.setData(csel.getType().getVisualType(), {
+                expandNodes: true
+            });
         };
-        
+
         //Custom handler for handling clicks inside the popup widget
         var customHandler = function(node, path, widget) {
             var n;
@@ -601,172 +874,175 @@ define(function(require) {
 
             var metaType = n.getMetaType();
             if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
-            	//A plot function inside a channel
+                //A plot function inside a channel
                 G.addWidget(Widgets.PLOT).plotFunctionNode(n);
             } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
-            	//A visual group
+                //A visual group
                 n.show(true);
             } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
-            	//Another composite
+                //Another composite
                 var target = widget;
                 if (GEPPETTO.isKeyPressed("meta")) {
                     target = G.addWidget(1).addCustomNodeHandler(customHandler, 'click');
                 }
-                target.setName('Information for ' + n.getId()).setData(n,[GEPPETTO.Resources.HTML_TYPE]);
-           }
+                target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
+            }
 
         };
-        	
-        window.showModelDescription = function(model){
-        	if(mainPopup==undefined || mainPopup.destroyed){
-        		mainPopup=G.addWidget(1).setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95,140);
-        		mainPopup.showHistoryNavigationBar(true);
-        	}
-        	mainPopup.setData(model,[GEPPETTO.Resources.HTML_TYPE]);	
+
+        window.showModelDescription = function(model) {
+            if (mainPopup == undefined || mainPopup.destroyed) {
+                mainPopup = G.addWidget(1).setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+                mainPopup.showHistoryNavigationBar(true);
+            }
+            mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
 
         window.executeOnSelection = function(callback) {
-            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell){
-        	var csel = G.getSelection()[0];
+            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell) {
+                var csel = GEPPETTO.SceneController.getSelection()[0];
                 var population = GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.population);
-        	if (typeof csel !== 'undefined') {
-        	    callback(csel);
-        	}
+                if (typeof csel !== 'undefined') {
+                    callback(csel);
+                }
                 // Check if there is one single cell select it
                 else if (population.length == 2) { // 2 == 1 pop + 1 supertype
-                    for (var i = 0; i<population.length; i++) {
-        		if (typeof population[i].getSize === "function" && population[i].getSize() == 1) {
+                    for (var i = 0; i < population.length; i++) {
+                        if (typeof population[i].getSize === "function" && population[i].getSize() == 1) {
                             GEPPETTO.ModelFactory.getAllInstancesOf(population[i])[0][0].select();
-                            csel = G.getSelection()[0];
-        		}
-        	    }
+                            csel = GEPPETTO.SceneController.getSelection()[0];
+                        }
+                    }
                     callback(csel);
-        	} else {
-        	    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
-        	}
+                } else {
+                    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+                }
             }
         };
 
         window.showSelection = function(csel) {
-        	if(mainPopup==undefined || mainPopup.destroyed){
-        		mainPopup=G.addWidget(1).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
-        	}
-            mainPopup.setName("Cell Information for " + csel.getType().getId()).setData(csel.getType(),[GEPPETTO.Resources.HTML_TYPE]);
-        };
-        
-        window.getMainType = function(id){
-        	return (typeof(id) === 'undefined')?GEPPETTO.ModelFactory.geppettoModel.neuroml[id]:id.getType();
+            if (mainPopup == undefined || mainPopup.destroyed) {
+                mainPopup = G.addWidget(1).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+            }
+            mainPopup.setName("Cell Information for " + csel.getType().getId()).setData(csel.getType(), [GEPPETTO.Resources.HTML_TYPE]);
         };
 
-        
+        window.getMainType = function(id) {
+            return (typeof(id) === 'undefined') ? GEPPETTO.ModelFactory.geppettoModel.neuroml[id] : id.getType();
+        };
+
+
         //This is the main function which is called to initialize OSB Geppetto
-        window.initOSBGeppetto=function(type,idString){
-        	var id=eval(idString);
-        	switch(type){
-        	case "generic":
-        		window.initialiseControlPanel(networkControlPanel, id);
-	        	var mdPopupWidth = 350;
-	        	var mdPopupHeight = 400;
-	        	var elementMargin = 20;
-	
-	        	var realHeightScreen = heightScreen - marginTop - marginBottom;
-	        	var realWidthScreen = widthScreen - marginRight - marginLeft - defaultWidgetWidth - elementMargin;
-	
-	        	showModelDescription((typeof(id) === 'undefined')?GEPPETTO.ModelFactory.geppettoModel.neuroml[idString]:id.getType());
-	
-	        	G.setCameraPosition(-60,-250,370);
-	        	break;
-        	case "cell":
-                    window.initialiseControlPanel(cellControlPanel, id);
-        	    id.select();
-        	    break;
-        	case "network":
+        window.initOSBGeppetto = function(type, idString) {
+            var id = eval(idString);
+            switch (type) {
+                case "generic":
                     window.initialiseControlPanel(networkControlPanel, id);
-        	    break;
-        	case "synapse":
-        	case "channel":
-        		var plotMaxWidth = 450;
-        		var plotMinWidth = 250;
-        		var plotMaxMinHeight = 200;
-        		var elementMargin = 20;
+                    var mdPopupWidth = 350;
+                    var mdPopupHeight = 400;
+                    var elementMargin = 20;
 
-        		var realHeightScreen = heightScreen - marginTop - marginBottom;
-        		var realWidthScreen = widthScreen - marginRight - marginLeft - defaultWidgetWidth - elementMargin;
+                    var realHeightScreen = heightScreen - marginTop - marginBottom;
+                    var realWidthScreen = widthScreen - marginRight - marginLeft - defaultWidgetWidth - elementMargin;
 
-        		var generatePlotForFunctionNodes = function() {
-        			// Retrieve function nodes from model tree summary
-        			var nodes = GEPPETTO.ModelFactory.getAllVariablesOfMetaType(Model.neuroml[idString], GEPPETTO.Resources.DYNAMICS_TYPE, true);
-        			
-        			// Create a plot widget for every function node with plot metadata
-        			// information
+                    showModelDescription((typeof(id) === 'undefined') ? GEPPETTO.ModelFactory.geppettoModel.neuroml[idString] : id.getType());
 
-        			// Generate dimensions depending on number of nodes and iframe size
-        			var plottableNodes = [];
-        			for ( var nodesIndex in nodes) {
-        				if (nodes[nodesIndex].getInitialValues()[0].value.dynamics.functionPlot != undefined && !nodes[nodesIndex].getInitialValues()[0].value.dynamics.expression.expression.startsWith('org.neuroml.export.info')) {
-        					plottableNodes.push(nodes[nodesIndex]);
-        				}
-        			}
+                    Canvas1.setCameraPosition(-60, -250, 370);
+                    break;
+                case "cell":
+                    window.initialiseControlPanel(cellControlPanel, id);
+                    id.select();
+                    break;
+                case "network":
+                    window.initialiseControlPanel(networkControlPanel, id);
+                    break;
+                case "synapse":
+                case "channel":
+                    var plotMaxWidth = 450;
+                    var plotMinWidth = 250;
+                    var plotMaxMinHeight = 200;
+                    var elementMargin = 20;
 
-        			var plotHeight = realHeightScreen / plottableNodes.length;
-        			var plotLayout = [];
-        			if (plotHeight < plotMaxMinHeight) {
-        				var plotHeight = plotMaxMinHeight;
-        				var plotWidth = realWidthScreen / 2;
-        				if (plotWidth < plotMinWidth) {
-        					plotWidth = plotMinWidth;
-        				}
-        				for ( var plottableNodesIndex in plottableNodes) {
-        					if (plottableNodesIndex % 2 == 0) {
-        						plotLayout.push({
-        							'posX' : widthScreen - plotWidth - marginRight,
-        							'posY' : (plotHeight + elementMargin) * Math.floor(plottableNodesIndex / 2) + marginTop
-        						});
-        					} else {
-        						plotLayout.push({
-        							'posX' : widthScreen - plotWidth - marginRight - (plotWidth + elementMargin),
-        							'posY' : (plotHeight + elementMargin) * Math.floor(plottableNodesIndex / 2) + marginTop
-        						});
-        					}
-        				}
-        			} else {
-        				var plotHeight = plotMaxMinHeight;
-        				var plotWidth = plotMaxWidth;
-        				for ( var plottableNodesIndex in plottableNodes) {
-        					plotLayout.push({
-        						'posX' : widthScreen - plotWidth - marginRight,
-        						'posY' : (plotHeight + elementMargin) * plottableNodesIndex	+ marginTop
-        					});
-        				}
-        			}
+                    var realHeightScreen = heightScreen - marginTop - marginBottom;
+                    var realWidthScreen = widthScreen - marginRight - marginLeft - defaultWidgetWidth - elementMargin;
 
-        			for ( var plottableNodesIndex in plottableNodes) { 
-        				var plotObject = G.addWidget(Widgets.PLOT);
-        				plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
-        				plotObject.setSize(plotHeight, plotWidth);
-        				plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
-        			}
-        		};
+                    var generatePlotForFunctionNodes = function() {
+                        // Retrieve function nodes from model tree summary
+                        var nodes = GEPPETTO.ModelFactory.getAllVariablesOfMetaType(Model.neuroml[idString], GEPPETTO.Resources.DYNAMICS_TYPE, true);
 
-        		// Adding TreeVisualiserDAT Widget
-        		var title=type[0].toUpperCase() + type.substring(1) + " - " + idString;
-        		var treeVisualiserDAT1 = initialiseTreeWidget(title, marginLeft, marginTop);
-        		treeVisualiserDAT1.setData(Model.neuroml[idString], {
-        			expandNodes : true
-        		});
-        		generatePlotForFunctionNodes();
-        		break;
-        	
-        	}	
+                        // Create a plot widget for every function node with plot metadata
+                        // information
+
+                        // Generate dimensions depending on number of nodes and iframe size
+                        var plottableNodes = [];
+                        for (var nodesIndex in nodes) {
+                            if (nodes[nodesIndex].getInitialValues()[0].value.dynamics.functionPlot != undefined && !nodes[nodesIndex].getInitialValues()[0].value.dynamics.expression.expression.startsWith('org.neuroml.export.info')) {
+                                plottableNodes.push(nodes[nodesIndex]);
+                            }
+                        }
+
+                        var plotHeight = realHeightScreen / plottableNodes.length;
+                        var plotLayout = [];
+                        if (plotHeight < plotMaxMinHeight) {
+                            var plotHeight = plotMaxMinHeight;
+                            var plotWidth = realWidthScreen / 2;
+                            if (plotWidth < plotMinWidth) {
+                                plotWidth = plotMinWidth;
+                            }
+                            for (var plottableNodesIndex in plottableNodes) {
+                                if (plottableNodesIndex % 2 == 0) {
+                                    plotLayout.push({
+                                        'posX': widthScreen - plotWidth - marginRight,
+                                        'posY': (plotHeight + elementMargin) * Math.floor(plottableNodesIndex / 2) + marginTop
+                                    });
+                                } else {
+                                    plotLayout.push({
+                                        'posX': widthScreen - plotWidth - marginRight - (plotWidth + elementMargin),
+                                        'posY': (plotHeight + elementMargin) * Math.floor(plottableNodesIndex / 2) + marginTop
+                                    });
+                                }
+                            }
+                        } else {
+                            var plotHeight = plotMaxMinHeight;
+                            var plotWidth = plotMaxWidth;
+                            for (var plottableNodesIndex in plottableNodes) {
+                                plotLayout.push({
+                                    'posX': widthScreen - plotWidth - marginRight,
+                                    'posY': (plotHeight + elementMargin) * plottableNodesIndex + marginTop
+                                });
+                            }
+                        }
+
+                        for (var plottableNodesIndex in plottableNodes) {
+                            var plotObject = G.addWidget(Widgets.PLOT);
+                            plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
+                            plotObject.setSize(plotHeight, plotWidth);
+                            plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
+                        }
+                    };
+
+                    // Adding TreeVisualiserDAT Widget
+                    var title = type[0].toUpperCase() + type.substring(1) + " - " + idString;
+                    var treeVisualiserDAT1 = initialiseTreeWidget(title, marginLeft, marginTop);
+                    treeVisualiserDAT1.setData(Model.neuroml[idString], {
+                        expandNodes: true
+                    });
+                    generatePlotForFunctionNodes();
+                    break;
+
+            }
         }
 
         GEPPETTO.G.setIdleTimeOut(-1);
 
         GEPPETTO.SceneController.setLinesThreshold(20000);
 
-        //Change this to prompt the user to switch to lines or not
-        GEPPETTO.SceneFactory.setLinesUserInput(false);
-        
         GEPPETTO.G.autoFocusConsole(false);
+        
+        GEPPETTO.UnitsController.addUnit("V","Membrane potential");
+
+        GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
+            $("#tutorial_dialog").dialog('moveToTop');
+        });
     };
 });
