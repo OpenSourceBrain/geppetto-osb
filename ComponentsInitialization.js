@@ -508,7 +508,7 @@ define(function(require) {
                 },
                 true: {
                     // is selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());",
                 }
             }, {
                 label: "Apply soma voltage colouring to entire cell",
@@ -574,13 +574,13 @@ define(function(require) {
                         value: "apply_ca",
                         false: {
                             // not selected
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
-                                "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            action: //"G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                                "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
                             // is selected
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                            action: "GEPPETTO.SceneController.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());"
                         }
                     };
 
@@ -622,7 +622,7 @@ define(function(require) {
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
             for (var i=0; i<recordedSomaV.length; ++i) {
                 var cell = recordedSomaV[i].getParent().getParent();
-                GEPPETTO.G.addBrightnessFunction(cell, recordedSomaV[i], window.voltage_color);
+                GEPPETTO.SceneController.addColorFunction(recordedSomaV[i], window.voltage_color);
             }
         }
 
