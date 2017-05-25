@@ -499,16 +499,31 @@ define(function(require) {
             }, {
                 label: "Apply voltage colouring to morphologies",
                 radio: true,
-                condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'v')",
+                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o'",
                 value: "apply_voltage",
                 false: {
-                    // either nothing is lit up, or nothing lit up based on membrane potential
+                    // not selected
                     action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                },
+                true: {
+                    // is selected
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                }
+            }, {
+                label: "Apply soma voltage colouring to entire cell",
+                radio: true,
+                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell.state.icon != 'fa fa-circle-o'",
+                value: "apply_voltage_entire_cell",
+                false: {
+                    // not selected
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                        "window.soma_v_entire_cell();" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
-                    // we have active membrane potential coloring
-                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
+                    // is selected
+                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                 }
             }, {
                 label: "Add protocol",
@@ -555,14 +570,17 @@ define(function(require) {
                     var caMenuItem = {
                         label: "Apply Ca2+ concentration colouring to morphologies",
                         radio: true,
-                        condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'caConc')",
+                        condition: "window.controlsMenuButton.refs.dropDown.refs.apply_ca.state.icon != 'fa fa-circle-o'",
                         value: "apply_ca",
                         false: {
-                            action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            // not selected
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                                "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
-                            action: "GEPPETTO.SceneController.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());"
+                            // is selected
+                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
                         }
                     };
 
@@ -572,7 +590,7 @@ define(function(require) {
                 }
             };
 
-            if (GEPPETTO.Spotlight == undefined) {
+            if (GEPPETTO.Spotlight == undefined || window.controlsMenuButton == undefined) {
                 GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
             } else {
                 addCaSuggestion();
@@ -597,6 +615,17 @@ define(function(require) {
         });
 
         //OSB Utility functions
+        window.soma_v_entire_cell = function() {
+            var recordedMemV = window.getRecordedMembranePotentials();
+            var somaVInstances = window.getSomaVariableInstances('v');
+            // get the intersection of recorded potentials and soma potential instances
+            var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
+            for (var i=0; i<recordedSomaV.length; ++i) {
+                var cell = recordedSomaV[i].getParent().getParent();
+                GEPPETTO.G.addBrightnessFunction(cell, recordedSomaV[i], window.voltage_color);
+            }
+        }
+
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
                 var c = G.addWidget(GEPPETTO.Widgets.PLOT);
