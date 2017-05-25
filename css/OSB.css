@@ -60,8 +60,12 @@
 .DownloadProjectButton{
     position: fixed;
     top: 5px;
-    right: 579px;
+    right: 539px!important;
     height: 27px;
+}
+
+.SaveButton {
+    right: 582px!important;
 }
 
 .DownloadProjectButton:disabled{
