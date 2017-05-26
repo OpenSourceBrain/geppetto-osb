@@ -308,7 +308,6 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
-                formWidget.setPosition(100, 0);
             });
         };
 
