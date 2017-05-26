@@ -640,7 +640,7 @@ define(function(require) {
         //OSB Utility functions
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT);
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT,{stateless:true});
                 c.setName(name);
                 c.setSize(125, 350);
                 c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
@@ -775,7 +775,7 @@ define(function(require) {
 
             var posX = 90;
             var posY = 5;
-            var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
+            var target = G.addWidget(7, {isStateless: true}).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
             target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
@@ -783,7 +783,7 @@ define(function(require) {
         window.showConnectivityMatrix = function(instance) {
             loadConnections();
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                G.addWidget(1).setMessage('No connection found in this network').setName('Warning Message');
+                G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
             } else {
                 G.addWidget(6).setData(instance, {
                     linkType: function(c) {
@@ -991,7 +991,7 @@ define(function(require) {
                     }
                     callback(csel);
                 } else {
-                    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
                 }
             }
         };
