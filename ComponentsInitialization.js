@@ -164,11 +164,11 @@ define(function(require) {
                     },
                     timeStep: {
                         type: 'number',
-                        title: 'Time Step (s)'
+                        title: 'Time Step (ms)'
                     },
                     simDuration: {
                         type: "number",
-                        title: "Sim duration (s)"
+                        title: "Sim duration (ms)"
                     }
                 }
             };
@@ -550,7 +550,11 @@ define(function(require) {
                 label: "Add protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
                 value: "add_protocol"
-            },]
+            }, {
+                label: "Show protocol summary",
+                action: "window.showProtocolSummary();",
+                value: "show_protocol_summary"
+            }]
         };
 
         //Home button initialization
@@ -949,7 +953,7 @@ define(function(require) {
                     var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
                     var plotWidget = null;
                     if(experiments.length > 0 && membranePotentials.length>0){
-                        plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials');
+                        plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
                     }
                     for(var i=0; i<experiments.length; i++){
                         // loop and plot all membrane potentials
