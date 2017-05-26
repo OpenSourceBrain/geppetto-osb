@@ -122,8 +122,6 @@ define(function(require) {
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
-            var formCallback = callback;
-
             var formWidget = null;
 
             var formId = "addProtocolForm";
@@ -189,20 +187,7 @@ define(function(require) {
                 var experimentNamePattern = "[P] " + formData.protocolName + " - ";
 
                 function experimentCompleteHandler(){
-                    var experiments = Project.getExperiments();
-                    var protocolExperimentsMap = {};
-                    for(var i=0; i<experiments.length; i++){
-                        if(experiments[i].getName().startsWith('[P]')){
-                            // parse protocol pattern
-                            var experimentName = experiments[i].getName();
-                            var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
-                            if(protocolExperimentsMap[protocolName] == undefined){
-                                protocolExperimentsMap[protocolName] = [experiments[i]];
-                            } else {
-                                protocolExperimentsMap[protocolName].push(experiments[i]);
-                            }
-                        }
-                    }
+                    var protocolExperimentsMap = window.getProtocolExperimentsMap();
 
                     var protocolExperiments = [];
                     for(var protocol in protocolExperimentsMap){
@@ -285,7 +270,7 @@ define(function(require) {
 
                 var setExperimentData = function(){
                     GEPPETTO.trigger('stop_spin_logo');
-                    alert('test callback after experiment creation');
+                    GEPPETTO.ModalFactory.infoDialog("Protocol created", "Your protocol has been created and is now running. Open the experiments table to check on progress.");
 
                     // retrieve all protocol experiments and run them all
                     var exps = Project.getExperiments();
@@ -909,7 +894,8 @@ define(function(require) {
             mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
 
-        window.showProtocolSummary = function() {
+        window.plotProtocolResults = function(protocolName, e){
+            e.preventDefault();
             // figure out if we have any protocol and organize into a map
             var experiments = Project.getExperiments();
             var protocolExperimentsMap = {};
@@ -926,51 +912,107 @@ define(function(require) {
                 }
             }
 
+            // look for experiments with that name
+            experiments = protocolExperimentsMap[protocolName];
+            var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+            var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
+            var plotWidget = null;
+            if(experiments.length > 0 && membranePotentials.length>0){
+                plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
+            }
+            for(var i=0; i<experiments.length; i++){
+                // loop and plot all membrane potentials
+                if(experiments[i].getStatus() == 'COMPLETED'){
+                    for(var j=0; j<membranePotentials.length; j++){
+                        plotController.plotStateVariable(
+                            Project.getId(),
+                            experiments[i].getId(),
+                            membranePotentials[j],
+                            plotWidget
+                        );
+                    }
+                }
+            }
+        };
+
+        window.getProtocolExperimentsMap = function(){
+            var experiments = Project.getExperiments();
+            var protocolExperimentsMap = {};
+            for(var i=0; i<experiments.length; i++){
+                if(experiments[i].getName().startsWith('[P]')){
+                    // parse protocol pattern
+                    var experimentName = experiments[i].getName();
+                    var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
+                    if(protocolExperimentsMap[protocolName] == undefined){
+                        protocolExperimentsMap[protocolName] = [experiments[i]];
+                    } else {
+                        protocolExperimentsMap[protocolName].push(experiments[i]);
+                    }
+                }
+            }
+
+            return protocolExperimentsMap;
+        };
+
+        window.deleteProtocol = function(protocolName, e){
+            e.preventDefault();
+            // get protocol experiment map
+            var protocolExperimentsMap = window.getProtocolExperimentsMap();
+
+            // look for experiments with that name
+            var experiments = protocolExperimentsMap[protocolName];
+
+            if(experiments.length > 0){
+                GEPPETTO.ExperimentsController.suppressDeleteExperimentConfirmation = true;
+                GEPPETTO.trigger('spin_logo');
+            }
+            var callback = function(){
+                GEPPETTO.ExperimentsController.suppressDeleteExperimentConfirmation = false;
+                GEPPETTO.trigger('stop_spin_logo');
+                window.showProtocolSummary();
+                GEPPETTO.ModalFactory.infoDialog("Protocol deleted", "Al the experiments in your protocol have been deleted.");
+            };
+
+            for(var i=0; i<experiments.length; i++) {
+                experiments[i].deleteExperiment((i == (experiments.length - 1)) ? callback: undefined);
+            }
+        };
+
+        window.populateProtocolSummary = function(popup){
+            // get protocol experiments map
+            var protocolExperimentsMap = window.getProtocolExperimentsMap();
+
             // create markup for the protocol with protocol name and a 'plot results' shortcut link
             var markup = '';
             for(var protocol in protocolExperimentsMap){
                 var exps = protocolExperimentsMap[protocol];
                 // foreach protocol create markup
-                markup += "<p>[P] {0} ({1} experiments): <a href='#' instancepath='{2}' style='color: white'>Plot membrane potentials</a></p>".format(protocol, exps.length, protocol.replace(' ', '__'));
+                markup += "<p>[P] {0} ({1} experiments):</p>".format(protocol, exps.length);
+                var buttonsMarkup = "<a class='btn fa fa-area-chart' title='Plot data' onclick='window.plotProtocolResults({0}, event)'></a>".format('"'+protocol+'"');
+                buttonsMarkup += "<a class='btn fa fa-trash-o' title='Plot data' onclick='window.deleteProtocol({0}, event)'></a>".format('"'+protocol+'"');
+                markup += "<p>" + buttonsMarkup + "</p>";
             }
 
             // create popup and set markup if any
-            var protocolsPopup = null;
-            if(markup != ''){
-                protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary').setMessage(markup);
-                var docWidth = $(document).width();
-                protocolsPopup.setSize(300, 400).setPosition(docWidth - 410, 50);
+            if(markup == ''){
+                markup = "No protocols found for this project."
             }
+            popup.setMessage(markup);
+        };
 
-            if(protocolsPopup != null){
-                // setup custom handler for clicks on links
-                var protocolSummaryCustomHandler = function(node, path, widget){
-                    var protocolName = path.replace('__', ' ');
-
-                    // look for experiments with that name
-                    var experiments = protocolExperimentsMap[protocolName];
-                    var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
-                    var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
-                    var plotWidget = null;
-                    if(experiments.length > 0 && membranePotentials.length>0){
-                        plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
-                    }
-                    for(var i=0; i<experiments.length; i++){
-                        // loop and plot all membrane potentials
-                        if(experiments[i].getStatus() == 'COMPLETED'){
-                            for(var j=0; j<membranePotentials.length; j++){
-                                plotController.plotStateVariable(
-                                    Project.getId(),
-                                    experiments[i].getId(),
-                                    membranePotentials[j],
-                                    plotWidget
-                                );
-                            }
-                        }
-                    }
-                };
-
-                protocolsPopup.addCustomNodeHandler(protocolSummaryCustomHandler, 'click');
+        window.showProtocolSummary = function() {
+            if(window.protocolsPopup != undefined && !$(window.protocolsPopup.el).is(':visible')){
+                // NOTE: this is trick until we fix deleting references of dead widgets
+                // NOTE: if the widget is not visible it means it was closed by the user
+                window.protocolsPopup = undefined;
+            }
+            if(window.protocolsPopup == undefined){
+                window.protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary');
+                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50);
+                window.populateProtocolSummary(window.protocolsPopup);
+            } else {
+                window.populateProtocolSummary(window.protocolsPopup);
+                window.protocolsPopup.shake();
             }
         };
 
