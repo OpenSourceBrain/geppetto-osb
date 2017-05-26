@@ -636,7 +636,7 @@ define(function(require) {
         //OSB Utility functions
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT);
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT,{stateless:true});
                 c.setName(name);
                 c.setSize(125, 350);
                 c.setPosition(window.innerWidth - 375, window.innerHeight - 150);

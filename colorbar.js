@@ -17,7 +17,7 @@ define(function(require) {
             return [1, (1-(x-0.75)*4), 0];
         }
     };
-
+    
     window.ca_color = function(max) {
         if(max == undefined) { max = 1; }
         return function(x) {
