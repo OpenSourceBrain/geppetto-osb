@@ -994,13 +994,13 @@ define(function(require) {
 
             // create popup and set markup if any
             if(markup == ''){
-                markup = "No protocols found for this project."
+                markup = "<p>No protocols found for this project.</p>"
             }
             popup.setMessage(markup);
         };
 
         window.showProtocolSummary = function() {
-            if(window.protocolsPopup != undefined && !$(window.protocolsPopup.el).is(':visible')){
+            if(window.protocolsPopup != undefined && !$('#' + window.protocolsPopup.getId()).is(':visible')){
                 // NOTE: this is trick until we fix deleting references of dead widgets
                 // NOTE: if the widget is not visible it means it was closed by the user
                 window.protocolsPopup = undefined;
