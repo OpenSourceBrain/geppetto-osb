@@ -308,6 +308,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
+                $("#gptForm").remove()
             });
         };
 
