@@ -80,6 +80,7 @@ define(function(require) {
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
                 formWidget.destroy();
+                $("#gptForm").remove()
             };
 
             var errorHandler = function() {
@@ -117,6 +118,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
+                this.setName("Modify Experiment Parameters");
             });
         };
 
@@ -308,7 +310,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
-                $("#gptForm").remove()
+                this.setName("Add Protocol(s)");
             });
         };
 
