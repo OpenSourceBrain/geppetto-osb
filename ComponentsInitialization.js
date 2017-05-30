@@ -80,6 +80,7 @@ define(function(require) {
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
                 formWidget.destroy();
+                $("#gptForm").remove()
             };
 
             var errorHandler = function() {
@@ -117,13 +118,12 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
+                this.setName(formName);
             });
         };
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
-            var formCallback = callback;
-
             var formWidget = null;
 
             var formId = "addProtocolForm";
@@ -164,11 +164,11 @@ define(function(require) {
                     },
                     timeStep: {
                         type: 'number',
-                        title: 'Time Step (s)'
+                        title: 'Time Step (ms)'
                     },
                     simDuration: {
                         type: "number",
-                        title: "Sim duration (s)"
+                        title: "Sim duration (ms)"
                     }
                 }
             };
@@ -188,12 +188,33 @@ define(function(require) {
 
                 var experimentNamePattern = "[P] " + formData.protocolName + " - ";
 
+                function experimentCompleteHandler(){
+                    var protocolExperimentsMap = window.getProtocolExperimentsMap();
+
+                    var protocolExperiments = [];
+                    for(var protocol in protocolExperimentsMap){
+                        // When an experiment is completed check if all experiments for this protocol are completed
+                        if(protocol == formData.protocolName){
+                            protocolExperiments = protocolExperimentsMap[protocol];
+                        }
+                    }
+
+                    var allCompleted = true;
+                    for(var i=0; i<protocolExperiments.length; i++){
+                        if(protocolExperiments[i].status != "COMPLETED"){
+                            allCompleted = false;
+                            break;
+                        }
+                    }
+
+                    if(allCompleted){
+                        window.showProtocolSummary();
+                        GEPPETTO.off(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
+                    }
+                }
+
                 // what does it do when the button is pressed
-                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
-                    // TODO: When an experiment is completed check if all experiments for this protocol are completed
-                    // TODO: if all completed plot all recorded variables for all protocols experiments in one plot
-                    //window.plotAllRecordedVariables();
-                });
+                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
 
                 // build list of paths for variables to watch
                 var watchedVars = [];
@@ -231,7 +252,9 @@ define(function(require) {
                             simpleModelParametersMap[p]=parameterMap[label][p];
                         }
                     }
-                    experimentName = experimentName.slice(0, -1);
+
+                    // keep only the first parameter in te experiment name to avoid making it too long
+                    experimentName = experimentName.slice(0, experimentName.indexOf(','));
 
                     experimentsData.push({
                     	name : experimentName,
@@ -249,7 +272,7 @@ define(function(require) {
 
                 var setExperimentData = function(){
                     GEPPETTO.trigger('stop_spin_logo');
-                    alert('test callback after experiment creation');
+                    GEPPETTO.ModalFactory.infoDialog("Protocol created", "Your protocol has been created and is now running. Open the experiments table to check on progress.");
 
                     // retrieve all protocol experiments and run them all
                     var exps = Project.getExperiments();
@@ -287,7 +310,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
-                formWidget.setPosition(100, 0);
+                this.setName(formName);
             });
         };
 
@@ -303,12 +326,6 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addWidget('TUTORIAL', {
             name: 'Open Source Brain Tutorial',
             tutorialData: osbTutorial
-        }, function() {
-            //temporary until sessions allow to customise the tutorial component
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_exercises/hh_exercises.json");
         });
 
         var eventHandler = function(component){
@@ -317,6 +334,10 @@ define(function(require) {
 		var clickHandler = function(){
 			GEPPETTO.Console.executeCommand("Project.download();");
 		};
+		
+		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
+			GEPPETTO.ModalFactory.infoDialog("Project donwloaded", "Your project has been downloaded. You can unzip your donwloaded project in your OSB repository for it to be available to everyone.");
+		})
 
 		var configuration = {
 				id: "DownloadProjectButton",
@@ -461,7 +482,7 @@ define(function(require) {
             return v;
         };
 
-        var configuration = {
+        var resultsConfiguration = {
             id: "controlsMenuButton",
             openByDefault: false,
             closeOnClick: false,
@@ -511,15 +532,15 @@ define(function(require) {
                     action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
-                label: "Add protocol",
-                action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol"
-            },]
+                label: "Show protocol summary",
+                action: "window.showProtocolSummary();",
+                value: "show_protocol_summary"
+            }]
         };
 
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
-                configuration: configuration
+                configuration: resultsConfiguration
         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
 
         //Foreground initialization
@@ -532,7 +553,32 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('HOME', {}, document.getElementById("HomeButton"));
 
         //Simulation controls initialization
-        GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {}, document.getElementById("sim-toolbar"));
+        var runConfiguration = {
+            id: "runMenuButton",
+            openByDefault: false,
+            closeOnClick: true,
+            label: ' Run',
+            iconOn: 'fa fa-cogs',
+            iconOff: 'fa fa-cogs',
+            menuPosition: {
+                top: 40,
+                right: 450
+            },
+            menuSize: {
+                height: "auto",
+                width: "auto"
+            },
+            menuItems: [{
+                label: "Run active experiment",
+                action: "Project.getActiveExperiment().run();",
+                value: "run_experiment"
+            }, {
+                label: "Add & run protocol",
+                action: "GEPPETTO.showAddProtocolDialog();",
+                value: "add_protocol"
+            }]
+        };
+        GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
@@ -592,14 +638,15 @@ define(function(require) {
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             // reset control panel with defaults
             if (GEPPETTO.ControlPanel != undefined) {
-                GEPPETTO.ControlPanel.clearData();
+                // reset to default tab
+                GEPPETTO.ControlPanel.setTab(undefined);
             }
         });
 
         //OSB Utility functions
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT);
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT,{stateless:true});
                 c.setName(name);
                 c.setSize(125, 350);
                 c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
@@ -680,7 +727,6 @@ define(function(require) {
                 });
         };
 
-
         window.getRecordedMembranePotentials = function() {
             var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
             var v = [];
@@ -704,7 +750,6 @@ define(function(require) {
         };
 
         //OSB Widgets configuration
-
         var widthScreen = this.innerWidth;
         var heightScreen = this.innerHeight;
 
@@ -734,7 +779,7 @@ define(function(require) {
 
             var posX = 90;
             var posY = 5;
-            var target = G.addWidget(7).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
+            var target = G.addWidget(7, {isStateless: true}).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
             target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
@@ -742,7 +787,7 @@ define(function(require) {
         window.showConnectivityMatrix = function(instance) {
             loadConnections();
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                G.addWidget(1).setMessage('No connection found in this network').setName('Warning Message');
+                G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
             } else {
                 G.addWidget(6).setData(instance, {
                     linkType: function(c) {
@@ -868,6 +913,129 @@ define(function(require) {
             mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
 
+
+        window.plotProtocolResults = function(protocolName, e){
+            e.preventDefault();
+            // figure out if we have any protocol and organize into a map
+            var experiments = Project.getExperiments();
+            var protocolExperimentsMap = {};
+            for(var i=0; i<experiments.length; i++){
+                if(experiments[i].getName().startsWith('[P]')){
+                    // parse protocol pattern
+                    var experimentName = experiments[i].getName();
+                    var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
+                    if(protocolExperimentsMap[protocolName] == undefined){
+                        protocolExperimentsMap[protocolName] = [experiments[i]];
+                    } else {
+                        protocolExperimentsMap[protocolName].push(experiments[i]);
+                    }
+                }
+            }
+
+            // look for experiments with that name
+            experiments = protocolExperimentsMap[protocolName];
+            var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+            var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
+            var plotWidget = null;
+            if(experiments.length > 0 && membranePotentials.length>0){
+                plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
+            }
+            for(var i=0; i<experiments.length; i++){
+                // loop and plot all membrane potentials
+                if(experiments[i].getStatus() == 'COMPLETED'){
+                    for(var j=0; j<membranePotentials.length; j++){
+                        plotController.plotStateVariable(
+                            Project.getId(),
+                            experiments[i].getId(),
+                            membranePotentials[j],
+                            plotWidget
+                        );
+                    }
+                }
+            }
+        };
+
+        window.getProtocolExperimentsMap = function(){
+            var experiments = Project.getExperiments();
+            var protocolExperimentsMap = {};
+            for(var i=0; i<experiments.length; i++){
+                if(experiments[i].getName().startsWith('[P]')){
+                    // parse protocol pattern
+                    var experimentName = experiments[i].getName();
+                    var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
+                    if(protocolExperimentsMap[protocolName] == undefined){
+                        protocolExperimentsMap[protocolName] = [experiments[i]];
+                    } else {
+                        protocolExperimentsMap[protocolName].push(experiments[i]);
+                    }
+                }
+            }
+
+            return protocolExperimentsMap;
+        };
+
+        window.deleteProtocol = function(protocolName, e){
+            e.preventDefault();
+            // get protocol experiment map
+            var protocolExperimentsMap = window.getProtocolExperimentsMap();
+
+            // look for experiments with that name
+            var experiments = protocolExperimentsMap[protocolName];
+
+            if(experiments.length > 0){
+                GEPPETTO.ExperimentsController.suppressDeleteExperimentConfirmation = true;
+                GEPPETTO.trigger('spin_logo');
+            }
+            var callback = function(){
+                GEPPETTO.ExperimentsController.suppressDeleteExperimentConfirmation = false;
+                GEPPETTO.trigger('stop_spin_logo');
+                window.showProtocolSummary();
+                GEPPETTO.ModalFactory.infoDialog("Protocol deleted", "Al the experiments in your protocol have been deleted.");
+            };
+
+            for(var i=0; i<experiments.length; i++) {
+                experiments[i].deleteExperiment((i == (experiments.length - 1)) ? callback: undefined);
+            }
+        };
+
+        window.populateProtocolSummary = function(popup){
+            // get protocol experiments map
+            var protocolExperimentsMap = window.getProtocolExperimentsMap();
+
+            // create markup for the protocol with protocol name and a 'plot results' shortcut link
+            var markup = '';
+            for(var protocol in protocolExperimentsMap){
+                var exps = protocolExperimentsMap[protocol];
+                // foreach protocol create markup
+                markup += "<p>[P] {0} ({1} experiments):</p>".format(protocol, exps.length);
+                var buttonsMarkup = "<a class='btn fa fa-area-chart' title='Plot data' onclick='window.plotProtocolResults({0}, event)'></a>".format('"'+protocol+'"');
+                buttonsMarkup += "<a class='btn fa fa-trash-o' title='Plot data' onclick='window.deleteProtocol({0}, event)'></a>".format('"'+protocol+'"');
+                markup += "<p>" + buttonsMarkup + "</p>";
+            }
+
+            // create popup and set markup if any
+            if(markup == ''){
+                markup = "<p>No protocols found for this project.</p>"
+            }
+            popup.setMessage(markup);
+        };
+
+        window.showProtocolSummary = function() {
+            if(window.protocolsPopup != undefined && !$('#' + window.protocolsPopup.getId()).is(':visible')){
+                // NOTE: this is trick until we fix deleting references of dead widgets
+                // NOTE: if the widget is not visible it means it was closed by the user
+                window.protocolsPopup = undefined;
+            }
+            if(window.protocolsPopup == undefined){
+                window.protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary');
+                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50);
+                window.populateProtocolSummary(window.protocolsPopup);
+            } else {
+                window.populateProtocolSummary(window.protocolsPopup);
+                window.protocolsPopup.shake();
+            }
+        };
+
         window.executeOnSelection = function(callback) {
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.cell) {
                 var csel = GEPPETTO.SceneController.getSelection()[0];
@@ -885,7 +1053,7 @@ define(function(require) {
                     }
                     callback(csel);
                 } else {
-                    G.addWidget(1).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
                 }
             }
         };
@@ -900,7 +1068,6 @@ define(function(require) {
         window.getMainType = function(id) {
             return (typeof(id) === 'undefined') ? GEPPETTO.ModelFactory.geppettoModel.neuroml[id] : id.getType();
         };
-
 
         //This is the main function which is called to initialize OSB Geppetto
         window.initOSBGeppetto = function(type, idString) {
@@ -1001,7 +1168,7 @@ define(function(require) {
                     break;
 
             }
-        }
+        };
 
         GEPPETTO.G.setIdleTimeOut(-1);
 
