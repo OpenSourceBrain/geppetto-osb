@@ -554,8 +554,8 @@ define(function(require) {
             openByDefault: false,
             closeOnClick: true,
             label: ' Run',
-            iconOn: 'fa fa-caret-square-o-up',
-            iconOff: 'fa fa-caret-square-o-down',
+            iconOn: 'fa fa-cogs',
+            iconOff: 'fa fa-cogs',
             menuPosition: {
                 top: 40,
                 right: 450
