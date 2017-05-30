@@ -270,7 +270,7 @@ define(function(require) {
                     });
                 }
 
-                var setExperimentData = function(){
+                var runExperiments = function(){
                     GEPPETTO.trigger('stop_spin_logo');
                     GEPPETTO.ModalFactory.infoDialog("Protocol created", "Your protocol has been created and is now running. Open the experiments table to check on progress.");
 
@@ -286,7 +286,7 @@ define(function(require) {
                 };
 
                 GEPPETTO.trigger('spin_logo');
-                Project.newExperimentBatch(experimentsData, setExperimentData);
+                Project.newExperimentBatch(experimentsData, runExperiments);
 
                 // close widget
                 formWidget.destroy();
@@ -562,6 +562,7 @@ define(function(require) {
             label: ' Run',
             iconOn: 'fa fa-cogs',
             iconOff: 'fa fa-cogs',
+            disableable: false,
             menuPosition: {
                 top: 40,
                 right: 450
@@ -572,8 +573,9 @@ define(function(require) {
             },
             menuItems: [{
                 label: "Run active experiment",
-                action: "Project.getActiveExperiment().run();",
-                value: "run_experiment"
+                action: "GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');",
+                value: "run_experiment",
+                disabled: "cascade"
             }, {
                 label: "Add & run protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
