@@ -334,6 +334,10 @@ define(function(require) {
 		var clickHandler = function(){
 			GEPPETTO.Console.executeCommand("Project.download();");
 		};
+		
+		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
+			GEPPETTO.ModalFactory.infoDialog("Project donwloaded", "Your project has been downloaded. You can unzip your donwloaded project in your OSB repository for it to be available to everyone.");
+		})
 
 		var configuration = {
 				id: "DownloadProjectButton",
