@@ -523,7 +523,7 @@ define(function(require) {
                 },
                 true: {
                     // is selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
                 label: "Add protocol",
