@@ -118,7 +118,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
-                this.setName("Modify Experiment Parameters");
+                this.setName(formName);
             });
         };
 
@@ -310,7 +310,7 @@ define(function(require) {
                 changeHandler: changeHandler
             }, function() {
                 formWidget = this;
-                this.setName("Add Protocol(s)");
+                this.setName(formName);
             });
         };
 
@@ -484,7 +484,7 @@ define(function(require) {
             return v;
         };
 
-        var configuration = {
+        var resultsConfiguration = {
             id: "controlsMenuButton",
             openByDefault: false,
             closeOnClick: false,
@@ -534,10 +534,6 @@ define(function(require) {
                     action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
-                label: "Add protocol",
-                action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol"
-            }, {
                 label: "Show protocol summary",
                 action: "window.showProtocolSummary();",
                 value: "show_protocol_summary"
@@ -546,7 +542,7 @@ define(function(require) {
 
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
-                configuration: configuration
+                configuration: resultsConfiguration
         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
 
         //Foreground initialization
@@ -559,7 +555,32 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('HOME', {}, document.getElementById("HomeButton"));
 
         //Simulation controls initialization
-        GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {}, document.getElementById("sim-toolbar"));
+        var runConfiguration = {
+            id: "runMenuButton",
+            openByDefault: false,
+            closeOnClick: true,
+            label: ' Run',
+            iconOn: 'fa fa-caret-square-o-up',
+            iconOff: 'fa fa-caret-square-o-down',
+            menuPosition: {
+                top: 40,
+                right: 450
+            },
+            menuSize: {
+                height: "auto",
+                width: "auto"
+            },
+            menuItems: [{
+                label: "Run active experiment",
+                action: "Project.getActiveExperiment().run();",
+                value: "run_experiment"
+            }, {
+                label: "Add & run protocol",
+                action: "GEPPETTO.showAddProtocolDialog();",
+                value: "add_protocol"
+            }]
+        };
+        GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
@@ -708,7 +729,6 @@ define(function(require) {
                 });
         };
 
-
         window.getRecordedMembranePotentials = function() {
             var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
             var v = [];
@@ -732,7 +752,6 @@ define(function(require) {
         };
 
         //OSB Widgets configuration
-
         var widthScreen = this.innerWidth;
         var heightScreen = this.innerHeight;
 
@@ -1050,7 +1069,6 @@ define(function(require) {
         window.getMainType = function(id) {
             return (typeof(id) === 'undefined') ? GEPPETTO.ModelFactory.geppettoModel.neuroml[id] : id.getType();
         };
-
 
         //This is the main function which is called to initialize OSB Geppetto
         window.initOSBGeppetto = function(type, idString) {
