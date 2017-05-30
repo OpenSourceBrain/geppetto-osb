@@ -326,12 +326,6 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addWidget('TUTORIAL', {
             name: 'Open Source Brain Tutorial',
             tutorialData: osbTutorial
-        }, function() {
-            //temporary until sessions allow to customise the tutorial component
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_intro/hh_intro.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_neuroml/hh_neuroml.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_practical/hh_practical.json");
-            this.addTutorial("https://raw.githubusercontent.com/tarelli/tutorials/master/1_hh_exercises/hh_exercises.json");
         });
 
         var eventHandler = function(component){
@@ -340,6 +334,10 @@ define(function(require) {
 		var clickHandler = function(){
 			GEPPETTO.Console.executeCommand("Project.download();");
 		};
+		
+		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
+			GEPPETTO.ModalFactory.infoDialog("Project donwloaded", "Your project has been downloaded. You can unzip your donwloaded project in your OSB repository for it to be available to everyone.");
+		})
 
 		var configuration = {
 				id: "DownloadProjectButton",
@@ -916,6 +914,7 @@ define(function(require) {
             }
             mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
+
 
         window.plotProtocolResults = function(protocolName, e){
             e.preventDefault();
