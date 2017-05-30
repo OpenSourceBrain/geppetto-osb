@@ -1177,9 +1177,5 @@ define(function(require) {
         GEPPETTO.G.autoFocusConsole(false);
         
         GEPPETTO.UnitsController.addUnit("V","Membrane potential");
-
-        GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
-            $("#tutorial_dialog").dialog('moveToTop');
-        });
     };
 });
