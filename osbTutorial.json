@@ -53,42 +53,42 @@
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
 		"message": "The control panel allows you to visualize and interact with the morphologies, state variables and parameters in a given model. The control panel can be opened and closed with the button on the left side bar or with the CTRL+P shortcut.",
-		"action": "GEPPETTO.ControlPanel.close(); $('#controlPanelBtn').effect('highlight', {}, 3000);"
+		"action": "Controlpanel1.close(); $('#controlPanelBtn').effect('highlight', {}, 3000);"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
-		"message": "The control panelcan be filtered to visualize morphologies. It is possible to hide,show, zoom and change the color of any of the cells and networks. Changes at the population level will be propagated to all the cells belonging to the population.",
-		"action": "GEPPETTO.ControlPanel.open(); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(0).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('VISUAL_INSTANCES');"
+		"message": "The control panel can be filtered to visualize morphologies. It is possible to hide, show, zoom and change the color of any of the cells and networks. Changes at the population level will be propagated to all the cells belonging to the population.",
+		"action": "Controlpanel1.open(); Controlpanel1.setTab(Controlpanel1.filterOptions.VISUAL_INSTANCES); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(0).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('VISUAL_INSTANCES');"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
-		"message": "The control panelcan be filtered to visualize the available state variables. If the active experiment is currently in DESIGN (orange icon in the experiments tab) then it is possible to decid what variables to record by clicking on the circle icon.",
-		"action": "$('#controlpanel .built-in-filter .toggleButton').eq(1).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ACTIVE_STATE_VARIABLES');"
+		"message": "The control panel can be filtered to visualize the available state variables. If the active experiment is currently in DESIGN (orange icon in the experiments tab) then it is possible to decide what variables to record by clicking on the circle icon.",
+		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(1).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
 		"message": "If the active experiment is completed (green icon in the experiments tab) the recorded filter lets you look only at the variables that were recorded.",
-		"action": "$('#controlpanel .built-in-filter .toggleButton').eq(3).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ACTIVE_RECORDED_STATE_VARIABLES');"
+		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_RECORDED_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(3).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
 		"message": "The active experiment filters let you pick between state variables that belong to the active experiment or state variables that belong to any existing experiments. These filters apply also to parameters.",
-		"action": "$('#controlpanel .built-in-filter .toggleButton').eq(4).effect('pulsate', {}, 3000); $('#controlpanel .built-in-filter .toggleButton').eq(5).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ANY_EXPERIMENT_RECORDED_STATE_VARIABLES');"
+		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ANY_EXPERIMENT_RECORDED_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(4).effect('pulsate', {}, 3000); $('#controlpanel .built-in-filter .toggleButton').eq(5).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
 		"message": "The global filter lets you peak into state variables and parameters that were recorded in other projects that belong to you",
-		"action": "$('#controlpanel .built-in-filter .toggleButton').eq(6).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ANY_PROJECT_GLOBAL_STATE_VARIABLES');"
+		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ANY_PROJECT_GLOBAL_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(6).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Control Panel",
 		"icon" : "fa fa-list",
 		"message": "The parameter filters shows you the available parameters. If the active experiment is in DESIGN mode (orange icon in the experiments tab) you will be able to change the value of the parameters simply typing in their inlined textbox.",
-		"action": "GEPPETTO.ControlPanel.open(); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(2).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ACTIVE_PARAMETERS');"
+		"action": "Controlpanel1.open(); Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_PARAMETERS); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(2).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ACTIVE_PARAMETERS');"
 	}, {
 		"title": " Search",
 		"icon" : "fa fa-search",
 		"message": "You can use the search to find and interact with anything in your model by name, including state variables to be recorded and parameters to be set. The spotlight can be opened and closed with the button on the left side bar or with the CTRL+SPACE shortcut.",
-		"action": "GEPPETTO.ControlPanel.close(); Tutorial1.dialog.parent().css('z-index',''); $('#spotlightBtn').effect('highlight', {}, 3000);"
+		"action": "Controlpanel1.close(); Tutorial1.dialog.parent().css('z-index',''); $('#spotlightBtn').effect('highlight', {}, 3000);"
 	},{
 		"title": " Help",
 		"icon" : "fa fa-info-circle",
