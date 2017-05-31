@@ -222,7 +222,9 @@ define(function(require) {
                     watchedVars = Project.getActiveExperiment().getWatchedVariables();
                 }
                 // concat default paths
-                var defaultVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+                var defaultVars = window.getSomaVariableInstances('v').map(function(item){
+                    return item.getPath();
+                });
                 for(var v=0; v<defaultVars.length; v++){
                     if(!watchedVars.includes(defaultVars[v])){
                         watchedVars.push(defaultVars[v]);
