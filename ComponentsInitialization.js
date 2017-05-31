@@ -717,11 +717,10 @@ define(function(require) {
                 .map(function(x) { return Instances.getInstance(x); })
                 // we look at the name of the type of the parent of each state variable instance
                 // when the name contains 'root', it has no parent in the NeuroML and thus is soma
+                // or alternatively if it is an array (eg. with hhcell)
                 .filter(function(x) {
-                    return x.getParent()
-                        .getType()
-                        .getName()
-                        .indexOf("root") > -1
+                    return (x.getParent().getMetaType() == GEPPETTO.Resources.ARRAY_ELEMENT_INSTANCE_NODE
+                            || x.getParent().getType().getName().indexOf("root") > -1)
                 })
                 // remove duplicates
                 .filter(function(value, index, self) {
