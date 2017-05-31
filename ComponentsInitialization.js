@@ -1009,10 +1009,10 @@ define(function(require) {
             for(var protocol in protocolExperimentsMap){
                 var exps = protocolExperimentsMap[protocol];
                 // foreach protocol create markup
-                markup += "<p>[P] {0} ({1} experiments):</p>".format(protocol, exps.length);
+                markup += "<p style='float:left; color:white; margin-right:5px;'>[P] {0} ({1} experiments) </p>".format(protocol, exps.length);
                 var buttonsMarkup = "<a class='btn fa fa-area-chart' title='Plot data' onclick='window.plotProtocolResults({0}, event)'></a>".format('"'+protocol+'"');
                 buttonsMarkup += "<a class='btn fa fa-trash-o' title='Plot data' onclick='window.deleteProtocol({0}, event)'></a>".format('"'+protocol+'"');
-                markup += "<p>" + buttonsMarkup + "</p>";
+                markup += "<p style='margin-top:-3px;'>" + buttonsMarkup + "</p>";
             }
 
             // create popup and set markup if any
@@ -1030,7 +1030,7 @@ define(function(require) {
             }
             if(window.protocolsPopup == undefined){
                 window.protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary');
-                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50);
+                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
                 window.populateProtocolSummary(window.protocolsPopup);
             } else {
                 window.populateProtocolSummary(window.protocolsPopup);
