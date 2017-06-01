@@ -124,6 +124,11 @@ define(function(require) {
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
+            if(!window.Project.persisted){
+                GEPPETTO.ModalFactory.infoDialog("Cannot create protocol", "You first need to persist your project clicking on the star above before you can create a protocol.");
+                return;
+            }
+
             var formWidget = null;
 
             var formId = "addProtocolForm";
