@@ -124,7 +124,7 @@ define(function(require) {
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
-            if(!window.Project.persisted){
+            if(!GEPPETTO.UserController.hasWritePermissions()){
                 GEPPETTO.ModalFactory.infoDialog("Cannot create protocol", "You first need to persist your project clicking on the star above before you can create a protocol.");
                 return;
             }
@@ -344,7 +344,7 @@ define(function(require) {
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
 			GEPPETTO.ModalFactory.infoDialog("Project donwloaded", "Your project has been downloaded. You can unzip your donwloaded project in your OSB repository for it to be available to everyone.");
-		})
+		});
 
 		var configuration = {
 				id: "DownloadProjectButton",
