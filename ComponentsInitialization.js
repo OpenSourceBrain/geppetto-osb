@@ -125,7 +125,15 @@ define(function(require) {
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
             if(!GEPPETTO.UserController.hasWritePermissions()){
-                GEPPETTO.ModalFactory.infoDialog("Cannot create protocol", "You first need to persist your project clicking on the star above before you can create a protocol.");
+                var message = "";
+
+                if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
+                    message = "You first need to persist your project clicking on the star above before you can create a protocol.";
+                } else {
+                    message = "You don’t have write permissions for this project (read only).";
+                }
+
+                GEPPETTO.ModalFactory.infoDialog("Cannot create protocol", message);
                 return;
             }
 
@@ -343,7 +351,7 @@ define(function(require) {
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
-			GEPPETTO.ModalFactory.infoDialog("Project donwloaded", "Your project has been downloaded. You can unzip your donwloaded project in your OSB repository for it to be available to everyone.");
+			GEPPETTO.ModalFactory.infoDialog("Project downloaded", "Your project has been downloaded. You can unzip your downloaded project in your OSB repository for it to be available to everyone.");
 		});
 
 		var configuration = {
@@ -853,6 +861,19 @@ define(function(require) {
          *      }
          */
         window.quickExperiment = function(prefix, parameterMap) {
+            if(!GEPPETTO.UserController.hasWritePermissions()){
+                var message = "";
+
+                if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
+                    message = "You first need to persist your project clicking on the star above before you can run an experiment.";
+                } else {
+                    message = "You don’t have write permissions for this project (read only).";
+                }
+
+                GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);
+                return;
+            }
+
             GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
                 //When the experiment is completed plot the variables
                 window.plotAllRecordedVariables();
