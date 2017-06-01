@@ -946,23 +946,10 @@ define(function(require) {
         window.plotProtocolResults = function(protocolName, e){
             e.preventDefault();
             // figure out if we have any protocol and organize into a map
-            var experiments = Project.getExperiments();
-            var protocolExperimentsMap = {};
-            for(var i=0; i<experiments.length; i++){
-                if(experiments[i].getName().startsWith('[P]')){
-                    // parse protocol pattern
-                    var experimentName = experiments[i].getName();
-                    var protocolName = experimentName.substring(experimentName.lastIndexOf("[P] ")+4,experimentName.lastIndexOf(" - "));
-                    if(protocolExperimentsMap[protocolName] == undefined){
-                        protocolExperimentsMap[protocolName] = [experiments[i]];
-                    } else {
-                        protocolExperimentsMap[protocolName].push(experiments[i]);
-                    }
-                }
-            }
+            var protocolExperimentsMap = this.getProtocolExperimentsMap();
 
             // look for experiments with that name
-            experiments = protocolExperimentsMap[protocolName];
+            var experiments = protocolExperimentsMap[protocolName];
             var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
             var plotWidget = null;
