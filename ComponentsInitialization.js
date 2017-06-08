@@ -975,6 +975,29 @@ define(function(require) {
             return protocolExperimentsMap;
         };
 
+        // 'white' or 'default' theme
+        window.setTheme = function(themeName) {
+            var plotWidgets = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).widgets;
+            var stylePlots = function(themeName) {
+                for (var i=0; i<plotWidgets.length; ++i)
+                    plotWidgets[i].setPlotStyle(themeName);
+            };
+            switch (themeName) {
+            case 'white':
+                $('body').css('background', 'white');
+                $('.btn').css('background', 'rgb(211,211,211)');
+                $('.ui-dialog').css('background', 'white');
+                stylePlots(themeName);
+                break;
+            case 'default':
+                $('body').css('background', 'rgba(0, 0, 0, 0) linear-gradient(rgb(20, 26, 30) 0%, rgb(92, 98, 104) 50%, rgb(96, 102, 109) 73%, rgb(81, 83, 89) 100%) repeat scroll 0% 0% / auto padding-box border-box');
+                $('.btn').css('background', 'rgba(66, 59, 59, 0.8) none repeat scroll 0% 0% / auto padding-box border-box');
+                $('.ui-dialog').css('background', 'rgba(66, 59, 59, 0.90)');
+                stylePlots(themeName);
+                break;
+            }
+        };
+
         window.deleteProtocol = function(protocolName, e){
             e.preventDefault();
             // get protocol experiment map
