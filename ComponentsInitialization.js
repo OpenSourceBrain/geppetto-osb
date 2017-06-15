@@ -815,7 +815,7 @@ define(function(require) {
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
 
-        window.getNodeColormap = function () {
+        window.getNodeCustomColormap = function () {
             var cells = GEPPETTO.ModelFactory.getAllInstancesOf(
                 GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.network)[0])[0].getChildren();
             var domain = [];
@@ -827,6 +827,11 @@ define(function(require) {
                     domain.push(cells[i].getPath());
                 range.push(cells[i].getColor());
             }
+            // if everything is default color, return empty range so
+            // connectivity widget can use a d3 provided palette
+            if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
+                range = undefined;
+
             return {domain: domain, range: range};
         },
 
@@ -844,9 +849,11 @@ define(function(require) {
                             }
                         }
                         return c.getName().split("-")[0];
-                    }
-                }, window.getNodeColormap())
-                    .setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
+                    },
+                    library: GEPPETTO.ModelFactory.geppettoModel.neuroml
+                }, window.getNodeCustomColormap())
+                    .setName('Connectivity Widget on network ' + instance.getId())
+                    .configViaGUI();
             }
         };
 
