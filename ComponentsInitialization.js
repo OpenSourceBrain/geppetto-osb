@@ -815,6 +815,21 @@ define(function(require) {
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
 
+        window.getNodeColormap = function () {
+            var cells = GEPPETTO.ModelFactory.getAllInstancesOf(
+                GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.network)[0])[0].getChildren();
+            var domain = [];
+            var range = [];
+            for (var i=0; i<cells.length; ++i) {
+                if (cells[i].getMetaType() == GEPPETTO.Resources.ARRAY_INSTANCE_NODE)
+                    domain.push(cells[i].getChildren()[0].getType().getId());
+                else
+                    domain.push(cells[i].getPath());
+                range.push(cells[i].getColor());
+            }
+            return {domain: domain, range: range};
+        },
+
         window.showConnectivityMatrix = function(instance) {
             loadConnections();
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
@@ -830,7 +845,8 @@ define(function(require) {
                         }
                         return c.getName().split("-")[0];
                     }
-                }).setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
+                }, window.getNodeColormap())
+                    .setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
             }
         };
 
