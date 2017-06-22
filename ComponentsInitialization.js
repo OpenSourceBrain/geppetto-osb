@@ -4,6 +4,8 @@ define(function(require) {
     var networkControlPanel = require('./osbNetworkControlPanel.json');
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
+    var d3 = require('d3');
+
     return function(GEPPETTO) {
         G.enableLocalStorage(true);
 
@@ -827,12 +829,11 @@ define(function(require) {
                     domain.push(cells[i].getPath());
                 range.push(cells[i].getColor());
             }
-            // if everything is default color, return empty range so
-            // connectivity widget can use a d3 provided palette
+            // if everything is default color, use a d3 provided palette as range
             if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
-                range = undefined;
-
-            return {domain: domain, range: range};
+                return d3.scaleOrdinal(d3.schemeCategory20).domain(domain);
+            else
+                return d3.scaleOrdinal(range).domain(domain);
         },
 
         window.showConnectivityMatrix = function(instance) {
@@ -850,7 +851,8 @@ define(function(require) {
                         }
                         return c.getName().split("-")[0];
                     },
-                    library: GEPPETTO.ModelFactory.geppettoModel.neuroml
+                    library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                    colorMapFunction: window.getNodeCustomColormap
                 }, window.getNodeCustomColormap())
                     .setName('Connectivity Widget on network ' + instance.getId())
                     .configViaGUI();
