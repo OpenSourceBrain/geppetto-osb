@@ -721,9 +721,10 @@ define(function(require) {
             }
         };
 
-        window.loadConnections = function() {
+        window.loadConnections = function(callback) {
             Model.neuroml.resolveAllImportTypes(function() {
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                callback();
             });
         };
 
@@ -837,26 +838,27 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            loadConnections();
-            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
-            } else {
-                G.addWidget(6).setData(instance, {
-                    linkType: function(c) {
-                        if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                            var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                            if (synapseType != undefined) {
-                                return synapseType.getId();
+            loadConnections(function(){
+                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                    G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
+                } else {
+                    G.addWidget(6).setData(instance, {
+                        linkType: function(c) {
+                            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                if (synapseType != undefined) {
+                                    return synapseType.getId();
+                                }
                             }
-                        }
-                        return c.getName().split("-")[0];
-                    },
-                    library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                    colorMapFunction: window.getNodeCustomColormap
-                }, window.getNodeCustomColormap())
-                    .setName('Connectivity Widget on network ' + instance.getId())
-                    .configViaGUI();
-            }
+                            return c.getName().split("-")[0];
+                        },
+                        library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                        colorMapFunction: window.getNodeCustomColormap
+                    }, window.getNodeCustomColormap())
+                        .setName('Connectivity Widget on network ' + instance.getId())
+                        .configViaGUI();
+                }
+            });
         };
 
         window.showChannelTreeView = function(csel) {
