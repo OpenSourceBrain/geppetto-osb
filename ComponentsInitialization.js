@@ -7,11 +7,7 @@ define(function(require) {
     return function(GEPPETTO) {
         G.enableLocalStorage(true);
 
-        var link = document.createElement("link");
-        link.type = "text/css";
-        link.rel = "stylesheet";
-        link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
-        document.getElementsByTagName("head")[0].appendChild(link);
+        require('./css/OSB.less');
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");

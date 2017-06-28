@@ -52,14 +52,14 @@ define(function(require) {
                     ticklen: 4,
                     tickcolor : 'rgb(255, 255, 255)',
 		    tickfont: {
-			family: 'Helvetica Neue',
-			size : 11,
-			color: 'rgb(255, 255, 255)'
+        family: 'Helvetica Neue',
+        size : 11,
+        color: 'rgb(255, 255, 255)'
 		    },
 		    titlefont : {
-			family: 'Helvetica Neue',
-			size : 12,
-			color: 'rgb(255, 255, 255)'
+        family: 'Helvetica Neue',
+        size : 12,
+        color: 'rgb(255, 255, 255)'
 		    },
                 },
                 yaxis: {
@@ -67,7 +67,7 @@ define(function(require) {
                     showticklabels: false
                 },
                 paper_bgcolor: 'rgba(66, 59, 59, 0.90)',
-		plot_bgcolor: 'transparent'
+                plot_bgcolor: 'transparent'
             };
         },
 
@@ -100,8 +100,8 @@ define(function(require) {
                     }
                     var r,g,b;
                     [r,g,b] = scalefn(x).map(function(y){ return y*255; });
-                    return "rgb(" + r + "," + g + "," + b + ")";
-                }
+                    return 'rgb(' + r + ',' + g + ',' + b + ')';
+                };
             };
             
             var colorscale = this.genColorscale(min, max, this.nbars, scalefn_255(scalefn));
