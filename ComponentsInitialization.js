@@ -531,7 +531,7 @@ define(function(require) {
                 },
                 true: {
                     // is selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
                 label: "Apply soma voltage colouring to entire cell",
@@ -540,13 +540,13 @@ define(function(require) {
                 value: "apply_voltage_entire_cell",
                 false: {
                     // not selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
                         "window.soma_v_entire_cell();" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
                     // is selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
                 label: "Show protocol summary",
@@ -624,13 +624,13 @@ define(function(require) {
                         value: "apply_ca",
                         false: {
                             // not selected
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
-                                "G.addBrightnessFunctionBulkSimplified(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
+                                "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
                             // is selected
-                            action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);"
+                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                         }
                     };
 
@@ -671,10 +671,11 @@ define(function(require) {
             var somaVInstances = window.getSomaVariableInstances('v');
             // get the intersection of recorded potentials and soma potential instances
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
-            for (var i=0; i<recordedSomaV.length; ++i) {
+            /*for (var i=0; i<recordedSomaV.length; ++i) {
                 var cell = recordedSomaV[i].getParent().getParent();
                 GEPPETTO.G.addBrightnessFunction(cell, recordedSomaV[i], window.voltage_color);
-            }
+            }*/
+            GEPPETTO.SceneController.addColorFunction(recordedSomaV, window.ca_color());
         }
 
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
@@ -701,6 +702,7 @@ define(function(require) {
                     }
 
                     var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
+                    c.scalefn = normalize ? window.color_norm : scalefn;
                     c.plotGeneric(data);
 
                     window.controlsMenuButton.refresh();
@@ -724,7 +726,7 @@ define(function(require) {
         window.loadConnections = function(callback) {
             Model.neuroml.resolveAllImportTypes(function() {
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-                callback();
+                if (typeof callback === "function") callback();
             });
         };
 
@@ -750,10 +752,8 @@ define(function(require) {
                 // we look at the name of the type of the parent of each state variable instance
                 // when the name contains 'root', it has no parent in the NeuroML and thus is soma
                 .filter(function(x) {
-                    return x.getParent()
-                        .getType()
-                        .getName()
-                        .indexOf("root") > -1
+                    return (x.getParent().getMetaType() == GEPPETTO.Resources.ARRAY_ELEMENT_INSTANCE_NODE ||
+                            x.getParent().getType().getName().indexOf("root") > -1)
                 })
                 // remove duplicates
                 .filter(function(value, index, self) {
@@ -838,7 +838,8 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            loadConnections(function(){
+            Model.neuroml.resolveAllImportTypes(function(){
+                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
                 if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
                     G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
                 } else {
