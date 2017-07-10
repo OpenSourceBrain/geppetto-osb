@@ -19,6 +19,8 @@ define(function(require) {
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
+            
+            this.engine.setLinesThreshold(20000)
         });
 
         //This function will be called when the run button is clicked
