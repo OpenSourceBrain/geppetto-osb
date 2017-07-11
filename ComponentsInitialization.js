@@ -522,27 +522,12 @@ define(function(require) {
             }, {
                 label: "Apply voltage colouring to morphologies",
                 radio: true,
-                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o'",
+                condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'v')",
                 value: "apply_voltage",
                 false: {
                     // not selected
                     action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
-                },
-                true: {
-                    // is selected
-                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
-                }
-            }, {
-                label: "Apply soma voltage colouring to entire cell",
-                radio: true,
-                condition: "window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell.state.icon != 'fa fa-circle-o'",
-                value: "apply_voltage_entire_cell",
-                false: {
-                    // not selected
-                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
-                        "window.soma_v_entire_cell();" +
-                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
                 true: {
                     // is selected
@@ -620,7 +605,7 @@ define(function(require) {
                     var caMenuItem = {
                         label: "Apply Ca2+ concentration colouring to morphologies",
                         radio: true,
-                        condition: "window.controlsMenuButton.refs.dropDown.refs.apply_ca.state.icon != 'fa fa-circle-o'",
+                        condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'caConc')",
                         value: "apply_ca",
                         false: {
                             // not selected
@@ -666,18 +651,6 @@ define(function(require) {
         });
 
         //OSB Utility functions
-        window.soma_v_entire_cell = function() {
-            var recordedMemV = window.getRecordedMembranePotentials();
-            var somaVInstances = window.getSomaVariableInstances('v');
-            // get the intersection of recorded potentials and soma potential instances
-            var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
-            /*for (var i=0; i<recordedSomaV.length; ++i) {
-                var cell = recordedSomaV[i].getParent().getParent();
-                GEPPETTO.G.addBrightnessFunction(cell, recordedSomaV[i], window.voltage_color);
-            }*/
-            GEPPETTO.SceneController.addColorFunction(recordedSomaV, window.ca_color());
-        }
-
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
                 var c = G.addWidget(GEPPETTO.Widgets.PLOT,{stateless:true});
