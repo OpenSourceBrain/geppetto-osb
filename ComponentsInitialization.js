@@ -19,6 +19,8 @@ define(function(require) {
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
+            
+            this.engine.setLinesThreshold(20000)
         });
 
         //This function will be called when the run button is clicked
@@ -48,8 +50,8 @@ define(function(require) {
                     simulator: {
                         type: "string",
                         title: "Simulator",
-                        enum: ["neuronSimulator", "lemsSimulator", "neuronNSGSimulator"],
-                        enumNames: ["Neuron", "jLems", "Neuron on NSG"]
+                        enum: ["neuronSimulator", "netpyneSimulator", "jneuromlSimulator", "neuronNSGSimulator", "netPyNENSGSimulator"],
+                        enumNames: ["Neuron", "NetPyNE", "jNeuroML", "Neuron on NSG", "NetPyNE on NSG"]
                     },
                     numberProcessors: {
                         type: 'number',
