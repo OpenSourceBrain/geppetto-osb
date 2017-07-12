@@ -4,6 +4,8 @@ define(function(require) {
     var networkControlPanel = require('./osbNetworkControlPanel.json');
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
+    var d3 = require('d3');
+
     return function(GEPPETTO) {
         G.enableLocalStorage(true);
 
@@ -540,12 +542,12 @@ define(function(require) {
                 condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'v')",
                 value: "apply_voltage",
                 false: {
-                    // either nothing is lit up, or nothing lit up based on membrane potential
+                    // not selected
                     action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
+                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
                 },
                 true: {
-                    // we have active membrane potential coloring
+                    // is selected
                     action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                 }
             }, {
@@ -623,11 +625,14 @@ define(function(require) {
                         condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'caConc')",
                         value: "apply_ca",
                         false: {
-                            action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            // not selected
+                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
+                                "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
                                 "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                         },
                         true: {
-                            action: "GEPPETTO.SceneController.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());"
+                            // is selected
+                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
                         }
                     };
 
@@ -637,7 +642,7 @@ define(function(require) {
                 }
             };
 
-            if (GEPPETTO.Spotlight == undefined) {
+            if (GEPPETTO.Spotlight == undefined || window.controlsMenuButton == undefined) {
                 GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
             } else {
                 addCaSuggestion();
@@ -687,6 +692,7 @@ define(function(require) {
                     }
 
                     var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
+                    c.scalefn = normalize ? window.color_norm : scalefn;
                     c.plotGeneric(data);
 
                     window.controlsMenuButton.refresh();
@@ -707,9 +713,10 @@ define(function(require) {
             }
         };
 
-        window.loadConnections = function() {
+        window.loadConnections = function(callback) {
             Model.neuroml.resolveAllImportTypes(function() {
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                if (typeof callback === "function") callback();
             });
         };
 
@@ -797,23 +804,48 @@ define(function(require) {
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
 
-        window.showConnectivityMatrix = function(instance) {
-            loadConnections();
-            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
-            } else {
-                G.addWidget(6).setData(instance, {
-                    linkType: function(c) {
-                        if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                            var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                            if (synapseType != undefined) {
-                                return synapseType.getId();
-                            }
-                        }
-                        return c.getName().split("-")[0];
-                    }
-                }).setName('Connectivity Widget on network ' + instance.getId()).configViaGUI();
+        window.getNodeCustomColormap = function () {
+            var cells = GEPPETTO.ModelFactory.getAllInstancesOf(
+                GEPPETTO.ModelFactory.getAllTypesOfType(GEPPETTO.ModelFactory.geppettoModel.neuroml.network)[0])[0].getChildren();
+            var domain = [];
+            var range = [];
+            for (var i=0; i<cells.length; ++i) {
+                if (cells[i].getMetaType() == GEPPETTO.Resources.ARRAY_INSTANCE_NODE)
+                    domain.push(cells[i].getChildren()[0].getType().getId());
+                else
+                    domain.push(cells[i].getPath());
+                range.push(cells[i].getColor());
             }
+            // if everything is default color, use a d3 provided palette as range
+            if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
+                return d3.scaleOrdinal(d3.schemeCategory20).domain(domain);
+            else
+                return d3.scaleOrdinal(range).domain(domain);
+        },
+
+        window.showConnectivityMatrix = function(instance) {
+            Model.neuroml.resolveAllImportTypes(function(){
+                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                    G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
+                } else {
+                    G.addWidget(6).setData(instance, {
+                        linkType: function(c) {
+                            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                if (synapseType != undefined) {
+                                    return synapseType.getId();
+                                }
+                            }
+                            return c.getName().split("-")[0];
+                        },
+                        library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                        colorMapFunction: window.getNodeCustomColormap
+                    }, window.getNodeCustomColormap())
+                        .setName('Connectivity Widget on network ' + instance.getId())
+                        .configViaGUI();
+                }
+            });
         };
 
         window.showChannelTreeView = function(csel) {
