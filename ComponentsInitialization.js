@@ -53,7 +53,7 @@ define(function(require) {
                         type: "string",
                         title: "Simulator",
                         enum: ["neuronSimulator", "netpyneSimulator", "jneuromlSimulator", "neuronNSGSimulator", "netPyNENSGSimulator"],
-                        enumNames: ["Neuron", "NetPyNE", "jNeuroML", "Neuron on NSG", "NetPyNE on NSG"]
+                        enumNames: ["Neuron on OSB", "NetPyNE on OSB", "jNeuroML on OSB", "Neuron on NSG", "NetPyNE on NSG"]
                     },
                     numberProcessors: {
                         type: 'number',
@@ -98,7 +98,7 @@ define(function(require) {
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
                 if (nProc > procLimit) {
-                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for " + formObject.formData['simulator']);
+                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
                     $("#procWarning").hide()
@@ -142,8 +142,8 @@ define(function(require) {
                 $("label[for='root_numberProcessors']").append("<p id='procWarning'></p>");
                 $("select#root_simulator").width("33%");
                 $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
-                $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "Neuron, jNeuroML, and NetPyNE options run on the OSB server.\n \
-                                                                                                      Neuron and NetPyNE on NSG run on the Neuroscience Gateway."); });
+                $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
+                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
             });
         };
 
