@@ -559,7 +559,7 @@ define(function(require) {
                 value: "apply_voltage_entire_cell",
                 false: {
                     // not selected
-                    action: "G.removeBrightnessFunctionBulkSimplified(G.litUpInstances);" +
+                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
                         "window.soma_v_entire_cell();" +
                         "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
                 },
@@ -693,7 +693,8 @@ define(function(require) {
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
             for (var i=0; i<recordedSomaV.length; ++i) {
                 var cell = recordedSomaV[i].getParent().getParent();
-                GEPPETTO.SceneController.addColorFunction(recordedSomaV[i], window.voltage_color);
+                // FIXME: generalize by adding colorListener to SceneController
+                Canvas1.engine.colorController.addColorListener(cell.getInstancePath(), recordedSomaV[i], window.voltage_color);
             }
         }
 
