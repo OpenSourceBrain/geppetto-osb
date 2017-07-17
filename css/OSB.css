@@ -129,3 +129,17 @@
     clear: right;
     float: left;
 }
+
+#procWarning {
+    display: none;
+    color: red;
+    font-style: italic;
+    font-weight: normal;
+}
+
+#procInfo {
+    margin-top: 0;
+    margin-left: 2px;
+    width: 15px;
+    padding-left: 3px;
+}
