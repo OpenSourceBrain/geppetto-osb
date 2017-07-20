@@ -692,15 +692,21 @@ define(function(require) {
             // get the intersection of recorded potentials and soma potential instances
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
             for (var i=0; i<recordedSomaV.length; ++i) {
-                var cell = recordedSomaV[i].getParent().getParent();
-                // FIXME: generalize by adding colorListener to SceneController
-                Canvas1.engine.colorController.addColorListener(cell.getInstancePath(), recordedSomaV[i], window.voltage_color);
+                Canvas1.engine.colorController.litUpInstances.push(recordedSomaV[i]);
+                var instance = recordedSomaV[i].getParent();
+                while (instance) {
+                    if (instance.getInstancePath() in Canvas1.engine.splitMeshes ||
+                        instance.getInstancePath() in Canvas1.engine.meshes) {
+                        GEPPETTO.SceneController.addColorListener(instance.getInstancePath(), recordedSomaV[i], window.voltage_color);
+                    }
+                    instance = instance.getParent();
+                }
             }
         }
 
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT,{isStateless:true});
+                var c = G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true});
                 c.setName(name);
                 c.setSize(125, 350);
                 c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
