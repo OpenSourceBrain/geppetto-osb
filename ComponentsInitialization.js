@@ -7,7 +7,6 @@ define(function(require) {
     var d3 = require('d3');
 
     return function(GEPPETTO) {
-        G.enableLocalStorage(true);
 
         var link = document.createElement("link");
         link.type = "text/css";
@@ -723,7 +722,7 @@ define(function(require) {
                     if (normalize) {
                         window.color_norm = scalefn(c.plotOptions.xaxis.max);
                         //scalefn = window.ca_color;
-                        G.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());
+                        GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
                         GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
                     }
 
@@ -836,7 +835,7 @@ define(function(require) {
             var posX = 90;
             var posY = 5;
             var target = G.addWidget(7, {isStateless: true}).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-            target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
+            target.setPosition(posX, posY).showTitleBar(false).setTransparentBackground(true);
             $("#" + target.id).find(".btn-lg").css("font-size", "15px");
         };
 
