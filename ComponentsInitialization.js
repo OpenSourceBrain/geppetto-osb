@@ -525,7 +525,8 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: resultsConfiguration
-        }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
+         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;
+                                                                      toggleMenuOptions();});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -601,7 +602,9 @@ define(function(require) {
     var toggleMenuOptions = function() {
         var caVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.caConc'));
         var vVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.v'));
-        if (caVars.length > 0) {
+        if (typeof window.controlsMenuButton === 'undefined')
+            return;
+        else if (caVars.length > 0) {
             if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca") == -1) {
                 var caMenuItem = {
                     label: "Apply Ca2+ concentration colouring to morphologies",
