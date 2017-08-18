@@ -599,12 +599,12 @@ define(function(require) {
             }
         });
 
-    var toggleMenuOptions = function() {
+        var toggleMenuOptions = function() {
+            if (typeof window.controlsMenuButton === 'undefined' || Project.getActiveExperiment() == null)
+                return;
         var caVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.caConc'));
         var vVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.v'));
-        if (typeof window.controlsMenuButton === 'undefined')
-            return;
-        else if (caVars.length > 0) {
+        if (caVars.length > 0) {
             if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca") == -1) {
                 var caMenuItem = {
                     label: "Apply Ca2+ concentration colouring to morphologies",
