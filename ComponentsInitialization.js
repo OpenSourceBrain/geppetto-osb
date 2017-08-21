@@ -19,11 +19,9 @@ define(function(require) {
         
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
-            GEPPETTO.ComponentFactory.getComponents()['CANVAS'] = [this];
-            GEPPETTO.ViewController.applyView(window.Project.getView());
-            GEPPETTO.ComponentFactory.getComponents()['CANVAS'].splice(0, 1);
             this.displayAllInstances();
-            this.engine.setLinesThreshold(20000);
+
+            this.engine.setLinesThreshold(20000)
         });
 
         //This function will be called when the run button is clicked
