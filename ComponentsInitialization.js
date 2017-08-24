@@ -876,10 +876,13 @@ define(function(require) {
                     G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
                 } else {
                     G.addWidget(6).setData(instance, {
-                        linkType: function(c) {
-                            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                        linkType: function(c, linkCache) {
+                            if (linkCache[c.getParent().getPath()])
+                                return linkCache[c.getParent().getPath()];
+                            else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
                                 var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
                                 if (synapseType != undefined) {
+                                    linkCache[c.getParent().getPath()] = synapseType.getId();
                                     return synapseType.getId();
                                 }
                             }
