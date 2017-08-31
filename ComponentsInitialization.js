@@ -396,7 +396,10 @@ define(function(require) {
 		
 
         //Save initialization 
-        GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
+        GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
+                                               function () {
+                                                   $(".SaveButton").tooltip({content: "Click star to save and enable simulation"});
+                                               });
 
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
@@ -681,6 +684,7 @@ define(function(require) {
         });
 
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
+            $(".SaveButton").tooltip().mouseover();
             // reset control panel with defaults
             if (GEPPETTO.ControlPanel != undefined) {
                 // reset to default tab
