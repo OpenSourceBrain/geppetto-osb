@@ -857,7 +857,7 @@ define(function(require) {
             var range = [];
             for (var i=0; i<cells.length; ++i) {
                 if (cells[i].getMetaType() == GEPPETTO.Resources.ARRAY_INSTANCE_NODE)
-                    domain.push(cells[i].getChildren()[0].getType().getId());
+                    domain.push(cells[i].getName());
                 else
                     domain.push(cells[i].getPath());
                 range.push(cells[i].getColor());
