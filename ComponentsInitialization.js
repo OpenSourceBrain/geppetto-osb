@@ -17,8 +17,6 @@ define(function(require) {
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
 
-        GEPPETTO.on(GEPPETTO.Events.Experiment_completed, toggleMenuOptions);
-        
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
@@ -685,7 +683,8 @@ define(function(require) {
             if (i >=0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
             window.controlsMenuButton.refresh();
         }
-    };
+        };
+        GEPPETTO.on(GEPPETTO.Events.Experiment_completed, toggleMenuOptions);
 
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             toggleMenuOptions();
