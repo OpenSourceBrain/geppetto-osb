@@ -16,6 +16,8 @@ define(function(require) {
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
+
+        GEPPETTO.on(GEPPETTO.Events.Experiment_completed, toggleMenuOptions);
         
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
@@ -231,8 +233,7 @@ define(function(require) {
 
                 // what does it do when the button is pressed
                 GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
-                GEPPETTO.on(GEPPETTO.Events.Experiment_completed, toggleMenuOptions);
-
+               
                 // build list of paths for variables to watch
                 var watchedVars = [];
                 if(Project.getActiveExperiment() != undefined){
