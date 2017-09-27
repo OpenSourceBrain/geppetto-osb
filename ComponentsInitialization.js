@@ -687,7 +687,7 @@ define(function(require) {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
                             "window.soma_v_entire_cell();" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Electric Potential (V)');"
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
                     },
                     true: {
                         // is selected
