@@ -28,7 +28,7 @@ define(function(require) {
         GEPPETTO.showExecutionDialog = function(callback) {
             var formCallback = callback;
 
-            var formId = "gptForm";
+            var formId = "exptRunForm";
 
             var formName = "Run experiment";
 
@@ -52,7 +52,7 @@ define(function(require) {
                         type: "string",
                         title: "Simulator",
                         enum: ["neuronSimulator", "netpyneSimulator", "jneuromlSimulator", "neuronNSGSimulator", "netPyNENSGSimulator"],
-                        enumNames: ["Neuron", "NetPyNE", "jNeuroML", "Neuron on NSG", "NetPyNE on NSG"]
+                        enumNames: ["Neuron on OSB", "NetPyNE on OSB", "jNeuroML on OSB", "Neuron on NSG", "NetPyNE on NSG"]
                     },
                     numberProcessors: {
                         type: 'number',
@@ -83,14 +83,27 @@ define(function(require) {
             var submitHandler = function() {
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
                 formWidget.destroy();
-                $("#gptForm").remove()
+                $("#exptRunForm").remove()
             };
 
             var errorHandler = function() {
 
             };
 
+            var processorLimits = {"netPyNENSGSimulator": 64,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
+
             var changeHandler = function(formObject) {
+                var nProc = formObject.formData['numberProcessors'];
+                var procLimit = processorLimits[formObject.formData['simulator']];
+
+                if (nProc > procLimit) {
+                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
+                    $("#exptRunForm button[type='submit']").prop('disabled', true);
+                } else {
+                    $("#procWarning").hide()
+                    $("#exptRunForm button[type='submit']").prop('disabled', false);
+                }
+
                 for (var key in formObject.formData) {
                     if (formObject.formData[key] != this.formData[key]) {
                         if (key == 'experimentName') {
@@ -100,7 +113,10 @@ define(function(require) {
                         } else if (key == 'length') {
                             $("#experimentsOutput").find(".activeExperiment").find("td[name='length']").html(formObject.formData[key]).blur();
                         } else if (key == 'numberProcessors') {
-                            Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].setSimulatorParameter('numberProcessors', formObject.formData[key]);
+                            if (nProc > procLimit)
+                                Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].setSimulatorParameter('numberProcessors', procLimit);
+                            else
+                                Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].setSimulatorParameter('numberProcessors', nProc);
                         } else if (key == 'simulator') {
                             $("#experimentsOutput").find(".activeExperiment").find("td[name='simulatorId']").html(formObject.formData[key]).blur();
                         }
@@ -122,6 +138,11 @@ define(function(require) {
             }, function() {
                 formWidget = this;
                 this.setName(formName);
+                $("label[for='root_numberProcessors']").append("<p id='procWarning'></p>");
+                $("select#root_simulator").width("33%");
+                $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
+                $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
+                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
             });
         };
 
@@ -374,7 +395,10 @@ define(function(require) {
 		
 
         //Save initialization 
-        GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"));
+        GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
+                                               function () {
+                                                   $(".SaveButton").tooltip({content: "Click star to save and enable simulation"});
+                                               });
 
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
@@ -688,6 +712,7 @@ define(function(require) {
 
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             toggleMenuOptions();
+            $(".SaveButton").tooltip().mouseover();
             // reset control panel with defaults
             if (GEPPETTO.ControlPanel != undefined) {
                 // reset to default tab
