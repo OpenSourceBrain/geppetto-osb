@@ -870,9 +870,9 @@ define(function(require) {
 
             var posX = 90;
             var posY = 5;
-            var target = G.addWidget(7, {isStateless: true}).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-            target.setPosition(posX, posY).showTitleBar(false).setTransparentBackground(true);
-            $("#" + target.id).find(".btn-lg").css("font-size", "15px");
+            var target = G.addWidget(7, {isStateless: true}).then(w=>{w.renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
+                                                                      w.setPosition(posX, posY).showTitleBar(false).setTransparentBackground(true);
+                                                                      $("#" + w.id).find(".btn-lg").css("font-size", "15px");});
         };
 
         window.getNodeCustomColormap = function () {
