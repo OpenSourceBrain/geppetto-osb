@@ -463,8 +463,7 @@ define(function(require) {
             	var recordAll = {
                     "label": "Record all membrane potentials",
                     "actions": [
-                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'));",
-                        "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
                     ],
                     "icon": "fa-dot-circle-o"
                 };
@@ -472,8 +471,7 @@ define(function(require) {
             	var recordSoma = {
             	        "label": "Record all membrane potentials at soma",
             	        "actions": [
-                            "var instances=window.getSomaVariableInstances('v');",
-            	            "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                            "var instances=window.getSomaVariableInstances('v'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
             	        ],
             	        "icon": "fa-dot-circle-o"
             	    };
@@ -606,14 +604,12 @@ define(function(require) {
             if (caVars.length > 0) {
                 var caSuggestion = {
                     "label": "Record Ca2+ concentrations",
-                    "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc'));",
-                                "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
                     "icon": "fa-dot-circle-o"
                 };
                 var caSomaSuggestion = {
                     "label": "Record Ca2+ concentrations at soma",
-                    "actions": ["var instances=window.getSomaVariableInstances('caConc')",
-                                "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "actions": ["var instances=window.getSomaVariableInstances('caConc'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
                     "icon": "fa-dot-circle-o"
                 };
 
