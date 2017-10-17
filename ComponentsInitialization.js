@@ -534,7 +534,7 @@ define(function(require) {
                 value: "play_speed_100"
             }, {
                 label: "Show simulation time",
-                action: "G.addWidget(5).setName('Simulation time').setVariable(time);",
+                action: "G.addWidget(5).then(w => w.setName('Simulation time').setVariable(time));",
                 value: "simulation_time"
             }, {
                 label: "Show protocol summary",
@@ -737,46 +737,48 @@ define(function(require) {
 
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true});
-                c.setName(name);
-                c.setSize(125, 350);
-                c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+                G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
+                    c => {
+                        c.setName(name);
+                        c.setSize(125, 350);
+                        c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
 
-                c.plotOptions = colorbar.defaultLayout();
-                c.plotOptions.xaxis.title = axistitle;
-                c.yaxisAutoRange = true; // for correct reseting of axes
+                        c.plotOptions = colorbar.defaultLayout();
+                        c.plotOptions.xaxis.title = axistitle;
+                        c.yaxisAutoRange = true; // for correct reseting of axes
 
-                var callback = function() {
-                    for (var instance of instances) {
-                        c.updateXAxisRange(instance.getTimeSeries());
-                    }
-                    // this should be generalized beyond ca
-                    if (normalize) {
-                        window.color_norm = scalefn(c.plotOptions.xaxis.max);
-                        //scalefn = window.ca_color;
-                        GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
-                        GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
-                    }
+                        var callback = function() {
+                            for (var instance of instances) {
+                                c.updateXAxisRange(instance.getTimeSeries());
+                            }
+                            // this should be generalized beyond ca
+                            if (normalize) {
+                                window.color_norm = scalefn(c.plotOptions.xaxis.max);
+                                //scalefn = window.ca_color;
+                                GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
+                                GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
+                            }
 
-                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
-                    c.scalefn = normalize ? window.color_norm : scalefn;
-                    c.plotGeneric(data);
+                            var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
+                            c.scalefn = normalize ? window.color_norm : scalefn;
+                            c.plotGeneric(data);
 
-                    window.controlsMenuButton.refresh();
-                };
+                            window.controlsMenuButton.refresh();
+                        };
 
-                if (Project.getActiveExperiment().status == "COMPLETED") {
-                    // only fetch instances for which state not already locally defined
-                    var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
-                    var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
-                    if (unfetched_paths.length > 0) {
-                        GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
-                    } else {
-                        $.proxy(callback, this)();
-                    }
-                } else {
-                    GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
-                }
+                        if (Project.getActiveExperiment().status == "COMPLETED") {
+                            // only fetch instances for which state not already locally defined
+                            var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
+                            var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
+                            if (unfetched_paths.length > 0) {
+                                GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
+                            } else {
+                                $.proxy(callback, this)();
+                            }
+                        } else {
+                            GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
+                        }
+                    });
             }
         };
 
@@ -894,7 +896,7 @@ define(function(require) {
             Model.neuroml.resolveAllImportTypes(function(){
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
                 if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
                 } else {
                     G.addWidget(6).setData(instance, {
                         linkType: function(c, linkCache) {
@@ -1018,7 +1020,7 @@ define(function(require) {
             var metaType = n.getMetaType();
             if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
                 //A plot function inside a channel
-                G.addWidget(Widgets.PLOT).plotFunctionNode(n);
+                G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
             } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
                 //A visual group
                 n.show(true);
@@ -1035,7 +1037,7 @@ define(function(require) {
 
         window.showModelDescription = function(model) {
             if (mainPopup == undefined || mainPopup.destroyed) {
-                mainPopup = G.addWidget(1).setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+                mainPopup = G.addWidget(1).then(w => w.setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140));
                 mainPopup.showHistoryNavigationBar(true);
             }
             mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
@@ -1053,7 +1055,7 @@ define(function(require) {
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
             var plotWidget = null;
             if(experiments.length > 0 && membranePotentials.length>0){
-                plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
+                plotWidget = G.addWidget(0).then(w => w.setName(protocolName + ' / membrane potentials').setSize(300, 500));
             }
             for(var i=0; i<experiments.length; i++){
                 // loop and plot all membrane potentials
@@ -1142,7 +1144,7 @@ define(function(require) {
                 window.protocolsPopup = undefined;
             }
             if(window.protocolsPopup == undefined){
-                window.protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary');
+                window.protocolsPopup = G.addWidget(1, {isStateless: true}).then(w => w.setName('Protocols Summary'));
                 protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
                 window.populateProtocolSummary(window.protocolsPopup);
             } else {
@@ -1168,14 +1170,14 @@ define(function(require) {
                     }
                     callback(csel);
                 } else {
-                    G.addWidget(1, {isStateless: true}).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message'));
                 }
             }
         };
 
         window.showSelection = function(csel) {
             if (mainPopup == undefined || mainPopup.destroyed) {
-                mainPopup = G.addWidget(1).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+                mainPopup = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click').setPosition(95, 140));
             }
             mainPopup.setName("Cell Information for " + csel.getType().getId()).setData(csel.getType(), [GEPPETTO.Resources.HTML_TYPE]);
         };
@@ -1266,10 +1268,11 @@ define(function(require) {
                         }
 
                         for (var plottableNodesIndex in plottableNodes) {
-                            var plotObject = G.addWidget(Widgets.PLOT);
-                            plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
-                            plotObject.setSize(plotHeight, plotWidth);
-                            plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
+                            G.addWidget(Widgets.PLOT).then(plotObject => {
+                                plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
+                                plotObject.setSize(plotHeight, plotWidth);
+                                plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
+                            });
                         }
                     };
 
