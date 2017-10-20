@@ -72,7 +72,7 @@ define(function(require) {
         },
 
         nbars: 100,
-        data: {type: 'heatmap', showscale: false},
+        data: {type: 'heatmap', showscale: false, colorbar: {autotick: false, tick0: 0, dtick: 1}},
 
         genColorscale: function(min, max, n, f) {
             var colorscale = [];

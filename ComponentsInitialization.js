@@ -1159,9 +1159,11 @@ define(function(require) {
                 window.protocolsPopup = undefined;
             }
             if(window.protocolsPopup == undefined){
-                window.protocolsPopup = G.addWidget(1, {isStateless: true}).then(w => w.setName('Protocols Summary'));
-                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
-                window.populateProtocolSummary(window.protocolsPopup);
+                window.protocolsPopup = G.addWidget(1, {isStateless: true}).then(w => {
+                    w.setName('Protocols Summary');
+                    w.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
+                    window.populateProtocolSummary(w);
+                });
             } else {
                 window.populateProtocolSummary(window.protocolsPopup);
                 window.protocolsPopup.shake();
