@@ -794,10 +794,14 @@ define(function(require) {
             		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
             		var plot = plots[end];
             		if(plots[end]==undefined){
-            			plots[end]=G.addWidget(0).setName("Recorded variables: "+end);
-            			plot = plots[end];
-            		}
-                    plot.plotData(value)
+            		    G.addWidget(0).then(w => {
+				w.setName("Recorded variables: "+end);
+				plots[end] = w;
+				w.plotData(value);
+			    });
+            		} else {
+			    plot.plotData(value);
+			}
                 });
         };
 
@@ -1035,7 +1039,7 @@ define(function(require) {
                 //Another composite
                 var target = widget;
                 if (GEPPETTO.isKeyPressed("meta")) {
-                    target = G.addWidget(1).addCustomNodeHandler(customHandler, 'click');
+                    target = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click'));
                 }
                 target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
             }
