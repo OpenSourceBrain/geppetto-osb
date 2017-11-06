@@ -17,7 +17,7 @@ define(function(require) {
             return [1, (1-(x-0.75)*4), 0];
         }
     };
-    
+
     window.ca_color = function(max) {
         if(max == undefined) { max = 1; }
         return function(x) {
@@ -72,7 +72,7 @@ define(function(require) {
         },
 
         nbars: 100,
-        data: {type: 'heatmap', showscale: false},
+        data: {type: 'heatmap', showscale: false, colorbar: {autotick: false, tick0: 0, dtick: 1}},
 
         genColorscale: function(min, max, n, f) {
             var colorscale = [];

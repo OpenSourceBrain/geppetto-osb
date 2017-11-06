@@ -7,7 +7,6 @@ define(function(require) {
     var d3 = require('d3');
 
     return function(GEPPETTO) {
-        G.enableLocalStorage(true);
 
         var link = document.createElement("link");
         link.type = "text/css";
@@ -17,11 +16,11 @@ define(function(require) {
 
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
-        
+
 		//Canvas initialisation
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
-            
+
             this.engine.setLinesThreshold(20000)
         });
 
@@ -253,7 +252,7 @@ define(function(require) {
 
                 // what does it do when the button is pressed
                 GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
-
+               
                 // build list of paths for variables to watch
                 var watchedVars = [];
                 if(Project.getActiveExperiment() != undefined){
@@ -460,33 +459,11 @@ define(function(require) {
                 GEPPETTO.ControlPanel.setDataFilter(passThroughDataFilter);
             });
 
-        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
-            var addCaSuggestion = function() {
-                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca');
-                if (caSpecies.length > 0) {
-                    var recordCaConc = {
-                        "label": "Record Ca2+ concentrations",
-                        // essentially we watch caConc on any population that has intracellularProperties.ca
-                        "actions": ["var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.intracellularProperties.ca'); var populationCaConcPaths = []; for (var i=0; i<caSpecies.length; ++i) { populationCaConcPaths.push(caSpecies[i].split('.').slice(0,2).concat('caConc').join('.')); } GEPPETTO.ExperimentsController.watchVariables(Instances.getInstance(populationCaConcPaths),true);"],
-                        "icon": "fa-dot-circle-o"
-                    };
-                    GEPPETTO.Spotlight.addSuggestion(recordCaConc, GEPPETTO.Resources.RUN_FLOW);
-                }
-            };
-
-            if (GEPPETTO.Spotlight == undefined) {
-                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
-            } else {
-                addCaSuggestion();
-            }
-        });
-
         GEPPETTO.ComponentFactory.addComponent('SPOTLIGHT', {}, document.getElementById("spotlight"), function() {
             	var recordAll = {
                     "label": "Record all membrane potentials",
                     "actions": [
-                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'));",
-                        "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
                     ],
                     "icon": "fa-dot-circle-o"
                 };
@@ -494,8 +471,7 @@ define(function(require) {
             	var recordSoma = {
             	        "label": "Record all membrane potentials at soma",
             	        "actions": [
-                            "var instances=window.getSomaVariableInstances('v');",
-            	            "GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                            "var instances=window.getSomaVariableInstances('v'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
             	        ],
             	        "icon": "fa-dot-circle-o"
             	    };
@@ -558,22 +534,8 @@ define(function(require) {
                 value: "play_speed_100"
             }, {
                 label: "Show simulation time",
-                action: "G.addWidget(5).setName('Simulation time').setVariable(time);",
+                action: "G.addWidget(5).then(w => w.setName('Simulation time').setVariable(time));",
                 value: "simulation_time"
-            }, {
-                label: "Apply voltage colouring to morphologies",
-                radio: true,
-                condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'v')",
-                value: "apply_voltage",
-                false: {
-                    // not selected
-                    action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                        "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
-                },
-                true: {
-                    // is selected
-                    action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
-                }
             }, {
                 label: "Show protocol summary",
                 action: "window.showProtocolSummary();",
@@ -584,7 +546,8 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: resultsConfiguration
-        }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;});
+         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;
+                                                                      toggleMenuOptions();});
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -627,55 +590,24 @@ define(function(require) {
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
-            var addCaSuggestion = function() {
-                var caSpecies = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
-                if (caSpecies.length > 0) {
-                    var caSuggestion = {
-                        "label": "Record Ca2+ concentrations",
-                        "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc'));",
-                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
-                        "icon": "fa-dot-circle-o"
-                    };
-                    var caSomaSuggestion = {
-                        "label": "Record Ca2+ concentrations at soma",
-                        "actions": ["var instances=window.getSomaVariableInstances('caConc')",
-                                    "GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
-                        "icon": "fa-dot-circle-o"
-                    };
-
-                    var caMenuItem = {
-                        label: "Apply Ca2+ concentration colouring to morphologies",
-                        radio: true,
-                        condition: "(GEPPETTO.SceneController.getColorFunctionInstances().length > 0) && (GEPPETTO.SceneController.getColorFunctionInstances()[0].id == 'caConc')",
-                        value: "apply_ca",
-                        false: {
-                            // not selected
-                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
-                                "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
-                                "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
-                        },
-                        true: {
-                            // is selected
-                            action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
-                        }
-                    };
-
-                    window.controlsMenuButton.addMenuItem(caMenuItem);
-                    GEPPETTO.Spotlight.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
-                    GEPPETTO.Spotlight.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
-                }
-            };
-
-            if (GEPPETTO.Spotlight == undefined || window.controlsMenuButton == undefined) {
-                GEPPETTO.on(GEPPETTO.Events.Spotlight_loaded, addCaSuggestion);
-            } else {
-                addCaSuggestion();
-            }
-        });
-
-        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
                 $('#mainContainer').append('<div class="alert alert-warning osb-notification alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><span class="osb-notification-text">' + Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. <a href="javascript:loadConnections();" class="alert-link">Click here to load the connections.</a> (Note: depending on the size of the network this could take some time).</span></div>');
+            }
+            var caVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
+            if (caVars.length > 0) {
+                var caSuggestion = {
+                    "label": "Record Ca2+ concentrations",
+                    "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "icon": "fa-dot-circle-o"
+                };
+                var caSomaSuggestion = {
+                    "label": "Record Ca2+ concentrations at soma",
+                    "actions": ["var instances=window.getSomaVariableInstances('caConc'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "icon": "fa-dot-circle-o"
+                };
+
+                GEPPETTO.Spotlight.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
+                GEPPETTO.Spotlight.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
             }
         });
 
@@ -683,7 +615,96 @@ define(function(require) {
             $('.osb-notification').remove();
         });
 
+        var toggleMenuOptions = function() {
+            if (typeof window.controlsMenuButton === 'undefined' || Project.getActiveExperiment() == null)
+                return;
+        var caVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.caConc'));
+        var vVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.v'));
+        if (caVars.length > 0) {
+            if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca") == -1) {
+                var caMenuItem = {
+                    label: "Apply Ca2+ concentration colouring to morphologies",
+                    radio: true,
+                    condition: "if (window.controlsMenuButton && window.controlsMenuButton.refs && window.controlsMenuButton.refs.dropDown.refs.apply_ca)" +
+                        "{ window.controlsMenuButton.refs.dropDown.refs.apply_ca.state.icon != 'fa fa-circle-o' } else { false }",
+                    value: "apply_ca",
+                    false: {
+                        // not selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
+                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
+                    },
+                    true: {
+                        // is selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
+                    }
+                };
+
+                window.controlsMenuButton.addMenuItem(caMenuItem);
+                window.controlsMenuButton.refresh();
+            }
+        }
+        else {
+            // remove ca option
+            var i = window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca");
+            if (i >= 0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
+            window.controlsMenuButton.refresh();
+        }
+
+        if (vVars.length > 0) {
+            if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_voltage") == -1) {
+                var voltageMenuItem = {
+                    label: "Apply voltage colouring to morphologies",
+                    radio: true,
+                    condition: "if (window.controlsMenuButton && window.controlsMenuButton.refs && window.controlsMenuButton.refs.dropDown.refs.apply_voltage)" +
+                        "{ window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o' } else { false }",
+                    value: "apply_voltage",
+                    false: {
+                        // not selected
+                        action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                    },
+                    true: {
+                        // is selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());",
+                    }
+                };
+
+                var somaEntireMenuItem = {
+                    label: "Apply soma voltage colouring to entire cell",
+                    radio: true,
+                    condition: "if (window.controlsMenuButton && window.controlsMenuButton.refs && window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell)" +
+                        "{ window.controlsMenuButton.refs.dropDown.refs.apply_voltage_entire_cell.state.icon != 'fa fa-circle-o' } else { false }",
+                    value: "apply_voltage_entire_cell",
+                    false: {
+                        // not selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
+                            "window.soma_v_entire_cell();" +
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                    },
+                    true: {
+                        // is selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
+                    }
+                };
+
+                window.controlsMenuButton.addMenuItem(voltageMenuItem);
+                window.controlsMenuButton.addMenuItem(somaEntireMenuItem);
+                window.controlsMenuButton.refresh();
+            }
+        }
+        else {
+            var i = window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_voltage_entire_cell");
+            if (i >= 0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
+            i = window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_voltage");
+            if (i >=0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
+            window.controlsMenuButton.refresh();
+        }
+        };
+        GEPPETTO.on(GEPPETTO.Events.Experiment_completed, toggleMenuOptions);
+
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
+            toggleMenuOptions();
             $(".SaveButton").tooltip().mouseover();
             // reset control panel with defaults
             if (GEPPETTO.ControlPanel != undefined) {
@@ -693,48 +714,68 @@ define(function(require) {
         });
 
         //OSB Utility functions
+        window.soma_v_entire_cell = function() {
+            var recordedMemV = window.getRecordedMembranePotentials();
+            var somaVInstances = window.getSomaVariableInstances('v');
+            // get the intersection of recorded potentials and soma potential instances
+            var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
+            for (var i=0; i<recordedSomaV.length; ++i) {
+                Canvas1.engine.colorController.litUpInstances.push(recordedSomaV[i]);
+                var instance = recordedSomaV[i].getParent();
+                while (instance) {
+                    if (instance.getInstancePath() in Canvas1.engine.splitMeshes ||
+                        instance.getInstancePath() in Canvas1.engine.meshes) {
+                        GEPPETTO.SceneController.addColorListener(instance.getInstancePath(), recordedSomaV[i], window.voltage_color);
+                    }
+                    instance = instance.getParent();
+                }
+            }
+        }
+
         window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
             if (instances.length > 0) {
-                var c = G.addWidget(GEPPETTO.Widgets.PLOT,{isStateless:true});
-                c.setName(name);
-                c.setSize(125, 350);
-                c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+                G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
+                    c => {
+                        c.setName(name);
+                        c.setSize(125, 350);
+                        c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
 
-                c.plotOptions = colorbar.defaultLayout();
-                c.plotOptions.xaxis.title = axistitle;
-                c.yaxisAutoRange = true; // for correct reseting of axes
+                        c.plotOptions = colorbar.defaultLayout();
+                        c.plotOptions.xaxis.title = axistitle;
+                        c.yaxisAutoRange = true; // for correct reseting of axes
 
-                var callback = function() {
-                    for (var instance of instances) {
-                        c.updateXAxisRange(instance.getTimeSeries());
-                    }
-                    // this should be generalized beyond ca
-                    if (normalize) {
-                        window.color_norm = scalefn(c.plotOptions.xaxis.max);
-                        //scalefn = window.ca_color;
-                        G.removeFunctionColor(GEPPETTO.SceneController.getColorFunctionInstances());
-                        GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
-                    }
+                        var callback = function() {
+                            for (var instance of instances) {
+                                c.updateXAxisRange(instance.getTimeSeries());
+                            }
+                            // this should be generalized beyond ca
+                            if (normalize) {
+                                window.color_norm = scalefn(c.plotOptions.xaxis.max);
+                                //scalefn = window.ca_color;
+                                GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
+                                GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
+                            }
 
-                    var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
-                    c.scalefn = normalize ? window.color_norm : scalefn;
-                    c.plotGeneric(data);
+                            var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
+                            c.scalefn = normalize ? window.color_norm : scalefn;
+                            c.plotGeneric(data);
 
-                    window.controlsMenuButton.refresh();
-                };
+                            window.controlsMenuButton.refresh();
+                        };
 
-                if (Project.getActiveExperiment().status == "COMPLETED") {
-                    // only fetch instances for which state not already locally defined
-                    var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
-                    var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
-                    if (unfetched_paths.length > 0) {
-                        GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
-                    } else {
-                        $.proxy(callback, this)();
-                    }
-                } else {
-                    GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
-                }
+                        if (Project.getActiveExperiment().status == "COMPLETED") {
+                            // only fetch instances for which state not already locally defined
+                            var unfetched_instances = instances.filter(function(x){ return x.getTimeSeries() == undefined });
+                            var unfetched_paths = unfetched_instances.map(function(x){ return x.getPath(); });
+                            if (unfetched_paths.length > 0) {
+                                GEPPETTO.ExperimentsController.getExperimentState(Project.getId(), Project.getActiveExperiment().getId(), unfetched_paths, $.proxy(callback, this));
+                            } else {
+                                $.proxy(callback, this)();
+                            }
+                        } else {
+                            GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment " + experiment.name + " with id " + experiment.id + " isn't completed.");
+                        }
+                    });
             }
         };
 
@@ -753,10 +794,14 @@ define(function(require) {
             		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
             		var plot = plots[end];
             		if(plots[end]==undefined){
-            			plots[end]=G.addWidget(0).setName("Recorded variables: "+end);
-            			plot = plots[end];
-            		}
-                    plot.plotData(value)
+            		    G.addWidget(0).then(w => {
+				w.setName("Recorded variables: "+end);
+				plots[end] = w;
+				w.plotData(value);
+			    });
+            		} else {
+			    plot.plotData(value);
+			}
                 });
         };
 
@@ -824,9 +869,17 @@ define(function(require) {
 
             var posX = 90;
             var posY = 5;
-            var target = G.addWidget(7, {isStateless: true}).renderBar('OSB Control Panel', modifiedBarDef['OSB Control Panel']);
-            target.setPosition(posX, posY).showTitleBar(false).setTrasparentBackground(true);
-            $("#" + target.id).find(".btn-lg").css("font-size", "15px");
+            var target = GEPPETTO.ComponentFactory.addWidget('BUTTONBAR', {configuration: modifiedBarDef, isStateless: true},
+                                                             function() {
+                                                                 ButtonBar1 = this;
+                                                                 this.setPosition(posX, posY);
+                                                                 this.showTitleBar(false);
+                                                                 this.setTransparentBackground(true);
+                                                                 this.setResizable(false);
+                                                                 this.setMinSize(0, 0);
+                                                                 this.setAutoWidth();
+                                                                 this.setAutoHeight();
+                                                             });
         };
 
         window.getNodeCustomColormap = function () {
@@ -836,7 +889,7 @@ define(function(require) {
             var range = [];
             for (var i=0; i<cells.length; ++i) {
                 if (cells[i].getMetaType() == GEPPETTO.Resources.ARRAY_INSTANCE_NODE)
-                    domain.push(cells[i].getChildren()[0].getType().getId());
+                    domain.push(cells[i].getName());
                 else
                     domain.push(cells[i].getPath());
                 range.push(cells[i].getColor());
@@ -852,23 +905,28 @@ define(function(require) {
             Model.neuroml.resolveAllImportTypes(function(){
                 $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
                 if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).setMessage('No connection found in this network').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
                 } else {
-                    G.addWidget(6).setData(instance, {
-                        linkType: function(c) {
-                            if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                if (synapseType != undefined) {
-                                    return synapseType.getId();
-                                }
-                            }
-                            return c.getName().split("-")[0];
-                        },
-                        library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                        colorMapFunction: window.getNodeCustomColormap
-                    }, window.getNodeCustomColormap())
-                        .setName('Connectivity Widget on network ' + instance.getId())
-                        .configViaGUI();
+                    G.addWidget(6).then(w =>
+                                        w.setData(instance, {
+                                            linkType: function(c, linkCache) {
+                                                if (linkCache[c.getParent().getPath()])
+                                                    return linkCache[c.getParent().getPath()];
+                                                else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                    var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                    if (synapseType != undefined) {
+                                                        linkCache[c.getParent().getPath()] = synapseType.getId();
+                                                        return synapseType.getId();
+                                                    }
+                                                }
+                                                return c.getName().split("-")[0];
+                                            },
+                                            library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                                            colorMapFunction: window.getNodeCustomColormap
+                                        }, window.getNodeCustomColormap())
+                                        .setName('Connectivity Widget on network ' + instance.getId())
+                                        .configViaGUI()
+                                       );
                 }
             });
         };
@@ -973,7 +1031,7 @@ define(function(require) {
             var metaType = n.getMetaType();
             if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
                 //A plot function inside a channel
-                G.addWidget(Widgets.PLOT).plotFunctionNode(n);
+                G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
             } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
                 //A visual group
                 n.show(true);
@@ -981,7 +1039,7 @@ define(function(require) {
                 //Another composite
                 var target = widget;
                 if (GEPPETTO.isKeyPressed("meta")) {
-                    target = G.addWidget(1).addCustomNodeHandler(customHandler, 'click');
+                    target = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click'));
                 }
                 target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
             }
@@ -989,11 +1047,16 @@ define(function(require) {
         };
 
         window.showModelDescription = function(model) {
-            if (mainPopup == undefined || mainPopup.destroyed) {
-                mainPopup = G.addWidget(1).setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
-                mainPopup.showHistoryNavigationBar(true);
+            if (window.mainPopup == undefined || window.mainPopup.destroyed) {
+                G.addWidget(1).then(w => {
+                    window.mainPopup = w;
+                    w.setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+                    w.showHistoryNavigationBar(true);
+                    w.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
+                });
+            } else {
+                // VFB-style window rumble
             }
-            mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
         };
 
 
@@ -1008,7 +1071,7 @@ define(function(require) {
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
             var plotWidget = null;
             if(experiments.length > 0 && membranePotentials.length>0){
-                plotWidget = G.addWidget(0).setName(protocolName + ' / membrane potentials').setSize(300, 500);
+                plotWidget = G.addWidget(0).then(w => w.setName(protocolName + ' / membrane potentials').setSize(300, 500));
             }
             for(var i=0; i<experiments.length; i++){
                 // loop and plot all membrane potentials
@@ -1097,9 +1160,11 @@ define(function(require) {
                 window.protocolsPopup = undefined;
             }
             if(window.protocolsPopup == undefined){
-                window.protocolsPopup = G.addWidget(1, {isStateless: true}).setName('Protocols Summary');
-                protocolsPopup.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
-                window.populateProtocolSummary(window.protocolsPopup);
+                window.protocolsPopup = G.addWidget(1, {isStateless: true}).then(w => {
+                    w.setName('Protocols Summary');
+                    w.setSize(300, 400).setPosition($(document).width() - 410, 50).showHistoryIcon(false);
+                    window.populateProtocolSummary(w);
+                });
             } else {
                 window.populateProtocolSummary(window.protocolsPopup);
                 window.protocolsPopup.shake();
@@ -1123,14 +1188,14 @@ define(function(require) {
                     }
                     callback(csel);
                 } else {
-                    G.addWidget(1, {isStateless: true}).setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message');
+                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No cell selected! Please select one of the cells and click here for information on its properties.').setName('Warning Message'));
                 }
             }
         };
 
         window.showSelection = function(csel) {
             if (mainPopup == undefined || mainPopup.destroyed) {
-                mainPopup = G.addWidget(1).addCustomNodeHandler(customHandler, 'click').setPosition(95, 140);
+                mainPopup = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click').setPosition(95, 140));
             }
             mainPopup.setName("Cell Information for " + csel.getType().getId()).setData(csel.getType(), [GEPPETTO.Resources.HTML_TYPE]);
         };
@@ -1221,10 +1286,11 @@ define(function(require) {
                         }
 
                         for (var plottableNodesIndex in plottableNodes) {
-                            var plotObject = G.addWidget(Widgets.PLOT);
-                            plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
-                            plotObject.setSize(plotHeight, plotWidth);
-                            plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
+                            G.addWidget(Widgets.PLOT).then(plotObject => {
+                                plotObject.plotFunctionNode(plottableNodes[plottableNodesIndex]);
+                                plotObject.setSize(plotHeight, plotWidth);
+                                plotObject.setPosition(plotLayout[plottableNodesIndex].posX, plotLayout[plottableNodesIndex].posY);
+                            });
                         }
                     };
 
