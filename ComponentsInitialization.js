@@ -379,19 +379,34 @@ define(function(require) {
 		});
 
 		var configuration = {
-				id: "DownloadProjectButton",
-				onClick : clickHandler,
-				eventHandler : eventHandler,
-				tooltipPosition : { my: "right center", at : "left-5 center"},
-				tooltipLabel : "Download your current project",
-				icon : "fa fa-download",
-				className : "btn DownloadProjectButton pull-right",
-				disabled : false,
-				hidden : false
+		    id: "DownloadProjectButton",
+		    hidden : false,
+		    openByDefault: false,
+		    closeOnClick: false,
+		    label: 'Download',
+		    iconOn: 'fa fa-caret-square-o-up',
+		    iconOff: 'fa fa-caret-square-o-down',
+		    menuPosition: {
+			top: 40,
+			right: 650
+		    },
+		    menuSize: {
+			height: "auto",
+			width: "auto"
+		    },
+		    menuItems: [{
+			label: "Download project",
+			action: "Project.download()",
+			value: "download_project"
+		    }, {
+			label: "Upload projcet",
+			action: "Project.getExperiments()[0].uploadResults('hhcell.electrical','RECORDING');",
+			value: "upload_project"
+		    }]
 		};
 
 		//Download Project Button initialization
-		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
+		GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
 		
 
         //Save initialization 
