@@ -57,9 +57,19 @@ define(function(require) {
                     numberProcessors: {
                         type: 'number',
                         title: 'Number of Processors'
+                    },
+		    dropboxUpload: {
+                        type: 'boolean',
+                        title: 'Upload results to Dropbox on completion'
                     }
                 }
             };
+
+	    var uiSchema = {
+		dropboxUpload: {
+		    ...(typeof window.dropboxKey === 'undefined') && {'ui:disabled': 'true'}
+		}
+	    };
 
             var formData = {
                 experimentName: Project.getActiveExperiment().getName(),
@@ -80,10 +90,20 @@ define(function(require) {
                 formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
-            var submitHandler = function() {
+            var submitHandler = function(data) {
+		var formData = data.formData;
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
                 formWidget.destroy();
                 $("#exptRunForm").remove()
+		var thisExp = Project.getActiveExperiment();
+		function experimentCompleteHandler() {
+		    if (formData.dropboxUpload)
+			thisExp.uploadResults(
+			    GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.network)[0].getName(),
+			    "GEPPETTO_RECORDING"
+			);
+		}
+		GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
             };
 
             var errorHandler = function() {
@@ -131,6 +151,7 @@ define(function(require) {
                 id: formId,
                 name: formName,
                 schema: schema,
+		uiSchema: uiSchema,
                 formData: formData,
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
