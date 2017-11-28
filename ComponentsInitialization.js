@@ -439,13 +439,17 @@ define(function(require) {
         var toggleClickHandler = function() {
             if (!window.Project.isPublic()) {
                 var title = "Your project is now public. This is its URL for you to share!";
-                var url = window.osbURL + "?explorer_id="+Project.getId();
+                var url = window.osbURL + "projects/" + Project.getName() + "?explorer_id=" + Project.getId();
                 GEPPETTO.ModalFactory.infoDialog(title, url);
             }
         };
 
         var toggleEventHandler = function(component) {
             GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
+                component.evaluateState();
+            });
+
+	    GEPPETTO.on(GEPPETTO.Events.Project_persisted, function() {
                 component.evaluateState();
             });
 
