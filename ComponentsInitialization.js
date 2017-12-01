@@ -625,6 +625,52 @@ define(function(require) {
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
 
+        // theme button
+        $("<div id='themeButton' class='row foreground-controls'/>").appendTo('#controls');
+        window.themeSet = false;
+        window.theme = function (t) {
+            if (typeof t === 'undefined') {
+                return window.themeSet;
+            }
+            else if (t) {
+                $('body').css('background', 'white');
+                $('.nav-tabs > li > a').css('background', 'rgba(211,211,211,0.5)');
+                $('.activeExperiment').css('background-color', 'rgba(84, 32, 0, 0.2)');
+                $('.nthTr').css('background', 'rgba(71, 58, 51, 0.8)');
+                $('.dropDownButtonContainer').css('background', 'rgba(211,211,211,0.5)');
+                $('#experiments, #console').css('background', 'rgba(211,211,211,0.8)');
+                $('.btn').css('background', 'rgb(211,211,211)');
+                $('.ui-dialog').css('background', 'white');
+                window.themeSet = true;
+            }
+            else {
+                $('body').css('background', 'rgba(0, 0, 0, 0) linear-gradient(rgb(20, 26, 30) 0%, rgb(92, 98, 104) 50%, rgb(96, 102, 109) 73%, rgb(81, 83, 89) 100%) repeat scroll 0% 0% / auto padding-box border-box');
+                $('.nav-tabs > li > a').css('background', 'rgba(66, 59, 59, 0.5)');
+                $('.activeExperiment').css('background-color', 'rgba(84, 32, 0, 0.8)');
+                $('.nthTr').css('background', 'rgba(71, 58, 51, 0.2');
+                $('.dropDownButtonContainer').css('background', 'rgba(66, 59, 59, 0.9)');
+                $('#experiments, #console').css('background', 'rgba(66, 59, 59, 0.8)');
+                $('.btn').css('background', 'rgba(66, 59, 59, 0.8) none repeat scroll 0% 0% / auto padding-box border-box');
+                $('.ui-dialog').css('background', 'rgba(66, 59, 59, 0.90)');
+                window.themeSet = false;
+            }
+        }
+        var configuration = {
+            id: "themeButton",
+            condition: "window.theme()",
+            "false": {
+                "action": "window.theme(true)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            },
+            "true": {
+                "action": "window.theme(false)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            }
+        };
+        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', { configuration: configuration }, document.getElementById("themeButton"));
+
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             var addCaSuggestion = function() {
