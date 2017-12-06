@@ -1,14 +1,10 @@
 {
-    "OSB Control Panel": {
-        "Cell Info": {
-			"Model Description": {
-                "actions": [
-                    "showModelDescription(getMainType($ENTER_ID))"
-                ],
-                "icon": "gpt-pyramidal-cell",
-                "label": "Model Description",
-                "tooltip": "Information on the model"
-            }
-        }
+    "Model Description": {
+        "actions": [
+            "showModelDescription(getMainType($ENTER_ID))"
+        ],
+        "icon": "gpt-pyramidal-cell",
+        "label": "Model Description",
+        "tooltip": "Information on the model"
     }
 }
