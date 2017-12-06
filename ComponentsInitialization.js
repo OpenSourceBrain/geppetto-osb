@@ -644,7 +644,8 @@ define(function(require) {
                 $('.dropDownButtonContainer').css('background', 'rgba(211,211,211,0.5)');
                 $('#experiments, #console').css('background', 'rgba(211,211,211,0.8)');
                 $('.btn').css('background', 'rgb(211,211,211)');
-                $('.main-svg:first-child').css('background', '#fff');
+                $('.main-svg:first-child').css('cssText', $('.main-svg:first-child').css('cssText')+'background: #fff !important');
+                $('.legend .bg').css('cssText', $('.legend .bg').css('cssText')+'background: #fff !important');
                 $('.ui-dialog').css('background', 'rgba(255, 255, 255, 0.90)');
                 GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
                     controller => {
@@ -681,6 +682,7 @@ define(function(require) {
                 $('#experiments, #console').css('background', 'rgba(66, 59, 59, 0.8)');
                 $('.btn').css('background', 'rgba(66, 59, 59, 0.8) none repeat scroll 0% 0% / auto padding-box border-box');
                 $('.main-svg:first-child').css('cssText', $('.main-svg:first-child').css('cssText')+'background: #423b3b !important');
+                $('.legend .bg').css('cssText', $('.legend .bg').css('cssText')+'background: rgb(66, 59, 59) !important');
                 $('.ui-dialog').css('background', 'rgba(66, 59, 59, 0.8)');
                 GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
                     controller => {
