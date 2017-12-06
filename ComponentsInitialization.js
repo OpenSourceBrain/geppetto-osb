@@ -5,6 +5,7 @@ define(function(require) {
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
     var d3 = require('d3');
+    var Plotly = require('plotly.js/lib/core');
 
     return function(GEPPETTO) {
         G.enableLocalStorage(true);
@@ -640,7 +641,32 @@ define(function(require) {
                 $('.dropDownButtonContainer').css('background', 'rgba(211,211,211,0.5)');
                 $('#experiments, #console').css('background', 'rgba(211,211,211,0.8)');
                 $('.btn').css('background', 'rgb(211,211,211)');
-                $('.ui-dialog').css('background', 'white');
+                $('.main-svg:first-child').css('background', '#fff');
+                $('.ui-dialog').css('background', 'rgba(255, 255, 255, 0.90)');
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            Plotly.relayout(plots[i].plotDiv, {
+                                'plot_bgcolor': '#fff',
+                                'paper_bgcolor': 'rgb(255, 255, 255)',
+                                'xaxis.linecolor': 'rgb(80, 80, 80)',
+                                'yaxis.linecolor': 'rgb(80, 80, 80)',
+			        'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			        'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			        'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			        'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+			        'xaxis.tickfont.size': 18,
+			        'yaxis.tickfont.size': 18,
+			        'xaxis.titlefont.size': 18,
+			        'yaxis.titlefont.size': 18,
+			        'legend.font.size': 18,
+			        'legend.font.family': 'Helvetica Neue',
+			        'legend.font.color': 'rgb(80, 80, 80)',
+			        'legend.bgcolor': 'rgb(255, 255, 255)'
+                            });
+                        }
+                    });
                 window.themeSet = true;
             }
             else {
@@ -651,10 +677,37 @@ define(function(require) {
                 $('.dropDownButtonContainer').css('background', 'rgba(66, 59, 59, 0.9)');
                 $('#experiments, #console').css('background', 'rgba(66, 59, 59, 0.8)');
                 $('.btn').css('background', 'rgba(66, 59, 59, 0.8) none repeat scroll 0% 0% / auto padding-box border-box');
-                $('.ui-dialog').css('background', 'rgba(66, 59, 59, 0.90)');
+                $('.main-svg:first-child').css('cssText', $('.main-svg:first-child').css('cssText')+'background: #423b3b !important');
+                $('.ui-dialog').css('background', 'rgba(66, 59, 59, 0.8)');
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            var defaults = plots[i].defaultOptions();
+                            Plotly.relayout(plots[i].plotDiv, {
+                                'plot_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                'xaxis.linecolor': defaults.xaxis.linecolor,
+                                'yaxis.linecolor': defaults.xaxis.linecolor,
+			        'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			        'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			        'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			        'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+			        'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
+			        'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
+			        'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
+			        'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
+			        'legend.font.size': defaults.legend.font.size,
+			        'legend.font.family': defaults.legend.font.family,
+			        'legend.font.color': defaults.legend.font.color,
+			        'legend.bgcolor': 'rgba(66, 59, 59, 0.9)'
+                            });
+                        }
+                    });
                 window.themeSet = false;
             }
         }
+
         var configuration = {
             id: "themeButton",
             condition: "window.theme()",
