@@ -166,6 +166,6 @@
 
 .config-dropbox {
     width: auto;
-    padding-right: 3px;
     margin-left: 1em;
+    float: right;
 }
