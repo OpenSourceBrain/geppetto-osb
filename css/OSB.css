@@ -1,11 +1,11 @@
 .spinner-container .gpt-osb {
-	width: 100px;
-	font-size: 100px;
-	margin: 0 auto;
-	margin-bottom: 30px;
+    width: 100px;
+    font-size: 100px;
+    margin: 0 auto;
+    margin-bottom: 30px;
 }
 .osb-notification{
-	position: absolute;
+    position: absolute;
     height: 100px;
     width: 470px;
     top: 50px;
@@ -15,14 +15,131 @@
 }
 
 .controlsMenuButton {
-	position: fixed;
-	top: 5px;
-	right: 390px;
-	height: 27px;
+    position: fixed;
+    top: 5px;
+    right: 400px;
+    height: 27px;
     padding-left: 9px;
 }
 
 .controlsMenuButton:disabled {
 	background: 0;
 	color: @orange;
+}
+
+.control-panel-path-column {
+	width: 60%;
+}
+
+.control-panel-parameter-path-column {
+	width: 50%;
+}
+
+.control-panel-value-column {
+	width: 25%;
+}
+
+.control-panel-type-column {
+	width: 100px;
+	text-align: center;
+}
+
+.PublicProjectButton {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  z-index: 2;
+  height:27px
+}
+
+.PublicProjectButton:disabled{
+	background:0;
+	color:@orange;
+}
+
+.DownloadProjectButton{
+    position: fixed;
+    top: 5px;
+    right: 539px!important;
+    height: 27px;
+}
+
+.SaveButton {
+    right: 582px!important;
+}
+
+.DownloadProjectButton:disabled{
+	background:0;
+	color:@orange;
+}
+
+#tutorial_dialog b{
+	color:#37abc8;
+}
+#tutorial_dialog h3{
+	color:#88aa00;
+}
+#tutorial_dialog h4{
+	color:#88aa00;
+}
+
+#tutorial_dialog .formula{
+	color:#37abc8;
+}
+
+.tutorialForm{
+	width:390px;
+}
+
+.tutorialForm .tutorialLabel{
+	width:200px;
+	font-weight:600;
+	float: left;
+    margin: 10px;
+    clear: left;
+}
+
+.tutorialForm .btn{
+    background-color: #297385!important;
+    color: white!important;
+    float: left;
+    clear: both;
+    width: 380px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tutorialForm .btn:hover{
+	background-color: #39a8c3!important;
+}
+
+.tutorialQuestion{
+	margin-top:10px;
+	font-size: 15px;
+    background-color: #fc6320;
+    padding: 8px;
+}
+
+.tutorialForm input[type=text] {
+    border-radius: 0;
+    margin: 5px;
+    background-color: #297385;
+    border: 0;
+    color: white;
+    clear: right;
+    float: left;
+}
+
+#procWarning {
+    display: none;
+    color: red;
+    font-style: italic;
+    font-weight: normal;
+}
+
+#procInfo {
+    margin-top: 0;
+    margin-left: 2px;
+    width: 15px;
+    padding-left: 3px;
 }
