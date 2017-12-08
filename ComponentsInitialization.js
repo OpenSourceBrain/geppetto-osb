@@ -171,11 +171,13 @@ define(function(require) {
                     $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
                     $(".config-dropbox").click(function() {
                         var callback = function() {
+                            GEPPETTO.Spinner.hideSpinner();
                             $("#root_dropboxUpload").attr("disabled", false);
                             $(".config-dropbox").css("display", "none");
                         };
                         GEPPETTO.ModalFactory.inputDialog("Authorize Dropbox", "Please enter your code",
                                                           "OK", function() {
+                                                              GEPPETTO.Spinner.showSpinner();
                                                               G.linkDropBox(this.state.text, callback);
                                                               $("#root_dropboxUpload").attr("disabled", false);
                                                           },
