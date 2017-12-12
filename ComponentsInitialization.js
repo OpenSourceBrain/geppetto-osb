@@ -657,7 +657,7 @@ define(function(require) {
 			        'legend.font.size': 18,
 			        'legend.font.color': 'rgb(80, 80, 80)',
 			        'legend.bgcolor': 'rgb(255, 255, 255)',
-                                'margin.l': 70,
+                                'margin.l': 80,
                                 'margin.b': 50
                             });
                         }
