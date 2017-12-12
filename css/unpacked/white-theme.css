@@ -1,0 +1,39 @@
+body {
+    background: white;
+}
+
+.nav-tabs > li > a {
+    background: rgba(211,211,211,0.5);
+}
+
+.activeExperiment {
+    background-color: rgba(84, 32, 0, 0.2);
+}
+
+.nthTr { 
+    background: rgba(71, 58, 51, 0.8);
+}
+
+.dropDownButtonContainer {
+    background: rgba(211,211,211,0.5);
+}
+
+#experiments, #console { 
+    background: rgba(211,211,211,0.8);
+}
+
+.btn { 
+    background: rgb(211,211,211);
+}
+
+.main-svg:first-child {
+    background: rgba(255,255,255,0.5) !important;
+}
+ 
+.legend .bg {
+    fill: rgba(255, 255, 255, 0.5) !important;
+}
+ 
+.ui-dialog {
+    background: rgba(255, 255, 255, 0.90) !important;
+}
