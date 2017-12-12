@@ -172,11 +172,13 @@ define(function(require) {
                     $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
                     $(".config-dropbox").click(function() {
                         var callback = function() {
+                            GEPPETTO.Spinner.hideSpinner();
                             $("#root_dropboxUpload").attr("disabled", false);
                             $(".config-dropbox").css("display", "none");
                         };
                         GEPPETTO.ModalFactory.inputDialog("Authorize Dropbox", "Please enter your code",
                                                           "OK", function() {
+                                                              GEPPETTO.Spinner.showSpinner();
                                                               G.linkDropBox(this.state.text, callback);
                                                               $("#root_dropboxUpload").attr("disabled", false);
                                                           },
@@ -688,7 +690,7 @@ define(function(require) {
                 $('.dropDownButtonContainer').css('background', 'rgba(211,211,211,0.5)');
                 $('#experiments, #console').css('background', 'rgba(211,211,211,0.8)');
                 $('.btn').css('background', 'rgb(211,211,211)');
-                $('.main-svg:first-child').attr('style', 'background: #fff !important');
+                $('.main-svg:first-child').attr('style', 'background: #fff');
                 $('.legend .bg').css('cssText', $('.legend .bg').css('cssText')+'background: #fff !important');
                 $('.ui-dialog').css('background', 'rgba(255, 255, 255, 0.90)');
                 window.themeSet = true;
@@ -962,6 +964,7 @@ define(function(require) {
 				w.setName("Recorded variables: "+end);
 				plots[end] = w;
 				w.plotData(value);
+                                w.setInitialStyle();
 			    });
             		} else {
 			    plot.plotData(value);
