@@ -412,9 +412,8 @@ define(function(require) {
 
         var eventHandler = function(component){
 		};
-
 		var clickHandler = function(){
-			GEPPETTO.Console.executeCommand("Project.download();");
+		    GEPPETTO.ComponentFactory.getComponents()['CONSOLE'][0].executeCommand("Project.download();");
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
@@ -422,35 +421,19 @@ define(function(require) {
 		});
 
 		var configuration = {
-		    id: "DownloadProjectButton",
-		    hidden : false,
-		    openByDefault: false,
-		    closeOnClick: false,
-		    label: 'Download',
-		    iconOn: 'fa fa-caret-square-o-up',
-		    iconOff: 'fa fa-caret-square-o-down',
-		    menuPosition: {
-			top: 40,
-			right: 650
-		    },
-		    menuSize: {
-			height: "auto",
-			width: "auto"
-		    },
-		    menuItems: [{
-			label: "Download project",
-			action: "Project.download()",
-			value: "download_project"
-		    }, {
-			label: "Upload projcet",
-			action: "Project.getExperiments()[0].uploadResults('hhcell.electrical','RECORDING');",
-			value: "upload_project"
-		    }]
+				id: "DownloadProjectButton",
+				onClick : clickHandler,
+				eventHandler : eventHandler,
+				tooltipPosition : { my: "right center", at : "left-5 center"},
+				tooltipLabel : "Download your current project",
+				icon : "fa fa-download",
+				className : "btn DownloadProjectButton pull-right",
+				disabled : false,
+				hidden : false
 		};
 
 		//Download Project Button initialization
-		GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
-		
+		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
@@ -678,7 +661,7 @@ define(function(require) {
 			        'legend.font.size': 18,
 			        'legend.font.color': 'rgb(80, 80, 80)',
 			        'legend.bgcolor': 'rgb(255, 255, 255)',
-                                'margin.l': 70,
+                                'margin.l': 80,
                                 'margin.b': 50
                             });
                         }
