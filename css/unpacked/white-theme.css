@@ -74,3 +74,7 @@ body {
 #console div.output span.run {
     color: #0d08bd;
 }
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.8);
+}
