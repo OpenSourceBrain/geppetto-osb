@@ -370,9 +370,8 @@ define(function(require) {
 
         var eventHandler = function(component){
 		};
-
 		var clickHandler = function(){
-			GEPPETTO.Console.executeCommand("Project.download();");
+		    GEPPETTO.ComponentFactory.getComponents()['CONSOLE'][0].executeCommand("Project.download();");
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
@@ -393,7 +392,6 @@ define(function(require) {
 
 		//Download Project Button initialization
 		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
-		
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
