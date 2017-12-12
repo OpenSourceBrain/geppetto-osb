@@ -19,7 +19,7 @@ body {
 }
 
 #experiments, #console { 
-    background: rgba(211,211,211,0.8);
+    background: rgba(211,211,211,0.8) !important;
 }
 
 .btn { 
@@ -36,4 +36,37 @@ body {
  
 .ui-dialog {
     background: rgba(255, 255, 255, 0.90) !important;
+}
+
+.ui-dialog-content {
+    color: #4c4c4c;
+}
+
+.legend-text {
+    fill: black;
+}
+
+.connectionlabel {
+    fill: black;
+}
+
+.btn:not(ul):not(.btn-warning):not([disabled]) {
+    background-color: rgba(236, 236, 236, 0.8);
+    color: #fc6320;
+}
+
+.nav-tabs > li.active > a {
+    background: rgba(66, 59, 59, 0.9);
+}
+
+#console textarea {
+    color: black;
+}
+
+#console div.output span.command {
+    color: black;
+}
+
+#console div.output span.run {
+    color: #0d08bd;
 }
