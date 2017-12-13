@@ -39,7 +39,7 @@ body {
 }
 
 .popup {
-    color: #4c4c4c;
+    color: #4c4c4c !important;
 }
 
 .legend-text {
@@ -73,4 +73,8 @@ body {
 
 #console div.output span.run {
     color: #0d08bd;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.8);
 }
