@@ -506,7 +506,7 @@ define(function(require) {
         var resultsConfiguration = {
             id: "controlsMenuButton",
             openByDefault: false,
-            closeOnClick: false,
+            closeOnClick: true,
             label: ' Results',
             iconOn: 'fa fa-caret-square-o-up',
             iconOff: 'fa fa-caret-square-o-down',
@@ -548,8 +548,18 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: resultsConfiguration
-         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;
-                                                                      toggleMenuOptions();});
+         }, document.getElementById("ControlsMenuButton"), function(){
+             window.controlsMenuButton = this;
+             toggleMenuOptions();
+             GEPPETTO.on(GEPPETTO.Events.Project_persisted, function() {
+                 window.controlsMenuButton.refs.menuButton.disabled = false;
+             });
+             GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
+                 if (!Project.persisted)
+                     window.controlsMenuButton.refs.menuButton.disabled = true;
+            });
+         });
+
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -581,11 +591,12 @@ define(function(require) {
                 label: "Run active experiment",
                 action: "GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');",
                 value: "run_experiment",
-                disabled: "cascade"
+                disabled: true
             }, {
                 label: "Add & run protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol"
+                value: "add_protocol",
+                disabled: true
             }]
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
