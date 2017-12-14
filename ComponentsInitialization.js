@@ -411,45 +411,28 @@ define(function(require) {
 
         var eventHandler = function(component){
 		};
-
 		var clickHandler = function(){
-			GEPPETTO.Console.executeCommand("Project.download();");
+		    GEPPETTO.ComponentFactory.getComponents()['CONSOLE'][0].executeCommand("Project.download();");
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
 			GEPPETTO.ModalFactory.infoDialog("Project downloaded", "Your project has been downloaded. You can unzip your downloaded project in your OSB repository for it to be available to everyone.");
 		});
 
-		var configuration = {
-		    id: "DownloadProjectButton",
-		    hidden : false,
-		    openByDefault: false,
-		    closeOnClick: false,
-		    label: 'Download',
-		    iconOn: 'fa fa-caret-square-o-up',
-		    iconOff: 'fa fa-caret-square-o-down',
-		    menuPosition: {
-			top: 40,
-			right: 650
-		    },
-		    menuSize: {
-			height: "auto",
-			width: "auto"
-		    },
-		    menuItems: [{
-			label: "Download project",
-			action: "Project.download()",
-			value: "download_project"
-		    }, {
-			label: "Upload projcet",
-			action: "Project.getExperiments()[0].uploadResults('hhcell.electrical','RECORDING');",
-			value: "upload_project"
-		    }]
-		};
+   var configuration = {                                                                                                                                                                                                          
+       id: "DownloadProjectButton",                                                                                                                                                                                   
+       onClick : clickHandler,                                                                                                                                                                                        
+       eventHandler : eventHandler,                                                                                                                                                                                   
+       tooltipPosition : { my: "right center", at : "left-5 center"},                                                                                                                                                 
+       tooltipLabel : "Download your current project",                                                                                                                                                                
+       icon : "fa fa-download",                                                                                                                                                                                       
+       className : "btn DownloadProjectButton pull-right",                                                                                                                                                            
+       disabled : false,                                                                                                                                                                                              
+       hidden : false                                                                                                                                                                                                 
+   };
 
 		//Download Project Button initialization
-		GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
-		
+		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
@@ -565,7 +548,7 @@ define(function(require) {
         var resultsConfiguration = {
             id: "controlsMenuButton",
             openByDefault: false,
-            closeOnClick: false,
+            closeOnClick: true,
             label: ' Results',
             iconOn: 'fa fa-caret-square-o-up',
             iconOff: 'fa fa-caret-square-o-down',
@@ -607,8 +590,18 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: resultsConfiguration
-         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;
-                                                                      toggleMenuOptions();});
+         }, document.getElementById("ControlsMenuButton"), function(){
+             window.controlsMenuButton = this;
+             toggleMenuOptions();
+             GEPPETTO.on(GEPPETTO.Events.Project_persisted, function() {
+                 window.controlsMenuButton.refs.menuButton.disabled = false;
+             });
+             GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
+                 if (!Project.persisted)
+                     window.controlsMenuButton.refs.menuButton.disabled = true;
+            });
+         });
+
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -640,11 +633,12 @@ define(function(require) {
                 label: "Run active experiment",
                 action: "GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');",
                 value: "run_experiment",
-                disabled: "cascade"
+                disabled: true
             }, {
                 label: "Add & run protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol"
+                value: "add_protocol",
+                disabled: true
             }]
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
