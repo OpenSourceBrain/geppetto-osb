@@ -82,3 +82,13 @@ body {
 .connectivity-ordering-label, .weight-label {
     color: black !important;
 }
+
+.legend-axis .tick text, .legend-axis .tick line {
+    fill: black;
+    stroke: black;
+}
+
+.weight-legend-label {
+    fill: black;
+    stroke: black;
+}
