@@ -1178,18 +1178,7 @@ define(function(require) {
                     n.show(true);
                 } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
                     //Another composite
-<<<<<<< HEAD
-                    var target = widget;
-                    if (GEPPETTO.isKeyPressed("meta")) {
-                        G.addWidget(1).then(w => {
-                            w.addCustomNodeHandler(customHandler, 'click')
-                            w.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
-                        });
-                    }
-                    target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
-=======
                     widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
->>>>>>> development
                 }
             } catch (ex) {
                 node = undefined;
