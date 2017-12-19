@@ -7,11 +7,11 @@ body {
 }
 
 .activeExperiment {
-    background-color: rgba(84, 32, 0, 0.2);
+    background: rgba(255, 152, 88, 0.2);
 }
 
 .nthTr { 
-    background: rgba(71, 58, 51, 0.8);
+    background: rgba(179, 179, 179, 0.8);
 }
 
 .dropDownButtonContainer {
@@ -20,6 +20,10 @@ body {
 
 #experiments, #console { 
     background: rgba(211,211,211,0.8) !important;
+}
+
+.experimentsTableColumn {
+    color: black;
 }
 
 .btn { 
@@ -51,7 +55,7 @@ body {
 }
 
 .btn:not(ul):not(.btn-warning):not([disabled]) {
-    background-color: rgba(236, 236, 236, 0.8) !important;
+    background: rgba(236, 236, 236, 0.8) !important;
     color: #fc6320;
 }
 
