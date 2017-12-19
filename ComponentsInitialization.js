@@ -1037,26 +1037,20 @@ define(function(require) {
             var n;
             try {
                 n = eval(path);
+                var metaType = n.getMetaType();
+                if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
+                    //A plot function inside a channel
+                    G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
+                } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
+                    //A visual group
+                    n.show(true);
+                } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
+                    //Another composite
+                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
+                }
             } catch (ex) {
                 node = undefined;
             }
-
-            var metaType = n.getMetaType();
-            if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
-                //A plot function inside a channel
-                G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
-            } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
-                //A visual group
-                n.show(true);
-            } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
-                //Another composite
-                var target = widget;
-                if (GEPPETTO.isKeyPressed("meta")) {
-                    target = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click'));
-                }
-                target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
-            }
-
         };
 
         window.showModelDescription = function(model) {
