@@ -992,7 +992,7 @@ define(function(require) {
                 if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
                     message = "You first need to persist your project clicking on the star above before you can run an experiment.";
                 } else {
-                    message = "You don’t have write permissions for this project (read only).";
+                    message = "Experiments can only be run by registered users. Please <a href='" + window.osbURL + "/login' target='_blank'>log in</a> or <a href='" + window.osbURL + "/account/register' target='_blank'>register</a> for an account.";
                 }
 
                 GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);
