@@ -114,14 +114,14 @@ define(function(require) {
 
             };
 
-            var processorLimits = {"netPyNENSGSimulator": 64,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
+            var processorLimits = {"netPyNENSGSimulator": 256,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
 
             var changeHandler = function(formObject) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
                 if (nProc > procLimit) {
-                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
+                    $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
                     $("#procWarning").hide()
@@ -167,7 +167,7 @@ define(function(require) {
                 $("select#root_simulator").width("33%");
                 $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
                 $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
-                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
+                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 256 processors."); });
                 if (!GEPPETTO.UserController.getDropboxToken()) {
                     $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
                     $(".config-dropbox").click(function() {
@@ -1047,33 +1047,37 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            Model.neuroml.resolveAllImportTypes(function(){
-                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
-                } else {
-                    G.addWidget(6).then(w =>
-                                        w.setData(instance, {
-                                            linkType: function(c, linkCache) {
-                                                if (linkCache[c.getParent().getPath()])
-                                                    return linkCache[c.getParent().getPath()];
-                                                else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                    var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                    if (synapseType != undefined) {
-                                                        linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                        return synapseType.getId();
+            if ((Model.neuroml.importTypes.length == 0) && (typeof Model.neuroml.connection === 'undefined')) {
+                GEPPETTO.ModalFactory.infoDialog("No connections present in this model.", "");
+            } else {
+                Model.neuroml.resolveAllImportTypes(function(){
+                    $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                    if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                        G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
+                    } else {
+                        G.addWidget(6).then(w =>
+                                            w.setData(instance, {
+                                                linkType: function(c, linkCache) {
+                                                    if (linkCache[c.getParent().getPath()])
+                                                        return linkCache[c.getParent().getPath()];
+                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                        if (synapseType != undefined) {
+                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
+                                                            return synapseType.getId();
+                                                        }
                                                     }
-                                                }
-                                                return c.getName().split("-")[0];
-                                            },
-                                            library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                                            colorMapFunction: window.getNodeCustomColormap
-                                        }, window.getNodeCustomColormap())
-                                        .setName('Connectivity Widget on network ' + instance.getId())
-                                        .configViaGUI()
-                                       );
-                }
-            });
+                                                    return c.getName().split("-")[0];
+                                                },
+                                                library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                                                colorMapFunction: window.getNodeCustomColormap
+                                            }, window.getNodeCustomColormap())
+                                            .setName('Connectivity Widget on network ' + instance.getId())
+                                            .configViaGUI()
+                                           );
+                    }
+                });
+            }
         };
 
         window.showChannelTreeView = function(csel) {
@@ -1124,7 +1128,7 @@ define(function(require) {
                 if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
                     message = "You first need to persist your project clicking on the star above before you can run an experiment.";
                 } else {
-                    message = "You don’t have write permissions for this project (read only).";
+                    message = "Experiments can only be run by registered users. Please <a href='" + window.osbURL + "/login' target='_blank'>log in</a> or <a href='" + window.osbURL + "/account/register' target='_blank'>register</a> for an account.";
                 }
 
                 GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);

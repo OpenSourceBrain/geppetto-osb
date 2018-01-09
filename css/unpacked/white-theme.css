@@ -8,6 +8,7 @@ body {
 
 .activeExperiment {
     background: rgba(255, 152, 88, 0.2);
+    color: white;
 }
 
 .nthTr { 
@@ -22,7 +23,7 @@ body {
     background: rgba(211,211,211,0.8) !important;
 }
 
-.experimentsTableColumn {
+.experimentsTableColumn:not(.activeExperiment) {
     color: black;
 }
 
@@ -56,7 +57,7 @@ body {
 
 .btn:not(ul):not(.btn-warning):not([disabled]) {
     background: rgba(236, 236, 236, 0.8) !important;
-    color: #fc6320;
+    color: #fc6320 !important;
 }
 
 .nav-tabs > li.active > a {
@@ -95,4 +96,8 @@ body {
 .weight-legend-label {
     fill: black;
     stroke: black;
+}
+
+.geppettoForm label {
+    color: black !important;
 }
