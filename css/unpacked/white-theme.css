@@ -99,5 +99,5 @@ body {
 }
 
 .geppettoForm label {
-    color: black;
+    color: black !important;
 }
