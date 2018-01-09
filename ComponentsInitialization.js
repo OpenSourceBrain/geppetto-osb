@@ -915,33 +915,37 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            Model.neuroml.resolveAllImportTypes(function(){
-                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
-                } else {
-                    G.addWidget(6).then(w =>
-                                        w.setData(instance, {
-                                            linkType: function(c, linkCache) {
-                                                if (linkCache[c.getParent().getPath()])
-                                                    return linkCache[c.getParent().getPath()];
-                                                else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                    var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                    if (synapseType != undefined) {
-                                                        linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                        return synapseType.getId();
+            if ((Model.neuroml.importTypes.length == 0) && (typeof Model.neuroml.connection === 'undefined')) {
+                GEPPETTO.ModalFactory.infoDialog("No connections present in this model.", "");
+            } else {
+                Model.neuroml.resolveAllImportTypes(function(){
+                    $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                    if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                        G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
+                    } else {
+                        G.addWidget(6).then(w =>
+                                            w.setData(instance, {
+                                                linkType: function(c, linkCache) {
+                                                    if (linkCache[c.getParent().getPath()])
+                                                        return linkCache[c.getParent().getPath()];
+                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                        if (synapseType != undefined) {
+                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
+                                                            return synapseType.getId();
+                                                        }
                                                     }
-                                                }
-                                                return c.getName().split("-")[0];
-                                            },
-                                            library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                                            colorMapFunction: window.getNodeCustomColormap
-                                        }, window.getNodeCustomColormap())
-                                        .setName('Connectivity Widget on network ' + instance.getId())
-                                        .configViaGUI()
-                                       );
-                }
-            });
+                                                    return c.getName().split("-")[0];
+                                                },
+                                                library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                                                colorMapFunction: window.getNodeCustomColormap
+                                            }, window.getNodeCustomColormap())
+                                            .setName('Connectivity Widget on network ' + instance.getId())
+                                            .configViaGUI()
+                                           );
+                    }
+                });
+            }
         };
 
         window.showChannelTreeView = function(csel) {
