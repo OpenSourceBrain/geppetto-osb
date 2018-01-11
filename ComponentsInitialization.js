@@ -1198,7 +1198,8 @@ define(function(require) {
                     w.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
                 });
             } else {
-                // VFB-style window rumble
+                window.mainPopup.setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click');
+                window.mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
             }
         };
 
