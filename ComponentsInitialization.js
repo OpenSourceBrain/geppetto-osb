@@ -555,7 +555,9 @@ define(function(require) {
                  window.controlsMenuButton.refs.menuButton.disabled = false;
              });
              GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
-                 if (!Project.persisted)
+                 // disable results if project not persisted and user has write permission
+                 // if user doesn't have write permission then it's assumed we're looking at a sample project
+                 if (!Project.persisted && GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
                      window.controlsMenuButton.refs.menuButton.disabled = true;
             });
          });
