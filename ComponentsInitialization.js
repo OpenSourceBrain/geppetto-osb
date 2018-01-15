@@ -14,6 +14,8 @@ define(function(require) {
         link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
         document.getElementsByTagName("head")[0].appendChild(link);
 
+        GEPPETTO.MessageSocket.send("get_dropbox_token");
+
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
 
@@ -57,9 +59,20 @@ define(function(require) {
                     numberProcessors: {
                         type: 'number',
                         title: 'Number of Processors'
+                    },
+		    dropboxUpload: {
+                        type: 'boolean',
+                        title: 'Upload results to Dropbox on completion'
                     }
                 }
             };
+
+	    var uiSchema = {
+		dropboxUpload: {
+                    classNames: "dropbox-check",
+		    ...(!GEPPETTO.UserController.getDropboxToken()) && {'ui:disabled': 'false'}
+		}
+	    };
 
             var formData = {
                 experimentName: Project.getActiveExperiment().getName(),
@@ -80,10 +93,20 @@ define(function(require) {
                 formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
-            var submitHandler = function() {
+            var submitHandler = function(data) {
+		var formData = data.formData;
                 GEPPETTO.Flows.showSpotlightForRun(formCallback);
                 formWidget.destroy();
                 $("#exptRunForm").remove()
+		var thisExp = Project.getActiveExperiment();
+		function experimentCompleteHandler() {
+		    if (formData.dropboxUpload)
+			thisExp.uploadResults(
+			    GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.network)[0].getName(),
+			    "GEPPETTO_RECORDING"
+			);
+		}
+		GEPPETTO.on(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
             };
 
             var errorHandler = function() {
@@ -131,6 +154,7 @@ define(function(require) {
                 id: formId,
                 name: formName,
                 schema: schema,
+		uiSchema: uiSchema,
                 formData: formData,
                 submitHandler: submitHandler,
                 errorHandler: errorHandler,
@@ -142,7 +166,25 @@ define(function(require) {
                 $("select#root_simulator").width("33%");
                 $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
                 $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
-                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 256 processors."); });
+                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
+                if (!GEPPETTO.UserController.getDropboxToken()) {
+                    $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
+                    $(".config-dropbox").click(function() {
+                        var callback = function() {
+                            GEPPETTO.Spinner.hideSpinner();
+                            $("#root_dropboxUpload").attr("disabled", false);
+                            $(".config-dropbox").css("display", "none");
+                        };
+                        GEPPETTO.ModalFactory.inputDialog("Authorize Dropbox", "Please enter your code",
+                                                          "OK", function() {
+                                                              GEPPETTO.Spinner.showSpinner();
+                                                              G.linkDropBox(this.state.text, callback);
+                                                              $("#root_dropboxUpload").attr("disabled", false);
+                                                          },
+                                                          "Cancel", function(){},
+                                                          true)
+                    });
+                }
             });
         };
 
@@ -377,17 +419,17 @@ define(function(require) {
 			GEPPETTO.ModalFactory.infoDialog("Project downloaded", "Your project has been downloaded. You can unzip your downloaded project in your OSB repository for it to be available to everyone.");
 		});
 
-		var configuration = {
-				id: "DownloadProjectButton",
-				onClick : clickHandler,
-				eventHandler : eventHandler,
-				tooltipPosition : { my: "right center", at : "left-5 center"},
-				tooltipLabel : "Download your current project",
-				icon : "fa fa-download",
-				className : "btn DownloadProjectButton pull-right",
-				disabled : false,
-				hidden : false
-		};
+   var configuration = {                                                                                                                                                                                                          
+       id: "DownloadProjectButton",                                                                                                                                                                                   
+       onClick : clickHandler,                                                                                                                                                                                        
+       eventHandler : eventHandler,                                                                                                                                                                                   
+       tooltipPosition : { my: "right center", at : "left-5 center"},                                                                                                                                                 
+       tooltipLabel : "Download your current project",                                                                                                                                                                
+       icon : "fa fa-download",                                                                                                                                                                                       
+       className : "btn DownloadProjectButton pull-right",                                                                                                                                                            
+       disabled : false,                                                                                                                                                                                              
+       hidden : false                                                                                                                                                                                                 
+   };
 
 		//Download Project Button initialization
 		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
