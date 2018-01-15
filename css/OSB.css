@@ -143,3 +143,23 @@
     width: 15px;
     padding-left: 3px;
 }
+
+.dropbox-check {
+    float: right;
+}
+
+.dropbox-check input {
+    width: auto !important;
+    padding: 3px 0 0 !important;
+}
+
+.dropbox-check label {
+    width: 100% !important;
+    float: none !important;
+}
+
+.config-dropbox {
+    width: auto;
+    margin-left: 1em;
+    float: right;
+}
