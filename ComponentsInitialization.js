@@ -113,14 +113,14 @@ define(function(require) {
 
             };
 
-            var processorLimits = {"netPyNENSGSimulator": 64,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
+            var processorLimits = {"netPyNENSGSimulator": 256,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
 
             var changeHandler = function(formObject) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
                 if (nProc > procLimit) {
-                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
+                    $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
                     $("#procWarning").hide()
@@ -597,7 +597,9 @@ define(function(require) {
                  window.controlsMenuButton.refs.menuButton.disabled = false;
              });
              GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
-                 if (!Project.persisted)
+                 // disable results if project not persisted and user has write permission
+                 // if user doesn't have write permission then it's assumed we're looking at a sample project
+                 if (!Project.persisted && GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
                      window.controlsMenuButton.refs.menuButton.disabled = true;
             });
          });
@@ -957,33 +959,37 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            Model.neuroml.resolveAllImportTypes(function(){
-                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
-                } else {
-                    G.addWidget(6).then(w =>
-                                        w.setData(instance, {
-                                            linkType: function(c, linkCache) {
-                                                if (linkCache[c.getParent().getPath()])
-                                                    return linkCache[c.getParent().getPath()];
-                                                else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                    var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                    if (synapseType != undefined) {
-                                                        linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                        return synapseType.getId();
+            if ((Model.neuroml.importTypes.length == 0) && (typeof Model.neuroml.connection === 'undefined')) {
+                GEPPETTO.ModalFactory.infoDialog("No connections present in this model.", "");
+            } else {
+                Model.neuroml.resolveAllImportTypes(function(){
+                    $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                    if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                        G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
+                    } else {
+                        G.addWidget(6).then(w =>
+                                            w.setData(instance, {
+                                                linkType: function(c, linkCache) {
+                                                    if (linkCache[c.getParent().getPath()])
+                                                        return linkCache[c.getParent().getPath()];
+                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                        if (synapseType != undefined) {
+                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
+                                                            return synapseType.getId();
+                                                        }
                                                     }
-                                                }
-                                                return c.getName().split("-")[0];
-                                            },
-                                            library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                                            colorMapFunction: window.getNodeCustomColormap
-                                        }, window.getNodeCustomColormap())
-                                        .setName('Connectivity Widget on network ' + instance.getId())
-                                        .configViaGUI()
-                                       );
-                }
-            });
+                                                    return c.getName().split("-")[0];
+                                                },
+                                                library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                                                colorMapFunction: window.getNodeCustomColormap
+                                            }, window.getNodeCustomColormap())
+                                            .setName('Connectivity Widget on network ' + instance.getId())
+                                            .configViaGUI()
+                                           );
+                    }
+                });
+            }
         };
 
         window.showChannelTreeView = function(csel) {
@@ -1034,7 +1040,7 @@ define(function(require) {
                 if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
                     message = "You first need to persist your project clicking on the star above before you can run an experiment.";
                 } else {
-                    message = "You don’t have write permissions for this project (read only).";
+                    message = "Experiments can only be run by registered users. Please <a href='" + window.osbURL + "/login' target='_blank'>log in</a> or <a href='" + window.osbURL + "/account/register' target='_blank'>register</a> for an account.";
                 }
 
                 GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);
@@ -1079,26 +1085,20 @@ define(function(require) {
             var n;
             try {
                 n = eval(path);
+                var metaType = n.getMetaType();
+                if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
+                    //A plot function inside a channel
+                    G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
+                } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
+                    //A visual group
+                    n.show(true);
+                } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
+                    //Another composite
+                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
+                }
             } catch (ex) {
                 node = undefined;
             }
-
-            var metaType = n.getMetaType();
-            if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
-                //A plot function inside a channel
-                G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
-            } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
-                //A visual group
-                n.show(true);
-            } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
-                //Another composite
-                var target = widget;
-                if (GEPPETTO.isKeyPressed("meta")) {
-                    target = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click'));
-                }
-                target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
-            }
-
         };
 
         window.showModelDescription = function(model) {
@@ -1110,7 +1110,8 @@ define(function(require) {
                     w.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
                 });
             } else {
-                // VFB-style window rumble
+                window.mainPopup.setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click');
+                window.mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
             }
         };
 
