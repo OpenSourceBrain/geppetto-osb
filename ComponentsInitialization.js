@@ -420,6 +420,7 @@ define(function(require) {
 			GEPPETTO.ModalFactory.infoDialog("Project downloaded", "Your project has been downloaded. You can unzip your downloaded project in your OSB repository for it to be available to everyone.");
 		});
 
+<<<<<<< HEAD
 		var configuration = {
 				id: "DownloadProjectButton",
 				onClick : clickHandler,
@@ -431,6 +432,19 @@ define(function(require) {
 				disabled : false,
 				hidden : false
 		};
+=======
+   var configuration = {                                                                                                                                                                                                          
+       id: "DownloadProjectButton",                                                                                                                                                                                   
+       onClick : clickHandler,                                                                                                                                                                                        
+       eventHandler : eventHandler,                                                                                                                                                                                   
+       tooltipPosition : { my: "right center", at : "left-5 center"},                                                                                                                                                 
+       tooltipLabel : "Download your current project",                                                                                                                                                                
+       icon : "fa fa-download",                                                                                                                                                                                       
+       className : "btn DownloadProjectButton pull-right",                                                                                                                                                            
+       disabled : false,                                                                                                                                                                                              
+       hidden : false                                                                                                                                                                                                 
+   };
+>>>>>>> ea2b0b3afa59bf3d3645c977ef4482e563165427
 
 		//Download Project Button initialization
 		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
@@ -598,7 +612,9 @@ define(function(require) {
                  window.controlsMenuButton.refs.menuButton.disabled = false;
              });
              GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
-                 if (!Project.persisted)
+                 // disable results if project not persisted and user has write permission
+                 // if user doesn't have write permission then it's assumed we're looking at a sample project
+                 if (!Project.persisted && GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
                      window.controlsMenuButton.refs.menuButton.disabled = true;
             });
          });
@@ -1213,24 +1229,31 @@ define(function(require) {
             var experiments = protocolExperimentsMap[protocolName];
             var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
-            var plotWidget = null;
             if(experiments.length > 0 && membranePotentials.length>0){
-                plotWidget = G.addWidget(0).then(w => w.setName(protocolName + ' / membrane potentials').setSize(300, 500));
-            }
-            for(var i=0; i<experiments.length; i++){
-                // loop and plot all membrane potentials
-                if(experiments[i].getStatus() == 'COMPLETED'){
-                    for(var j=0; j<membranePotentials.length; j++){
-                        plotController.plotStateVariable(
-                            Project.getId(),
-                            experiments[i].getId(),
-                            membranePotentials[j],
-                            plotWidget
-                        );
-                    }
-                }
-            }
-        };
+                G.addWidget(0).then(plotWidget  => {
+		   plotWidget.setName(protocolName + ' / membrane potentials').setSize(300, 500);
+		    // loop and plot all membrane potentials
+		    plotController.then(
+			function(pc) {
+			    (function (experiments) {
+				for(var i=0; i<experiments.length; i++){
+				    if(experiments[i].getStatus() == 'COMPLETED'){
+					for(var j=0; j<membranePotentials.length; j++){
+					    pc.plotStateVariable(
+						Project.getId(),
+						experiments[i].getId(),
+						membranePotentials[j],
+						plotWidget
+					    );
+					}
+				    }
+				}
+			    })(experiments)
+			}
+		    )
+		});
+	    }
+	};
 
         window.getProtocolExperimentsMap = function(){
             var experiments = Project.getExperiments();
