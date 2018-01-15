@@ -1125,24 +1125,31 @@ define(function(require) {
             var experiments = protocolExperimentsMap[protocolName];
             var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
-            var plotWidget = null;
             if(experiments.length > 0 && membranePotentials.length>0){
-                plotWidget = G.addWidget(0).then(w => w.setName(protocolName + ' / membrane potentials').setSize(300, 500));
-            }
-            for(var i=0; i<experiments.length; i++){
-                // loop and plot all membrane potentials
-                if(experiments[i].getStatus() == 'COMPLETED'){
-                    for(var j=0; j<membranePotentials.length; j++){
-                        plotController.plotStateVariable(
-                            Project.getId(),
-                            experiments[i].getId(),
-                            membranePotentials[j],
-                            plotWidget
-                        );
-                    }
-                }
-            }
-        };
+                G.addWidget(0).then(plotWidget  => {
+		   plotWidget.setName(protocolName + ' / membrane potentials').setSize(300, 500);
+		    // loop and plot all membrane potentials
+		    plotController.then(
+			function(pc) {
+			    (function (experiments) {
+				for(var i=0; i<experiments.length; i++){
+				    if(experiments[i].getStatus() == 'COMPLETED'){
+					for(var j=0; j<membranePotentials.length; j++){
+					    pc.plotStateVariable(
+						Project.getId(),
+						experiments[i].getId(),
+						membranePotentials[j],
+						plotWidget
+					    );
+					}
+				    }
+				}
+			    })(experiments)
+			}
+		    )
+		});
+	    }
+	};
 
         window.getProtocolExperimentsMap = function(){
             var experiments = Project.getExperiments();
