@@ -420,7 +420,6 @@ define(function(require) {
 			GEPPETTO.ModalFactory.infoDialog("Project downloaded", "Your project has been downloaded. You can unzip your downloaded project in your OSB repository for it to be available to everyone.");
 		});
 
-<<<<<<< HEAD
 		var configuration = {
 				id: "DownloadProjectButton",
 				onClick : clickHandler,
@@ -432,19 +431,6 @@ define(function(require) {
 				disabled : false,
 				hidden : false
 		};
-=======
-   var configuration = {                                                                                                                                                                                                          
-       id: "DownloadProjectButton",                                                                                                                                                                                   
-       onClick : clickHandler,                                                                                                                                                                                        
-       eventHandler : eventHandler,                                                                                                                                                                                   
-       tooltipPosition : { my: "right center", at : "left-5 center"},                                                                                                                                                 
-       tooltipLabel : "Download your current project",                                                                                                                                                                
-       icon : "fa fa-download",                                                                                                                                                                                       
-       className : "btn DownloadProjectButton pull-right",                                                                                                                                                            
-       disabled : false,                                                                                                                                                                                              
-       hidden : false                                                                                                                                                                                                 
-   };
->>>>>>> ea2b0b3afa59bf3d3645c977ef4482e563165427
 
 		//Download Project Button initialization
 		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
