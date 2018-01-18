@@ -120,6 +120,11 @@
     padding: 8px;
 }
 
+.tutorialForm input[type=checkbox] {
+    margin-top: 1em;
+    float: left;
+}
+
 .tutorialForm input[type=text] {
     border-radius: 0;
     margin: 5px;
