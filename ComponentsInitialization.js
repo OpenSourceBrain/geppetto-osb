@@ -1107,7 +1107,7 @@ define(function(require) {
                     n.show(true);
                 } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
                     //Another composite
-                    target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
+                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
                 }
             } catch (ex) {
                 node = undefined;
