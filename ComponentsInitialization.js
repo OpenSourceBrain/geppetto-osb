@@ -959,7 +959,11 @@ define(function(require) {
                     domain.push(cells[i].getName());
                 else
                     domain.push(cells[i].getPath());
-                range.push(cells[i].getColor());
+                // FIXME: getColor function should exist here but this has occasionally broken
+                if (typeof cells[i].getColor === 'function')
+                    range.push(cells[i].getColor());
+                else
+                    range.push(GEPPETTO.Resources.COLORS.DEFAULT);
             }
             // if everything is default color, use a d3 provided palette as range
             if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
