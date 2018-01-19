@@ -948,13 +948,13 @@ define(function(require) {
                         .filter(x => x.getMetaType() !== 'SimpleType');
                     return populations.filter(p => v.getPath().indexOf(p.getName()))[0].getName()
                 }
-            var watchedVarsByPop = groupBy(watchedVars, groupingFn);
             Project.getActiveExperiment().playAll();
             var plots={};
-            $.each(watchedVarsByPop,
+            $.each(groupBy(watchedVars, groupingFn),
                 function(pop, vars) {
             	    G.addWidget(0).then(w => {
 			w.setName("Recorded variables: "+pop);
+                        w.setPosition();
                         for (var i=0; i<vars.length; ++i)
 			    w.plotData(vars[i]);
 		    });
@@ -1132,7 +1132,7 @@ define(function(require) {
          *       ['na']:{'Model.neuroml.na.conductance':$('#naValue').val()}
          *      }
          */
-        window.quickExperiment = function(prefix, parameterMap) {
+        window.quickExperiment = function(prefix, parameterMap, stateVars) {
             if(!GEPPETTO.UserController.hasWritePermissions()){
                 var message = "";
 
@@ -1166,6 +1166,12 @@ define(function(require) {
                         	experimentName += parameterMap[label][p]+",";	
                         }
                     }
+                }
+                for (var stateVar in stateVars) {
+                    GEPPETTO.ExperimentsController.watchVariables(
+                        [Instances.getInstance(stateVar)],
+                        stateVars[stateVar]
+                    );
                 }
                 Project.getActiveExperiment().setName(experimentName.slice(0, -1));
                 Project.getActiveExperiment().run();
