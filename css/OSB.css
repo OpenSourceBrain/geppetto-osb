@@ -126,6 +126,16 @@
     padding: 8px;
 }
 
+.tutorialForm input[type=checkbox] {
+    margin-top: 1em;
+    float: left;
+}
+
+.tutorialForm input[type=text]:disabled {
+    background-color: #d3d3d3;
+    color: #808080;
+}
+
 .tutorialForm input[type=text] {
     border-radius: 0;
     margin: 5px;

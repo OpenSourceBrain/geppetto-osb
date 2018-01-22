@@ -932,23 +932,32 @@ define(function(require) {
             });
         };
 
-        window.plotAllRecordedVariables = function() {
+        var groupBy = function(xs, key) {
+            return xs.reduce(function(rv, x) {
+                (rv[key(x)] = rv[key(x)] || []).push(x);
+                return rv;
+            }, {});
+        };
+
+        window.plotAllRecordedVariables = function(groupingFn) {
+            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
+            if (typeof groupingFn === 'undefined')
+                // default: group by populations
+                groupingFn = function(v) {
+                    var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                        .filter(x => x.getMetaType() !== 'SimpleType');
+                    return populations.filter(p => v.getPath().indexOf(p.getName()))[0].getName()
+                }
             Project.getActiveExperiment().playAll();
             var plots={};
-            $.each(Project.getActiveExperiment().getWatchedVariables(true, false),
-                function(index, value) {
-            		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
-            		var plot = plots[end];
-            		if(plots[end]==undefined){
-            		    G.addWidget(0).then(w => {
-				w.setName("Recorded variables: "+end);
-				plots[end] = w;
-				w.plotData(value);
-                                w.setInitialStyle();
-			    });
-            		} else {
-			    plot.plotData(value);
-			}
+            $.each(groupBy(watchedVars, groupingFn),
+                function(pop, vars) {
+            	    G.addWidget(0).then(w => {
+			w.setName("Recorded variables: "+pop);
+                        w.setPosition();
+                        for (var i=0; i<vars.length; ++i)
+			    w.plotData(vars[i]);
+		    });
                 });
         };
 
@@ -1039,7 +1048,11 @@ define(function(require) {
                     domain.push(cells[i].getName());
                 else
                     domain.push(cells[i].getPath());
-                range.push(cells[i].getColor());
+                // FIXME: getColor function should exist here but this has occasionally broken
+                if (typeof cells[i].getColor === 'function')
+                    range.push(cells[i].getColor());
+                else
+                    range.push(GEPPETTO.Resources.COLORS.DEFAULT);
             }
             // if everything is default color, use a d3 provided palette as range
             if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
@@ -1123,7 +1136,7 @@ define(function(require) {
          *       ['na']:{'Model.neuroml.na.conductance':$('#naValue').val()}
          *      }
          */
-        window.quickExperiment = function(prefix, parameterMap) {
+        window.quickExperiment = function(prefix, parameterMap, stateVars) {
             if(!GEPPETTO.UserController.hasWritePermissions()){
                 var message = "";
 
@@ -1139,7 +1152,10 @@ define(function(require) {
 
             GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
                 //When the experiment is completed plot the variables
-                window.plotAllRecordedVariables();
+                // group by equality of last segment of path (...kChan.n.q == ...naChan.h.q)
+                window.plotAllRecordedVariables(function(v) {
+                    return v.getPath().split('.').slice(-1)[0];
+                });
             });
             Project.getActiveExperiment().clone(function() {
                 var experimentName = prefix + " - ";
@@ -1154,6 +1170,12 @@ define(function(require) {
                         	experimentName += parameterMap[label][p]+",";	
                         }
                     }
+                }
+                for (var stateVar in stateVars) {
+                    GEPPETTO.ExperimentsController.watchVariables(
+                        [Instances.getInstance(stateVar)],
+                        stateVars[stateVar]
+                    );
                 }
                 Project.getActiveExperiment().setName(experimentName.slice(0, -1));
                 Project.getActiveExperiment().run();
@@ -1184,7 +1206,7 @@ define(function(require) {
                     n.show(true);
                 } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
                     //Another composite
-                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
+                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
                 }
             } catch (ex) {
                 node = undefined;
