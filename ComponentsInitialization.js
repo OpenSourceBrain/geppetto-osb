@@ -946,19 +946,21 @@ define(function(require) {
                 groupingFn = function(v) {
                     var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
                         .filter(x => x.getMetaType() !== 'SimpleType');
-                    return populations.filter(p => v.getPath().indexOf(p.getName()))[0].getName()
+                    return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
                 }
             Project.getActiveExperiment().playAll();
             var plots={};
+            var n=0; var lastPos;
             $.each(groupBy(watchedVars, groupingFn),
-                function(pop, vars) {
-            	    G.addWidget(0).then(w => {
-			w.setName("Recorded variables: "+pop);
-                        w.setPosition();
-                        for (var i=0; i<vars.length; ++i)
-			    w.plotData(vars[i]);
-		    });
-                });
+                   function(pop, vars) {
+                       G.addWidget(0).then(w => {
+			   w.setName("Recorded variables: "+pop);
+                           w.setPosition();
+                           lastPos = w.getPosition();
+                           for (var i=0; i<vars.length; ++i)
+			       w.plotData(vars[i]);
+		       });
+                   });
         };
 
         window.getSomaVariableInstances = function(stateVar) {
