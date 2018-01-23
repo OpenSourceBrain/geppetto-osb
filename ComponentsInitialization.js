@@ -949,18 +949,20 @@ define(function(require) {
                     return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
                 }
             Project.getActiveExperiment().playAll();
-            var plots={};
-            var n=0; var lastPos;
-            $.each(groupBy(watchedVars, groupingFn),
-                   function(pop, vars) {
-                       G.addWidget(0).then(w => {
-			   w.setName("Recorded variables: "+pop);
-                           w.setPosition();
-                           lastPos = w.getPosition();
-                           for (var i=0; i<vars.length; ++i)
-			       w.plotData(vars[i]);
-		       });
-                   });
+            var grouped = groupBy(watchedVars, groupingFn);
+            var groups = Object.keys(grouped);
+            for (var i=0; i<groups.length; ++i) {
+                var group = groups[i];
+                (function(group, i) {
+                    G.addWidget(0).then(w => {
+		        w.setName("Recorded variables: "+group);
+                        w.setPosition(100+(i*50), 100+(i*50));
+                        lastPos = w.getPosition();
+                        for (var j=0; j<grouped[group].length; ++j)
+			    w.plotData(grouped[group][j]);
+                    });
+                })(group, i)
+            }
         };
 
         window.getSomaVariableInstances = function(stateVar) {
