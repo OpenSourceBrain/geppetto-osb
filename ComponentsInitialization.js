@@ -1492,7 +1492,7 @@ define(function(require) {
         GEPPETTO.G.autoFocusConsole(false);
         
         GEPPETTO.UnitsController.addUnit("V","Membrane potential");
-        GEPPETTO.UnitsController.addUnit("S / m​<sup>2</sup>","Conductance density");
-        GEPPETTO.UnitsController.addUnit("A / m​<sup>2</sup>","Current density");
+        GEPPETTO.UnitsController.addUnit("S / m2","Conductance density");
+        GEPPETTO.UnitsController.addUnit("A / m2","Current density");
     };
 });
