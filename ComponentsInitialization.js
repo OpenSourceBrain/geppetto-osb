@@ -878,13 +878,16 @@ define(function(require) {
             }
         }
 
-        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
+        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle, left, top) {
             if (instances.length > 0) {
                 G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
                     c => {
                         c.setName(name);
                         c.setSize(125, 350);
-                        c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+                        if (typeof top !== 'undefined' && typeof left !=='undefined')
+                            c.setPosition(left, top);
+                        else
+                            c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
 
                         c.plotOptions = colorbar.defaultLayout();
                         c.plotOptions.xaxis.title = axistitle;
