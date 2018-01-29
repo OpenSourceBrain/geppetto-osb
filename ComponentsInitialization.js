@@ -777,7 +777,7 @@ define(function(require) {
                     false: {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
-                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.ca_color());" +
                             "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                     },
                     true: {
@@ -807,8 +807,8 @@ define(function(require) {
                     value: "apply_voltage",
                     false: {
                         // not selected
-                        action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                        action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color());" +
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');"
                     },
                     true: {
                         // is selected
@@ -826,7 +826,7 @@ define(function(require) {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
                             "window.soma_v_entire_cell();" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');"
                     },
                     true: {
                         // is selected
@@ -895,14 +895,12 @@ define(function(require) {
 
                         var callback = function() {
                             for (var instance of instances) {
-                                c.updateXAxisRange(instance.getTimeSeries());
+                                c.updateXAxisRange(instance.getTimeSeries().filter(x => !isNaN(x)));
                             }
-                            // this should be generalized beyond ca
                             if (normalize) {
-                                window.color_norm = scalefn(c.plotOptions.xaxis.max);
-                                //scalefn = window.ca_color;
+                                window.color_norm = scalefn(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max);
                                 GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
-                                GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
+                                GEPPETTO.SceneController.addColorFunction(instances, window.color_norm);
                             }
 
                             var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);

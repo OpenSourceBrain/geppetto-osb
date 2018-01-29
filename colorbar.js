@@ -27,29 +27,30 @@ define(function(require) {
     }
 
     // to be passed to SceneController.lightUpEntity
-    window.voltage_color = function(x) {
-        x = (x+0.07)/0.1; // normalization
-        if (x < 0) { x = 0; }
-        if (x > 1) { x = 1; }
-        if (x < 0.25) {
-            return [0, x*4, 1];
-        } else if (x < 0.5) {
-            return [0, 1, (1-(x-0.25)*4)];
-        } else if (x < 0.75) {
-            return [(x-0.5)*4, 1, 0];
-        } else {
-            return [1, (1-(x-0.75)*4), 0];
+    window.voltage_color = function(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
+        return function(x) {
+            x = (x-min)/(max-min);
+            var y=(1-x)/0.25;
+            var i=Math.floor(y);
+            var j=y-i;
+            var r, g, b;
+            switch(i)
+            {
+                case 0: r=1;g=j;b=0;break;
+                case 1: r=1-j;g=1;b=0;break;
+                case 2: r=0;g=1;b=j;break;
+                case 3: r=0;g=1-j;b=1;break;
+                case 4: r=0;g=0;b=1;break;
+            }
+            return [r, g, b];
         }
     };
 
-    window.ca_color = function(max) {
-        if(max == undefined) { max = 1; }
+    window.ca_color = function(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
         return function(x) {
-            x = x/max; // normalization
-            if (x < 0) { x = 0; }
-            if (x > 1) { x = 1; }
-            // [0,0.31,0.02]-[0,1,0.02]
-            //return [0.2, 0.6+(0.90*x), 0.02];
+            x = (x-min)/(max-min); // normalization
             return hslToRgb((120-(90*x))/255.0, 0.5+(0.5*x), 0.2+(0.4*x));
         };
     };
