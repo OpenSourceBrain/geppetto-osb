@@ -508,7 +508,10 @@ define(function(require) {
             	var recordAll = {
                     "label": "Record all membrane potentials",
                     "actions": [
-                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                        // FIXME: spinner doesn't display, but if we
+                        // just have the middle two statements, this
+                        // action hangs when there are many instances…
+                        "GEPPETTO.Spinner.showSpinner('Creating instances…'); var instances = Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true); GEPPETTO.Spinner.hideSpinner();"
                     ],
                     "icon": "fa-dot-circle-o"
                 };
