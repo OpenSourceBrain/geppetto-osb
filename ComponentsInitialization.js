@@ -24,7 +24,7 @@ define(function(require) {
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
 
-            this.engine.setLinesThreshold(20000)
+            this.engine.setLinesThreshold(10000);
         });
 
         //This function will be called when the run button is clicked
@@ -508,10 +508,9 @@ define(function(require) {
             	var recordAll = {
                     "label": "Record all membrane potentials",
                     "actions": [
-                        // FIXME: spinner doesn't display, but if we
-                        // just have the middle two statements, this
-                        // action hangs when there are many instances…
-                        "GEPPETTO.Spinner.showSpinner('Creating instances…'); var instances = Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true); GEPPETTO.Spinner.hideSpinner();"
+                        // without setTimeout, this will hang when n
+                        // instances large
+                        "setTimeout(function(){var instances = Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);},250);"
                     ],
                     "icon": "fa-dot-circle-o"
                 };
