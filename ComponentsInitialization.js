@@ -5,6 +5,7 @@ define(function(require) {
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
     var d3 = require('d3');
+    var Plotly = require('plotly.js/lib/core');
 
     return function(GEPPETTO) {
 
@@ -644,6 +645,94 @@ define(function(require) {
             }]
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
+
+        // theme button
+        $("<div id='themeButton' class='row foreground-controls'/>").appendTo('#controls');
+        window.themeSet = false;
+        window.theme = function (t) {
+            if (typeof t === 'undefined') {
+                return window.themeSet;
+            }
+            else if (t) {
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            Plotly.relayout(plots[i].plotDiv, {
+                                'plot_bgcolor': '#fff',
+                                'paper_bgcolor': 'rgb(255, 255, 255)',
+                                'xaxis.linecolor': 'rgb(80, 80, 80)',
+                                'yaxis.linecolor': 'rgb(80, 80, 80)',
+			        'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			        'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			        'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			        'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+			        'xaxis.tickfont.size': 18,
+			        'yaxis.tickfont.size': 18,
+			        'xaxis.titlefont.size': 18,
+			        'yaxis.titlefont.size': 18,
+			        'legend.font.size': 18,
+			        'legend.font.color': 'rgb(80, 80, 80)',
+			        'legend.bgcolor': 'rgb(255, 255, 255)',
+                                'margin.l': 80,
+                                'margin.b': 50
+                            });
+                        }
+                    });
+                $('head').append(
+                    $('<link rel="stylesheet" type="text/css"/>')
+                        .attr('href', 'geppetto/extensions/geppetto-osb/css/unpacked/white-theme.css')
+                );
+                window.themeSet = true;
+            }
+            else {
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            var defaults = plots[i].defaultOptions();
+                            Plotly.relayout(plots[i].plotDiv, {
+                                'plot_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                'xaxis.linecolor': defaults.xaxis.linecolor,
+                                'yaxis.linecolor': defaults.xaxis.linecolor,
+			        'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			        'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			        'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			        'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+			        'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
+			        'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
+			        'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
+			        'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
+			        'legend.font.size': defaults.legend.font.size,
+			        'legend.font.family': defaults.legend.font.family,
+			        'legend.font.color': defaults.legend.font.color,
+			        'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                'margin.l': defaults.margin.l,
+                                'margin.r': defaults.margin.r
+                            });
+                        }
+                    });
+                $('link[href$="white-theme.css"]').remove();
+                window.themeSet = false;
+            }
+        }
+
+        var configuration = {
+            id: "themeButton",
+            condition: "window.theme()",
+            "false": {
+                "action": "window.theme(true)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            },
+            "true": {
+                "action": "window.theme(false)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            }
+        };
+        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', { configuration: configuration }, document.getElementById("themeButton"));
 
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
