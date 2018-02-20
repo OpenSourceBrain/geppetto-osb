@@ -15,6 +15,8 @@ define(function(require) {
         link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
         document.getElementsByTagName("head")[0].appendChild(link);
 
+        GEPPETTO.MessageSocket.send("get_dropbox_token");
+
         //Loading spinner initialization
         GEPPETTO.Spinner.setLogo("gpt-osb");
 
@@ -68,7 +70,8 @@ define(function(require) {
 
 	    var uiSchema = {
 		dropboxUpload: {
-		    ...(typeof window.dropboxKey === 'undefined') && {'ui:disabled': 'true'}
+                    classNames: "dropbox-check",
+		    ...(!GEPPETTO.UserController.getDropboxToken()) && {'ui:disabled': 'false'}
 		}
 	    };
 
@@ -111,14 +114,14 @@ define(function(require) {
 
             };
 
-            var processorLimits = {"netPyNENSGSimulator": 64,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
+            var processorLimits = {"netPyNENSGSimulator": 256,  "neuronSimulator": 1, "netpyneSimulator": 1, "jneuromlSimulator": 1, "neuronNSGSimulator": 1};
 
             var changeHandler = function(formObject) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
                 if (nProc > procLimit) {
-                    $("#procWarning").show().text("Number of processors cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
+                    $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
                     $("#procWarning").hide()
@@ -165,6 +168,24 @@ define(function(require) {
                 $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
                 $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
                                                                                                       <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
+                if (!GEPPETTO.UserController.getDropboxToken()) {
+                    $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
+                    $(".config-dropbox").click(function() {
+                        var callback = function() {
+                            GEPPETTO.Spinner.hideSpinner();
+                            $("#root_dropboxUpload").attr("disabled", false);
+                            $(".config-dropbox").css("display", "none");
+                        };
+                        GEPPETTO.ModalFactory.inputDialog("Authorize Dropbox", "Please enter your code",
+                                                          "OK", function() {
+                                                              GEPPETTO.Spinner.showSpinner();
+                                                              G.linkDropBox(this.state.text, callback);
+                                                              $("#root_dropboxUpload").attr("disabled", false);
+                                                          },
+                                                          "Cancel", function(){},
+                                                          true)
+                    });
+                }
             });
         };
 
@@ -391,9 +412,8 @@ define(function(require) {
 
         var eventHandler = function(component){
 		};
-
 		var clickHandler = function(){
-			GEPPETTO.Console.executeCommand("Project.download();");
+		    GEPPETTO.ComponentFactory.getComponents()['CONSOLE'][0].executeCommand("Project.download();");
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
@@ -401,35 +421,19 @@ define(function(require) {
 		});
 
 		var configuration = {
-		    id: "DownloadProjectButton",
-		    hidden : false,
-		    openByDefault: false,
-		    closeOnClick: false,
-		    label: 'Download',
-		    iconOn: 'fa fa-caret-square-o-up',
-		    iconOff: 'fa fa-caret-square-o-down',
-		    menuPosition: {
-			top: 40,
-			right: 650
-		    },
-		    menuSize: {
-			height: "auto",
-			width: "auto"
-		    },
-		    menuItems: [{
-			label: "Download project",
-			action: "Project.download()",
-			value: "download_project"
-		    }, {
-			label: "Upload projcet",
-			action: "Project.getExperiments()[0].uploadResults('hhcell.electrical','RECORDING');",
-			value: "upload_project"
-		    }]
+				id: "DownloadProjectButton",
+				onClick : clickHandler,
+				eventHandler : eventHandler,
+				tooltipPosition : { my: "right center", at : "left-5 center"},
+				tooltipLabel : "Download your current project",
+				icon : "fa fa-download",
+				className : "btn DownloadProjectButton pull-right",
+				disabled : false,
+				hidden : false
 		};
 
 		//Download Project Button initialization
-		GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
-		
+		GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: configuration}, document.getElementById("DownloadProjectButton"));
 
         //Save initialization 
         GEPPETTO.ComponentFactory.addComponent('SAVECONTROL', {}, document.getElementById("SaveButton"),
@@ -545,7 +549,7 @@ define(function(require) {
         var resultsConfiguration = {
             id: "controlsMenuButton",
             openByDefault: false,
-            closeOnClick: false,
+            closeOnClick: true,
             label: ' Results',
             iconOn: 'fa fa-caret-square-o-up',
             iconOff: 'fa fa-caret-square-o-down',
@@ -587,8 +591,20 @@ define(function(require) {
         //Home button initialization
          GEPPETTO.ComponentFactory.addComponent('MENUBUTTON', {
                 configuration: resultsConfiguration
-         }, document.getElementById("ControlsMenuButton"), function(){window.controlsMenuButton = this;
-                                                                      toggleMenuOptions();});
+         }, document.getElementById("ControlsMenuButton"), function(){
+             window.controlsMenuButton = this;
+             toggleMenuOptions();
+             GEPPETTO.on(GEPPETTO.Events.Project_persisted, function() {
+                 window.controlsMenuButton.refs.menuButton.disabled = false;
+             });
+             GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
+                 // disable results if project not persisted and user has write permission
+                 // if user doesn't have write permission then it's assumed we're looking at a sample project
+                 if (!Project.persisted && GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
+                     window.controlsMenuButton.refs.menuButton.disabled = true;
+            });
+         });
+
 
         //Foreground initialization
         GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
@@ -620,11 +636,12 @@ define(function(require) {
                 label: "Run active experiment",
                 action: "GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');",
                 value: "run_experiment",
-                disabled: "cascade"
+                disabled: true
             }, {
                 label: "Add & run protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol"
+                value: "add_protocol",
+                disabled: true
             }]
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
@@ -915,24 +932,37 @@ define(function(require) {
             });
         };
 
-        window.plotAllRecordedVariables = function() {
+        var groupBy = function(xs, key) {
+            return xs.reduce(function(rv, x) {
+                (rv[key(x)] = rv[key(x)] || []).push(x);
+                return rv;
+            }, {});
+        };
+
+        window.plotAllRecordedVariables = function(groupingFn) {
+            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
+            if (typeof groupingFn === 'undefined')
+                // default: group by populations
+                groupingFn = function(v) {
+                    var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                        .filter(x => x.getMetaType() !== 'SimpleType');
+                    return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+                }
             Project.getActiveExperiment().playAll();
-            var plots={};
-            $.each(Project.getActiveExperiment().getWatchedVariables(true, false),
-                function(index, value) {
-            		var end = value.getInstancePath().substring(value.getInstancePath().lastIndexOf(".")+1);
-            		var plot = plots[end];
-            		if(plots[end]==undefined){
-            		    G.addWidget(0).then(w => {
-				w.setName("Recorded variables: "+end);
-				plots[end] = w;
-				w.plotData(value);
-                                w.setInitialStyle();
-			    });
-            		} else {
-			    plot.plotData(value);
-			}
-                });
+            var grouped = groupBy(watchedVars, groupingFn);
+            var groups = Object.keys(grouped);
+            for (var i=0; i<groups.length; ++i) {
+                var group = groups[i];
+                (function(group, i) {
+                    G.addWidget(0).then(w => {
+		        w.setName("Recorded variables: "+group);
+                        w.setPosition(100+(i*50), 100+(i*50));
+                        lastPos = w.getPosition();
+                        for (var j=0; j<grouped[group].length; ++j)
+			    w.plotData(grouped[group][j]);
+                    });
+                })(group, i)
+            }
         };
 
         window.getSomaVariableInstances = function(stateVar) {
@@ -1022,7 +1052,11 @@ define(function(require) {
                     domain.push(cells[i].getName());
                 else
                     domain.push(cells[i].getPath());
-                range.push(cells[i].getColor());
+                // FIXME: getColor function should exist here but this has occasionally broken
+                if (typeof cells[i].getColor === 'function')
+                    range.push(cells[i].getColor());
+                else
+                    range.push(GEPPETTO.Resources.COLORS.DEFAULT);
             }
             // if everything is default color, use a d3 provided palette as range
             if (range.filter(function(x) { return x!==GEPPETTO.Resources.COLORS.DEFAULT; }).length == 0)
@@ -1032,33 +1066,37 @@ define(function(require) {
         },
 
         window.showConnectivityMatrix = function(instance) {
-            Model.neuroml.resolveAllImportTypes(function(){
-                $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
-                if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
-                    G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
-                } else {
-                    G.addWidget(6).then(w =>
-                                        w.setData(instance, {
-                                            linkType: function(c, linkCache) {
-                                                if (linkCache[c.getParent().getPath()])
-                                                    return linkCache[c.getParent().getPath()];
-                                                else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                    var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                    if (synapseType != undefined) {
-                                                        linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                        return synapseType.getId();
+            if ((Model.neuroml.importTypes.length == 0) && (typeof Model.neuroml.connection === 'undefined')) {
+                GEPPETTO.ModalFactory.infoDialog("No connections present in this model.", "");
+            } else {
+                Model.neuroml.resolveAllImportTypes(function(){
+                    $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+                    if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
+                        G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
+                    } else {
+                        G.addWidget(6).then(w =>
+                                            w.setData(instance, {
+                                                linkType: function(c, linkCache) {
+                                                    if (linkCache[c.getParent().getPath()])
+                                                        return linkCache[c.getParent().getPath()];
+                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                        if (synapseType != undefined) {
+                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
+                                                            return synapseType.getId();
+                                                        }
                                                     }
-                                                }
-                                                return c.getName().split("-")[0];
-                                            },
-                                            library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
-                                            colorMapFunction: window.getNodeCustomColormap
-                                        }, window.getNodeCustomColormap())
-                                        .setName('Connectivity Widget on network ' + instance.getId())
-                                        .configViaGUI()
-                                       );
-                }
-            });
+                                                    return c.getName().split("-")[0];
+                                                },
+                                                library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
+                                                colorMapFunction: window.getNodeCustomColormap
+                                            }, window.getNodeCustomColormap())
+                                            .setName('Connectivity Widget on network ' + instance.getId())
+                                            .configViaGUI()
+                                           );
+                    }
+                });
+            }
         };
 
         window.showChannelTreeView = function(csel) {
@@ -1102,14 +1140,14 @@ define(function(require) {
          *       ['na']:{'Model.neuroml.na.conductance':$('#naValue').val()}
          *      }
          */
-        window.quickExperiment = function(prefix, parameterMap) {
+        window.quickExperiment = function(prefix, parameterMap, stateVars) {
             if(!GEPPETTO.UserController.hasWritePermissions()){
                 var message = "";
 
                 if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
                     message = "You first need to persist your project clicking on the star above before you can run an experiment.";
                 } else {
-                    message = "You don’t have write permissions for this project (read only).";
+                    message = "Experiments can only be run by registered users. Please <a href='" + window.osbURL + "/login' target='_blank'>log in</a> or <a href='" + window.osbURL + "/account/register' target='_blank'>register</a> for an account.";
                 }
 
                 GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);
@@ -1118,7 +1156,10 @@ define(function(require) {
 
             GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
                 //When the experiment is completed plot the variables
-                window.plotAllRecordedVariables();
+                // group by equality of last segment of path (...kChan.n.q == ...naChan.h.q)
+                window.plotAllRecordedVariables(function(v) {
+                    return v.getPath().split('.').slice(-1)[0];
+                });
             });
             Project.getActiveExperiment().clone(function() {
                 var experimentName = prefix + " - ";
@@ -1133,6 +1174,12 @@ define(function(require) {
                         	experimentName += parameterMap[label][p]+",";	
                         }
                     }
+                }
+                for (var stateVar in stateVars) {
+                    GEPPETTO.ExperimentsController.watchVariables(
+                        [Instances.getInstance(stateVar)],
+                        stateVars[stateVar]
+                    );
                 }
                 Project.getActiveExperiment().setName(experimentName.slice(0, -1));
                 Project.getActiveExperiment().run();
@@ -1154,26 +1201,20 @@ define(function(require) {
             var n;
             try {
                 n = eval(path);
+                var metaType = n.getMetaType();
+                if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
+                    //A plot function inside a channel
+                    G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
+                } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
+                    //A visual group
+                    n.show(true);
+                } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
+                    //Another composite
+                    widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
+                }
             } catch (ex) {
                 node = undefined;
             }
-
-            var metaType = n.getMetaType();
-            if (metaType == GEPPETTO.Resources.VARIABLE_NODE) {
-                //A plot function inside a channel
-                G.addWidget(Widgets.PLOT).then(w => w.plotFunctionNode(n));
-            } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
-                //A visual group
-                n.show(true);
-            } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
-                //Another composite
-                var target = widget;
-                if (GEPPETTO.isKeyPressed("meta")) {
-                    target = G.addWidget(1).then(w => w.addCustomNodeHandler(customHandler, 'click'));
-                }
-                target.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE]);
-            }
-
         };
 
         window.showModelDescription = function(model) {
@@ -1185,7 +1226,8 @@ define(function(require) {
                     w.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
                 });
             } else {
-                // VFB-style window rumble
+                window.mainPopup.setName('Model Description - ' + model.getName()).addCustomNodeHandler(customHandler, 'click');
+                window.mainPopup.setData(model, [GEPPETTO.Resources.HTML_TYPE]);
             }
         };
 
@@ -1199,24 +1241,31 @@ define(function(require) {
             var experiments = protocolExperimentsMap[protocolName];
             var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
             var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
-            var plotWidget = null;
             if(experiments.length > 0 && membranePotentials.length>0){
-                plotWidget = G.addWidget(0).then(w => w.setName(protocolName + ' / membrane potentials').setSize(300, 500));
-            }
-            for(var i=0; i<experiments.length; i++){
-                // loop and plot all membrane potentials
-                if(experiments[i].getStatus() == 'COMPLETED'){
-                    for(var j=0; j<membranePotentials.length; j++){
-                        plotController.plotStateVariable(
-                            Project.getId(),
-                            experiments[i].getId(),
-                            membranePotentials[j],
-                            plotWidget
-                        );
-                    }
-                }
-            }
-        };
+                G.addWidget(0).then(plotWidget  => {
+		   plotWidget.setName(protocolName + ' / membrane potentials').setSize(300, 500);
+		    // loop and plot all membrane potentials
+		    plotController.then(
+			function(pc) {
+			    (function (experiments) {
+				for(var i=0; i<experiments.length; i++){
+				    if(experiments[i].getStatus() == 'COMPLETED'){
+					for(var j=0; j<membranePotentials.length; j++){
+					    pc.plotStateVariable(
+						Project.getId(),
+						experiments[i].getId(),
+						membranePotentials[j],
+						plotWidget
+					    );
+					}
+				    }
+				}
+			    })(experiments)
+			}
+		    )
+		});
+	    }
+	};
 
         window.getProtocolExperimentsMap = function(){
             var experiments = Project.getExperiments();
