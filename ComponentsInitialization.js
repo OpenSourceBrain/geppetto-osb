@@ -120,11 +120,15 @@ define(function(require) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
-                if (nProc > procLimit) {
+                if ((Project.getActiveExperiment().getWatchedVariables().length * formObject.formData['length'])/ formObject.formData['timeStep'] > 4e6) {
+                    $("#procWarning").show().text("Experiment too large: reduce number of watched variables, length, or increase timestep.");
+                    $("#exptRunForm button[type='submit']").prop('disabled', true);
+                } 
+                else if (nProc > procLimit) {
                     $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
-                    $("#procWarning").hide()
+                    $("#procWarning").hide();
                     $("#exptRunForm button[type='submit']").prop('disabled', false);
                 }
 
