@@ -664,25 +664,42 @@ define(function(require) {
                     controller => {
                         var plots = controller.getWidgets();
                         for (var i=0; i<plots.length; ++i) {
-                            Plotly.relayout(plots[i].plotDiv, {
-                                'plot_bgcolor': '#fff',
-                                'paper_bgcolor': 'rgb(255, 255, 255)',
-                                'xaxis.linecolor': 'rgb(80, 80, 80)',
-                                'yaxis.linecolor': 'rgb(80, 80, 80)',
-			        'xaxis.tickfont.color': 'rgb(80, 80, 80)',
-			        'yaxis.tickfont.color': 'rgb(80, 80, 80)',
-			        'yaxis.titlefont.color': 'rgb(80, 80, 80)',
-			        'xaxis.titlefont.color': 'rgb(80, 80, 80)',
-			        'xaxis.tickfont.size': 18,
-			        'yaxis.tickfont.size': 18,
-			        'xaxis.titlefont.size': 18,
-			        'yaxis.titlefont.size': 18,
-			        'legend.font.size': 18,
-			        'legend.font.color': 'rgb(80, 80, 80)',
-			        'legend.bgcolor': 'rgb(255, 255, 255)',
-                                'margin.l': 80,
-                                'margin.b': 50
-                            });
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': 'rgb(80, 80, 80)',
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12
+                                });
+                            } else {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.linecolor': 'rgb(80, 80, 80)',
+                                    'yaxis.linecolor': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12,
+			            'legend.font.size': 12,
+			            'legend.font.color': 'rgb(80, 80, 80)',
+			            'legend.bgcolor': 'rgb(255, 255, 255)',
+                                    'margin.l': 50,
+                                    'margin.b': 40
+                                });
+                            }
                         }
                     });
                 $('head').append(
@@ -697,26 +714,44 @@ define(function(require) {
                         var plots = controller.getWidgets();
                         for (var i=0; i<plots.length; ++i) {
                             var defaults = plots[i].defaultOptions();
-                            Plotly.relayout(plots[i].plotDiv, {
-                                'plot_bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'xaxis.linecolor': defaults.xaxis.linecolor,
-                                'yaxis.linecolor': defaults.xaxis.linecolor,
-			        'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
-			        'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
-			        'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
-			        'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
-			        'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
-			        'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
-			        'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
-			        'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
-			        'legend.font.size': defaults.legend.font.size,
-			        'legend.font.family': defaults.legend.font.family,
-			        'legend.font.color': defaults.legend.font.color,
-			        'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'margin.l': defaults.margin.l,
-                                'margin.r': defaults.margin.r
-                            });
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgb(66, 59, 59, 0.9)',
+                                    'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': defaults.xaxis.tickcolor,
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12,
+                                    'margin.l': 0
+                                });
+                            } else {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                    'xaxis.linecolor': defaults.xaxis.linecolor,
+                                    'yaxis.linecolor': defaults.xaxis.linecolor,
+			            'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+			            'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
+			            'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
+			            'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
+			            'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
+			            'legend.font.size': defaults.legend.font.size,
+			            'legend.font.family': defaults.legend.font.family,
+			            'legend.font.color': defaults.legend.font.color,
+			            'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                    'margin.l': defaults.margin.l,
+                                    'margin.r': defaults.margin.r
+                                });
+                            }
                         }
                     });
                 $('link[href$="white-theme.css"]').remove();
