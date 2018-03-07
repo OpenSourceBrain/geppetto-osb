@@ -4,6 +4,7 @@ define(function(require) {
     var networkControlPanel = require('./osbNetworkControlPanel.json');
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
+    var activity = require('./activity');
     var d3 = require('d3');
     var Plotly = require('plotly.js/lib/core');
 
@@ -974,42 +975,8 @@ define(function(require) {
             });
         };
 
-        var groupBy = function(xs, key) {
-            return xs.reduce(function(rv, x) {
-                (rv[key(x)] = rv[key(x)] || []).push(x);
-                return rv;
-            }, {});
-        };
-
-        window.plotAllRecordedVariables = function(groupingFn) {
-            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
-            if (watchedVars.length > 50) {
-                GEPPETTO.ModalFactory.infoDialog("Warning",
-                                                 "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
-            } else {
-                if (typeof groupingFn === 'undefined')
-                    // default: group by populations
-                    groupingFn = function(v) {
-                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                            .filter(x => x.getMetaType() !== 'SimpleType');
-                        return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
-                    }
-                Project.getActiveExperiment().playAll();
-                var grouped = groupBy(watchedVars, groupingFn);
-                var groups = Object.keys(grouped);
-                for (var i=0; i<groups.length; ++i) {
-                    var group = groups[i];
-                    (function(group, i) {
-                        G.addWidget(0).then(w => {
-		            w.setName("Recorded variables: "+group);
-                            w.setPosition(100+(i*50), 100+(i*50));
-                            lastPos = w.getPosition();
-                            for (var j=0; j<grouped[group].length; ++j)
-			        w.plotData(grouped[group][j]);
-                        });
-                    })(group, i)
-                }
-            }
+        window.plotAllRecordedVariables = function() {
+            activity.showPlotSelector();
         };
 
         window.getSomaVariableInstances = function(stateVar) {
@@ -1204,7 +1171,7 @@ define(function(require) {
             GEPPETTO.once(GEPPETTO.Events.Experiment_completed, function() {
                 //When the experiment is completed plot the variables
                 // group by equality of last segment of path (...kChan.n.q == ...naChan.h.q)
-                window.plotAllRecordedVariables(function(v) {
+                activity.plotAllRecordedTraces(function(v) {
                     return v.getPath().split('.').slice(-1)[0];
                 });
             });
