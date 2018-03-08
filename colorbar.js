@@ -100,7 +100,23 @@ define(function(require) {
         nbars: 100,
         data: {type: 'heatmap', showscale: false, colorbar: {autotick: false, tick0: 0, dtick: 1}},
 
-        genColorscale: function(min, max, n, f) {
+        genColorscale: function(min, max, n, f, normalize) {
+            // Three.js uses float 0-1 RGB values, here we convert to 0-255
+            var scalefn_255 = function(scalefn) {
+                return function(x){
+                    if (normalize) {
+                        x = x/max;
+                        if (x < 0) { x = 0; }
+                        if (x > 1) { x = 1; }
+                    }
+                    var r,g,b;
+                    [r,g,b] = scalefn(x).map(function(y){ return Math.round(y*255); });
+                    return "rgb(" + r + "," + g + "," + b + ")";
+                }
+            };
+
+            f = scalefn_255(f);
+            
             var colorscale = [];
             var step = (max-min)/n;
             var x = min;
@@ -116,21 +132,7 @@ define(function(require) {
         },
 
         setScale: function(min, max, scalefn, normalize){
-            // Three.js uses float 0-1 RGB values, here we convert to 0-255
-            var scalefn_255 = function(scalefn) {
-                return function(x){
-                    if (normalize) {
-                        x = x/max;
-                        if (x < 0) { x = 0; }
-                        if (x > 1) { x = 1; }
-                    }
-                    var r,g,b;
-                    [r,g,b] = scalefn(x).map(function(y){ return Math.round(y*255); });
-                    return "rgb(" + r + "," + g + "," + b + ")";
-                }
-            };
-            
-            var colorscale = this.genColorscale(min, max, this.nbars, scalefn_255(scalefn));
+            var colorscale = this.genColorscale(min, max, this.nbars, scalefn, normalize);
 
             var xdata = [];
             for (var i=0; i<this.nbars; ++i){
