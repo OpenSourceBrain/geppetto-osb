@@ -1,19 +1,21 @@
 define(function(require) {
     require("./Activity.less");
+    var colorbar = require('./colorbar');
     return  {
-        plotSelectorLayout: function() {
+        spikeCache: {},
+        activitySelectorLayout: function() {
             function imgPath(path){
                 return 'geppetto/extensions/geppetto-osb/images/' + path;
             }
 
             var layoutOptions = [
-                {id: "traces", label: 'Traces', description: "", img: imgPath('matrix.svg')},
-                {id: "continuous", label: 'Continuous activity', description: "", img: imgPath('force.svg')},
+                {id: "continuous", label: 'Continuous activity', description: "", img: imgPath('continuous.svg')},
                 {id: "spiking",  label: 'Raster plot', description: "", img: imgPath('raster.svg')},
+                {id: "mean", label: 'Mean rate', description: "", img: imgPath('mean.svg')}
             ];
             var container = $('<div>').addClass('card-deck-wrapper');
             $('<p class="card-wrapper-title">How would you like to plot the results?</p>').appendTo(container);
-            var deck = $('<div>').addClass('card-deck').appendTo(container);
+            var deck = $('<div>').addClass('card-deck activity-card-deck').appendTo(container);
 
             function createCard(cardData){
                 return $('<div>', {class: 'card', id: cardData.id})
@@ -38,11 +40,11 @@ define(function(require) {
             return container;
         },
 
-        showPlotSelector: function(plot) {
+        showActivitySelector: function(plot) {
             var that=this;
             var firstClick=false;
             var modalContent=$('<div class="modal fade" id="plot-config-modal" tabindex="-1"></div>')
-                .append(this.plotSelectorLayout()[0].outerHTML).modal({keyboard: true});
+                .append(this.activitySelectorLayout()[0].outerHTML).modal({keyboard: true});
 
             function handleFirstClick(event) {
                 switch (event.currentTarget.id) {
@@ -74,7 +76,7 @@ define(function(require) {
             modalContent.find('.card').on('click', clickHandler);
         }, 
         fetchAllTimeseries: function(callback) {
-            var unfetched = Project.getActiveExperiment().getWatchedVariables(true)
+            var unfetched = window.getRecordedMembranePotentials()
                 .filter(x => typeof x.getTimeSeries() == 'undefined');
             if(unfetched.length > 0) {
                 GEPPETTO.ExperimentsController.getExperimentState(Project.id, Project.activeExperiment.id, unfetched.map(x => x.getPath()), callback);
@@ -86,29 +88,38 @@ define(function(require) {
         plotAllContinuous: function(plot) {
             var that=this;
             this.fetchAllTimeseries(function() {
-                var data = {colorbar: {autotick: true, tickfont: {color: '#FFFFFF'}, xaxis: {title: 'Value'}},
+                var data = {colorbar: {title: 'Membrane Potential (v)',
+                                       titleside: 'right',
+                                       titlefont: {color: 'white'},
+                                       autotick: true, tickfont: {color: '#FFFFFF'}, xaxis: {title: 'Value'}},
                             showlegend: false, showscale: true, type: 'heatmap'};
-                var variables = Project.getActiveExperiment().getWatchedVariables(true);
-                variables = variables.sort(x => x.getPath());
+                var variables = window.getRecordedMembranePotentials();
+                var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+                variables.sort((x,y) => collator.compare(y.getPath(),x.getPath()));
                 data.x = window.time.getTimeSeries();
                 data.z = variables.map(x => x.getTimeSeries());
                 data.y = variables.map(x => x.getPath().split('.')[1]);
+                var min = Math.min.apply(Math, data.z.map(d => Math.min.apply(Math, d)));
+                var max = Math.max.apply(Math, data.z.map(d => Math.max.apply(Math, d)));
+                data.colorscale = colorbar.genColorscale(min, max, 100, window.voltage_color(min, max), false);
+                var callback = function(plot) {
+                    plot.plotGeneric([data]);
+                    plot.setOptions({margin: {l: 100, r: 10}});
+                    plot.setOptions({xaxis: {title: 'Time (s)'}});
+                    plot.setOptions({yaxis: {min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
+                    plot.setName("Continuous Activity");
+                    plot.resetAxes();
+                }
                 if (typeof plot == 'undefined')
                     GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then(plot => {
-                        plot.plotGeneric(data);
-                        plot.setOptions({margin: {l: 100, r: 10}});
-                        plot.setOptions({yaxis: {min: -0.5, max: data.y.length-0.5}});
-                        plot.resetAxes();
+                        callback(plot);
                         plot.addButtonToTitleBar($("<div class='fa fa-gear'></div>").on('click', function(event) {
-                            that.showPlotSelector(plot);
+                            that.showActivitySelector(plot);
                         }));
                     });
                 else {
-                    plot.cleanDataSets();
-                    plot.plotGeneric(data);
-                    plot.setOptions({margin: {l: 100, r: 10}});
-                    plot.setOptions({yaxis: {min: -0.5, max: data.y.length-0.5}});
-                    plot.resetAxes();
+                    plot.datasets = [];
+                    callback(plot);
                 }
             });
         },
@@ -116,86 +127,52 @@ define(function(require) {
         plotAllSpikes: function(plot) {
             var that=this;
             this.fetchAllTimeseries(function() {
-                var cb = function(plot) {
-                    var variables = Project.getActiveExperiment().getWatchedVariables(true);
-                    variables = variables.sort(x => x.getPath());
+                var callback = function(plot) {
+                    var time = window.time.getTimeSeries()
+                    var variables = window.getRecordedMembranePotentials();
+                    var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+                    variables.sort((x,y) => collator.compare(y.getPath(),x.getPath()));
+                    var traces = [];
                     for (var i=0; i<variables.length; ++i) {
                         var trace = {mode: 'markers', type: 'scatter', marker: {size: 5}};
                         var timeSeries = variables[i].getTimeSeries();
-                        trace.x = timeSeries.map((x, i) => {
-                            if(i>0 && x>=0 && timeSeries[i-1] < 0) { return 1; } else { return 0; }
-                        }).map((x,i) => {if(x==1) { return i }})
-                            .filter(x => x!==undefined)
-                            .map(x => time.getTimeSeries()[x]);
+                        if (that.spikeCache[variables[i].getPath()])
+                            trace.x = that.spikeCache[variables[i].getPath()];
+                        else {
+                            that.spikeCache[variables[i].getPath()] = [];
+                            for (var j=0; j<timeSeries.length; ++j)
+                                if (j > 0 && timeSeries[j] >= 0 && timeSeries[j-1] < 0)
+                                    that.spikeCache[variables[i].getPath()].push(time[j]);
+                            trace.x = that.spikeCache[variables[i].getPath()];
+                        }
                         // FIXME: getting pop needs to be more generic
                         trace.marker.color = eval(variables[i].getPath().split('.').splice(0,2).join('.')).getColor();
                         trace.y = trace.x.slice().fill(variables[i].getPath().split('.')[1]);
-                        plot.plotGeneric(trace);
-                        plot.resetAxes();
+                        traces.push(trace);
                     }
+                    plot.plotGeneric(traces);
                     plot.setOptions({showlegend: false});
                     plot.yaxisAutoRange = true;
                     plot.xaxisAutoRange = false;
+                    plot.setOptions({xaxis: {title: 'Time (s)'}});
+                    plot.setOptions({yaxis: {tickmode: 'auto', type: 'category'}});
                     plot.setOptions({margin: {l: 100, r: 10}});
                     plot.limit = window.time.getTimeSeries()[window.time.getTimeSeries().length-1];
                     plot.resetAxes();
+                    plot.setName("Raster plot");
                 }
                 if (typeof plot == 'undefined')
                     GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then(plot => {
-                        cb(plot);
+                        callback(plot);
                         plot.addButtonToTitleBar($("<div class='fa fa-gear'></div>").on('click', function(event) {
-                            that.showPlotSelector(plot);
+                            that.showActivitySelector(plot);
                         }));
                     });
                 else {
-                    plot.cleanDataSets();
-                    cb(plot);
+                    plot.datasets = [];
+                    callback(plot);
                 }
             });
-        },
-
-        plotAllRecordedTraces: function(groupingFn) {
-            var groupBy = function(xs, key) {
-                return xs.reduce(function(rv, x) {
-                    (rv[key(x)] = rv[key(x)] || []).push(x);
-                    return rv;
-                }, {});
-            };
-
-            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
-            if (watchedVars.length > 60) {
-                GEPPETTO.ModalFactory.infoDialog("Warning",
-                                                 "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
-            } else {
-                if (typeof groupingFn === 'undefined')
-                    // default: group by populations
-                    groupingFn = function(v) {
-                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                            .filter(x => x.getMetaType() !== 'SimpleType');
-                        return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
-                    }
-                this.fetchAllTimeseries(function() {
-                    var grouped = groupBy(watchedVars, groupingFn);
-                    var groups = Object.keys(grouped);
-                    for (var i=0; i<groups.length; ++i) {
-                        var group = groups[i];
-                        (function(group, i) {
-                            G.addWidget(0).then(w => {
-		                w.setName("Recorded variables: "+group);
-                                w.setPosition(100+(i*50), 100+(i*50));
-                                lastPos = w.getPosition();
-                                for (var j=0; j<grouped[group].length; ++j)
-			            w.plotData(grouped[group][j]);
-                                w.addButtonToTitleBar($("<div class='fa fa-gear'></div>").on('click', function(event) {
-                                    that.showPlotSelector(w);
-                    }));
-                            });
-                        })(group, i)
-                    }
-                });
-            }
         }
-
-    };
-
+     };
 });
