@@ -685,6 +685,10 @@ define(function(require) {
 			            'yaxis.titlefont.size': 12
                                 });
                             } else {
+                                Plotly.restyle(plots[i].plotDiv, {
+                                    'colorbar.titlefont.color': 'rgb(80, 80, 80)',
+                                    'colorbar.tickfont.color': 'rgb(80, 80, 80)'
+                                });
                                 Plotly.relayout(plots[i].plotDiv, {
                                     'plot_bgcolor': '#fff',
                                     'paper_bgcolor': 'rgb(255, 255, 255)',
@@ -700,9 +704,7 @@ define(function(require) {
 			            'yaxis.titlefont.size': 12,
 			            'legend.font.size': 12,
 			            'legend.font.color': 'rgb(80, 80, 80)',
-			            'legend.bgcolor': 'rgb(255, 255, 255)',
-                                    'margin.l': 50,
-                                    'margin.b': 40
+			            'legend.bgcolor': 'rgb(255, 255, 255)'
                                 });
                             }
                         }
@@ -732,10 +734,13 @@ define(function(require) {
                                     'xaxis.tickfont.size': 11,
 			            'yaxis.tickfont.size': 11,
 			            'xaxis.titlefont.size': 12,
-			            'yaxis.titlefont.size': 12,
-                                    'margin.l': 0
+			            'yaxis.titlefont.size': 12
                                 });
                             } else {
+                                Plotly.restyle(plots[i].plotDiv, {
+                                    'colorbar.titlefont.color': defaults.yaxis.titlefont.color,
+                                    'colorbar.tickfont.color': defaults.yaxis.tickfont.color
+                                });
                                 Plotly.relayout(plots[i].plotDiv, {
                                     'plot_bgcolor': 'transparent',
                                     'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
@@ -752,9 +757,7 @@ define(function(require) {
 			            'legend.font.size': defaults.legend.font.size,
 			            'legend.font.family': defaults.legend.font.family,
 			            'legend.font.color': defaults.legend.font.color,
-			            'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                    'margin.l': defaults.margin.l,
-                                    'margin.r': defaults.margin.r
+			            'legend.bgcolor': 'rgba(66, 59, 59, 0.9)'
                                 });
                             }
                         }
