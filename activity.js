@@ -10,7 +10,7 @@ define(function(require) {
                 }, {});
         },
 
-        activitySelectorLayout: function() {
+        activitySelectorLayout: function(plot) {
             function imgPath(path){
                 return 'geppetto/extensions/geppetto-osb/images/' + path;
             }
@@ -43,8 +43,17 @@ define(function(require) {
             for(layout in layoutOptions){
                 deck.append(createCard(layoutOptions[layout]));
             }
-            $('<input>', {type: 'text', id: 'histbin', name: 'histbin', value: '0.01'}).appendTo($('#mean .card-text', deck));
 
+            var binWidth;
+            if (typeof plot !== 'undefined' && typeof plot.binWidth !== 'undefined')
+                binWidth = plot.binWidth;
+            else
+                // 30 bins by default
+                binWidth = Math.round(10 * Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].length) / 300;
+            $('<label>', {for: 'histbin', id: 'binLabel'}).text('Bin width (s):').appendTo($('#mean .card-text', deck));
+            $('<input>', {type: 'text', id: 'histbin', name: 'histbin', value: binWidth}).appendTo($('#mean .card-text', deck));
+            // need to set explicitly for some reason…
+            $('#histbin').val(binWidth);
             return container;
         },
 
@@ -52,7 +61,7 @@ define(function(require) {
             var that=this;
             var firstClick=false;
             var modalContent=$('<div class="modal fade" id="plot-config-modal" tabindex="-1"></div>')
-                .append(this.activitySelectorLayout()[0].outerHTML).modal({keyboard: true});
+                .append(this.activitySelectorLayout(plot)[0].outerHTML).modal({keyboard: true});
 
             function handleFirstClick(event) {
                 switch (event.currentTarget.id) {
@@ -83,6 +92,10 @@ define(function(require) {
             	}
             }
             modalContent.find('.card').on('click', clickHandler);
+            // value seems to only ever be updated once if we don't bind this explicitly (why?)
+            modalContent.find('#histbin').on('change', function(e) {
+                return $('#histbin').val(e.currentTarget.value);
+            });
         }, 
         fetchAllTimeseries: function(callback) {
             var unfetched = Project.getActiveExperiment().getWatchedVariables(true)
@@ -135,16 +148,18 @@ define(function(require) {
 
                 var callback = function(plot, traces, variables) {
                     var time = window.time.getTimeSeries();
+                    plot.binWidth = binWidth;
                     plot.plotGeneric(traces, variables);
                     plot.yaxisAutoRange = true;
                     plot.xaxisAutoRange = false;
                     plot.xVariable = window.time;
                     plot.dependent = 'x';
+                    plot.setOptions({margin: {l: 50, r: 10}});
                     plot.setOptions({xaxis: {title: 'Time (s)'}});
-                    plot.setOptions({yaxis: {tickmode: 'auto', type: 'number'}});
+                    plot.setOptions({yaxis: {title: 'Spikes per second (Hz)', tickmode: 'auto', type: 'number'}});
                     plot.limit = time[time.length-1];
                     plot.resetAxes();
-                    plot.setName("Mean firing");
+                    plot.setName("Mean firing - " + Project.getActiveExperiment().getName());
                 }
 
                 if (typeof plot == 'undefined')
@@ -155,10 +170,10 @@ define(function(require) {
                                 that.showActivitySelector(plot);
                             }));
                         }
-                    })(traces, membranePotentials.map(x=>x.getPath).reduce((obj, k, i) => ({...obj, [k]: membranePotentials[i] }), {})));
+                    })(traces, membranePotentials.map(x=>x.getPath()).reduce((obj, k, i) => ({...obj, [k]: membranePotentials[i] }), {})));
                 else {
                     plot.datasets = [];
-                    callback(plot, traces, membranePotentials.map(x=>x.getPath).reduce((obj, k, i) => ({...obj, [k]: membranePotentials[i] }), {}));
+                    callback(plot, traces, membranePotentials.map(x=>x.getPath()).reduce((obj, k, i) => ({...obj, [k]: membranePotentials[i] }), {}));
                 }
             });
         },
@@ -195,8 +210,8 @@ define(function(require) {
                         plot.dependent = 'z';
                         plot.setOptions({margin: {l: 100, r: 10}});
                         plot.setOptions({xaxis: {title: 'Time (s)'}});
-                        plot.setOptions({yaxis: {min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
-                        plot.setName("Continuous Activity");
+                        plot.setOptions({yaxis: {title: '', min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
+                        plot.setName("Continuous Activity - " + Project.getActiveExperiment().getName());
                         plot.resetAxes();
                     }
                     if (typeof plot == 'undefined')
@@ -262,13 +277,12 @@ define(function(require) {
                         plot.xVariable = window.time;
                         plot.dependent = 'x';
                         plot.setOptions({xaxis: {title: 'Time (s)'}});
-                        plot.setOptions({yaxis: {tickmode: 'auto', type: 'category'}});
+                        plot.setOptions({yaxis: {title: '', tickmode: 'auto', type: 'category'}});
                         plot.setOptions({margin: {l: 100, r: 10}});
                         plot.limit = time[time.length-1];
                         plot.resetAxes();
-                        plot.setName("Raster plot");
+                        plot.setName("Raster plot - " + Project.getActiveExperiment().getName());
                     }
-                    //var variables = groupedVars[groups[i]];
                     if (typeof plot == 'undefined')
                         GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then((function(variables, groupId) {
                             return function(plot) {
