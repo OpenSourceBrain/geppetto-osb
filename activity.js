@@ -130,7 +130,7 @@ define(function(require) {
                             var t0 = j*hwindow; var t1 = (j+1)*hwindow;
                             count += spikes.filter(x => t0<x && x<t1).length;
                         }
-                        histogram[pop].push(count);
+                        histogram[pop].push(count/(popPotentials[pop].length*hwindow));
                     }
                 }
                 var x = [];
