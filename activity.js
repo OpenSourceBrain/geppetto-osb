@@ -79,7 +79,7 @@ define(function(require) {
             }
 
             function clickHandler(event) {
-                if (event.toElement.id == 'histbin')
+                if (event.originalEvent.target.id == 'histbin')
                     return true;
             	if(!firstClick){
             	    handleFirstClick(event);
