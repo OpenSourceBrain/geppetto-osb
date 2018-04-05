@@ -101,3 +101,15 @@ body {
 .geppettoForm label {
     color: black !important;
 }
+
+.mainTutorialContainer #message {
+    color: black !important;
+}
+
+.tutorial-message .invert {
+    filter: none !important;
+}
+
+.tutorial-message a {
+    color: black !important;
+}

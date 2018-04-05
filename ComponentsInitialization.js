@@ -943,33 +943,44 @@ define(function(require) {
         };
 
         window.plotAllRecordedVariables = function(groupingFn) {
-            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
-            if (watchedVars.length > 50) {
-                GEPPETTO.ModalFactory.infoDialog("Warning",
-                                                 "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
-            } else {
-                if (typeof groupingFn === 'undefined')
-                    // default: group by populations
-                    groupingFn = function(v) {
-                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                            .filter(x => x.getMetaType() !== 'SimpleType');
-                        return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+            var experiment = Project.getActiveExperiment();
+            if (experiment.status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
+                var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
+                if (watchedVars.length > 50) {
+                    GEPPETTO.ModalFactory.infoDialog("Warning",
+                                                     "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
+                } else {
+                    var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                        .filter(x => x.getMetaType() !== 'SimpleType');
+                    if (typeof groupingFn === 'undefined')
+                        // default: group by populations
+                        groupingFn = function(v) {
+                            return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+                        }
+                    Project.getActiveExperiment().playAll();
+                    var grouped = groupBy(watchedVars, groupingFn);
+                    var groups = Object.keys(grouped);
+                    var colors = populations.map(function(pop) {
+                        return {[pop.getName()]: GEPPETTO.ModelFactory.getAllInstancesOfType(pop)[0].getColor()};
+                    }).reduce(function(acc, x) {
+                        for (var key in x) acc[key] = x[key];
+                        return acc;
+                    }, {});
+                    for (var i=0; i<groups.length; ++i) {
+                        var group = groups[i];
+                        (function(group, i, colors) {
+                            G.addWidget(GEPPETTO.Widgets.PLOT).then(w => {
+		                w.setName("Recorded variables: "+group);
+                                w.setPosition(100+(i*50), 100+(i*50));
+                                lastPos = w.getPosition();
+                                for (var j=0; j<grouped[group].length; ++j)
+			            w.plotData(grouped[group][j], null, {color: colors[group]});
+                            });
+                        })(group, i, colors)
                     }
-                Project.getActiveExperiment().playAll();
-                var grouped = groupBy(watchedVars, groupingFn);
-                var groups = Object.keys(grouped);
-                for (var i=0; i<groups.length; ++i) {
-                    var group = groups[i];
-                    (function(group, i) {
-                        G.addWidget(0).then(w => {
-		            w.setName("Recorded variables: "+group);
-                            w.setPosition(100+(i*50), 100+(i*50));
-                            lastPos = w.getPosition();
-                            for (var j=0; j<grouped[group].length; ++j)
-			        w.plotData(grouped[group][j]);
-                        });
-                    })(group, i)
                 }
+            } else {
+                GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment '" + experiment.name + "' isn't completed, so can't be plotted.");
             }
         };
 
