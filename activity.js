@@ -51,9 +51,9 @@ define(function(require) {
                 // 30 bins by default
                 binWidth = Math.round(10 * Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].length) / 300;
             $('<label>', {for: 'histbin', id: 'binLabel'}).text('Bin width (s):').appendTo($('#mean .card-text', deck));
-            $('<input>', {type: 'text', id: 'histbin', name: 'histbin', value: binWidth}).appendTo($('#mean .card-text', deck));
+            $('<input>', {type: 'text', id: 'histbin', name: 'histbin', value: binWidth>0 ? binWidth : 0.0001}).appendTo($('#mean .card-text', deck));
             // need to set explicitly for some reason…
-            $('#histbin').val(binWidth);
+            $('#histbin').val(binWidth>0 ? binWidth : 0.0001);
             return container;
         },
 
@@ -96,7 +96,24 @@ define(function(require) {
             modalContent.find('#histbin').on('change', function(e) {
                 return $('#histbin').val(e.currentTarget.value);
             });
-        }, 
+        },
+
+        getSpikes: function(variables) {
+            var time = window.time.getTimeSeries();
+            var expId = Project.getActiveExperiment().getId();
+            if (!this.spikeCache[expId])
+                this.spikeCache[expId] = {};
+            for (var i=0; i<variables.length; ++i) {
+                var timeSeries = variables[i].getTimeSeries();
+                if (!this.spikeCache[expId][variables[i].getPath()]) {
+                    this.spikeCache[expId][variables[i].getPath()] = [];
+                    for (var j=0; j<timeSeries.length; ++j)
+                        if (j > 0 && timeSeries[j] >= 0 && timeSeries[j-1] < 0)
+                            this.spikeCache[expId][variables[i].getPath()].push(time[j]);
+                }
+            }
+        },
+
         fetchAllTimeseries: function(callback) {
             var unfetched = Project.getActiveExperiment().getWatchedVariables(true)
                 .filter(x => typeof x.getTimeSeries() == 'undefined');
@@ -109,7 +126,12 @@ define(function(require) {
 
         plotAllMean: function(plot, binWidth) {
             var that = this;
+            if (binWidth == 0) {
+                GEPPETTO.ModalFactory.infoDialog("Error", "Bin width must be greater than zero seconds.");
+                return;
+            }
             this.fetchAllTimeseries(function() {
+                var expId = Project.getActiveExperiment().getId();
                 var membranePotentials = window.getRecordedMembranePotentials();
                 var popPotentials = that.groupBy(membranePotentials, function(v) {
                     var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
@@ -126,7 +148,7 @@ define(function(require) {
                     for (var j=0; j<n; ++j) {
                         var count = 0;
                         for (var i=0; i<popPotentials[pop].length; ++i) {
-                            var spikes = that.spikeCache[popPotentials[pop][i].getPath()];
+                            var spikes = that.spikeCache[expId][popPotentials[pop][i].getPath()];
                             var t0 = j*hwindow; var t1 = (j+1)*hwindow;
                             count += spikes.filter(x => t0<x && x<t1).length;
                         }
@@ -208,7 +230,7 @@ define(function(require) {
                         plot.plotGeneric([data], variables);
                         plot.xVariable = window.time;
                         plot.dependent = 'z';
-                        plot.setOptions({margin: {l: 100, r: 10}});
+                        plot.setOptions({margin: {l: 110, r: 10}});
                         plot.setOptions({xaxis: {title: 'Time (s)'}});
                         plot.setOptions({yaxis: {title: '', min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
                         plot.setName("Continuous Activity - " + Project.getActiveExperiment().getName());
@@ -231,22 +253,10 @@ define(function(require) {
             });
         },
 
-        getSpikes: function(variables) {
-            var time = window.time.getTimeSeries();
-            for (var i=0; i<variables.length; ++i) {
-                var timeSeries = variables[i].getTimeSeries();
-                if (!this.spikeCache[variables[i].getPath()]) {
-                    this.spikeCache[variables[i].getPath()] = [];
-                    for (var j=0; j<timeSeries.length; ++j)
-                        if (j > 0 && timeSeries[j] >= 0 && timeSeries[j-1] < 0)
-                            this.spikeCache[variables[i].getPath()].push(time[j]);
-                }
-            }
-        },
-
         plotAllSpikes: function(plot, groupId) {
             var that=this;
             this.fetchAllTimeseries(function() {
+                var expId = Project.getActiveExperiment().getId();
                 var variables = Project.getActiveExperiment().getWatchedVariables(true);
                 var variablePaths = Project.getActiveExperiment().getWatchedVariables(false);
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
@@ -264,10 +274,15 @@ define(function(require) {
                         for (var i=0; i<vSorted.length; ++i) {
                             var trace = {mode: 'markers', type: 'scatter', marker: {size: 5}};
                             var timeSeries = vSorted[i].getTimeSeries();
-                            trace.x = that.spikeCache[vSorted[i].getPath()];
+                            trace.x = that.spikeCache[expId][vSorted[i].getPath()];
                             // FIXME: getting pop needs to be more generic
                             trace.marker.color = eval(vSorted[i].getPath().split('.').splice(0,2).join('.')).getColor();
-                            trace.y = trace.x.slice().fill(vSorted[i].getPath().split('.')[1]);
+                            if ($.isEmptyObject(trace.x)) {
+                                trace.x = [null];
+                                trace.y = [vSorted[i].getPath().split('.')[1]];
+                            }
+                            else
+                                trace.y = trace.x.slice().fill(vSorted[i].getPath().split('.')[1]);
                             traces.push(trace);
                         }
                         plot.plotGeneric(traces, variables);
@@ -278,7 +293,7 @@ define(function(require) {
                         plot.dependent = 'x';
                         plot.setOptions({xaxis: {title: 'Time (s)'}});
                         plot.setOptions({yaxis: {title: '', tickmode: 'auto', type: 'category'}});
-                        plot.setOptions({margin: {l: 100, r: 10}});
+                        plot.setOptions({margin: {l: 110, r: 10}});
                         plot.limit = time[time.length-1];
                         plot.resetAxes();
                         plot.setName("Raster plot - " + Project.getActiveExperiment().getName());
