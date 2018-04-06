@@ -982,7 +982,7 @@ define(function(require) {
             });
         };
 
-        window.plotAllRecordedVariables = function() {
+        window.plotAllRecordedVariables = function(groupingFn) {
             var groupBy = function(xs, key) {
                 return xs.reduce(function(rv, x) {
                     (rv[key(x)] = rv[key(x)] || []).push(x);
