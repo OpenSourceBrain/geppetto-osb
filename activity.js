@@ -172,11 +172,16 @@ define(function(require) {
                     var time = window.time.getTimeSeries();
                     plot.binWidth = binWidth;
                     plot.plotGeneric(traces, variables);
-                    plot.yaxisAutoRange = true;
+                    plot.yaxisAutoRange = false;
+                    // slightly hacky but seems like plotly can't autorange just max or min
+                    // but we want to always have min=0, not an autoranged min
+                    var yMax = Math.max.apply(Math, [].concat.apply([],traces.map(t => t.y))) + 2;
+                    plot.setOptions({yaxis: {min: 0, max: yMax}});
                     plot.xaxisAutoRange = false;
                     plot.xVariable = window.time;
                     plot.dependent = 'x';
                     plot.setOptions({margin: {l: 50, r: 10}});
+                    plot.setOptions({showlegend: true});
                     plot.setOptions({xaxis: {title: 'Time (s)'}});
                     plot.setOptions({yaxis: {title: 'Spikes per second (Hz)', tickmode: 'auto', type: 'number'}});
                     plot.limit = time[time.length-1];
