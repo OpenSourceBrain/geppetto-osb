@@ -147,6 +147,10 @@
     float: left;
 }
 
+.mainTutorialContainer #message {
+    color: white;
+}
+
 #procWarning {
     display: none;
     color: red;
