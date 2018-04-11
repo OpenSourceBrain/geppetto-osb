@@ -118,7 +118,14 @@ define(function(require) {
             var unfetched = Project.getActiveExperiment().getWatchedVariables(true)
                 .filter(x => typeof x.getTimeSeries() == 'undefined');
             if(unfetched.length > 0) {
-                GEPPETTO.ExperimentsController.getExperimentState(Project.id, Project.activeExperiment.id, unfetched.map(x => x.getPath()), callback);
+                var i,j,chunk,chunksize = 10;
+                for (i=0,j=unfetched.length; i<j; i+=chunksize) {
+                    chunk = unfetched.slice(i,i+chunksize);
+                    GEPPETTO.ExperimentsController.getExperimentState(Project.id, Project.activeExperiment.id, chunk.map(x => x.getPath()), function() {
+                        if (Project.getActiveExperiment().getWatchedVariables(true).filter(x => typeof x.getTimeSeries() == 'undefined').length == 0)
+                            return callback();
+                    });
+                }
             } else {
                 callback();
             }
