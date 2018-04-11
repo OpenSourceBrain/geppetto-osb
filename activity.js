@@ -283,18 +283,18 @@ define(function(require) {
                         var vSorted = Object.values(variables).sort((x,y) => collator.compare(y.getPath(),x.getPath()));
                         var traces = [];
                         that.getSpikes(vSorted);
-                        for (var i=0; i<vSorted.length; ++i) {
+                        for (var j=0; j<vSorted.length; ++j) {
                             var trace = {mode: 'markers', type: 'scatter', marker: {size: 5}};
-                            var timeSeries = vSorted[i].getTimeSeries();
-                            trace.x = that.spikeCache[expId][vSorted[i].getPath()];
+                            var timeSeries = vSorted[j].getTimeSeries();
+                            trace.x = that.spikeCache[expId][vSorted[j].getPath()];
                             // FIXME: getting pop needs to be more generic
-                            trace.marker.color = eval(vSorted[i].getPath().split('.').splice(0,2).join('.')).getColor();
+                            trace.marker.color = eval(vSorted[j].getPath().split('.').splice(0,2).join('.')).getColor();
                             if ($.isEmptyObject(trace.x)) {
                                 trace.x = [null];
-                                trace.y = [vSorted[i].getPath().split('.')[1]];
+                                trace.y = [vSorted[j].getPath().split('.')[1]];
                             }
                             else
-                                trace.y = trace.x.slice().fill(vSorted[i].getPath().split('.')[1]);
+                                trace.y = trace.x.slice().fill(vSorted[j].getPath().split('.')[1]);
                             traces.push(trace);
                         }
                         plot.plotGeneric(traces, variables);
