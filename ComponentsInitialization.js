@@ -4,6 +4,7 @@ define(function(require) {
     var networkControlPanel = require('./osbNetworkControlPanel.json');
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
+    var activity = require('./activity');
     var d3 = require('d3');
     var Plotly = require('plotly.js/lib/core');
 
@@ -120,11 +121,15 @@ define(function(require) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
-                if (nProc > procLimit) {
+                if ((Project.getActiveExperiment().getWatchedVariables().length * formObject.formData['length'])/ formObject.formData['timeStep'] > 4e6) {
+                    $("#procWarning").show().text("Experiment too large: reduce number of watched variables, length, or increase timestep.");
+                    $("#exptRunForm button[type='submit']").prop('disabled', true);
+                } 
+                else if (nProc > procLimit) {
                     $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
-                    $("#procWarning").hide()
+                    $("#procWarning").hide();
                     $("#exptRunForm button[type='submit']").prop('disabled', false);
                 }
 
@@ -568,6 +573,10 @@ define(function(require) {
                 action: "window.plotAllRecordedVariables();",
                 value: "plot_recorded_variables"
             }, {
+                label: "Plot activity (continuous/raster/mean)",
+                action: "window.showActivitySelector();",
+                value: "plot_activity"
+            }, {
                 label: "Play step by step",
                 action: "Project.getActiveExperiment().play({step:1});",
                 value: "play_speed_1"
@@ -660,25 +669,44 @@ define(function(require) {
                     controller => {
                         var plots = controller.getWidgets();
                         for (var i=0; i<plots.length; ++i) {
-                            Plotly.relayout(plots[i].plotDiv, {
-                                'plot_bgcolor': '#fff',
-                                'paper_bgcolor': 'rgb(255, 255, 255)',
-                                'xaxis.linecolor': 'rgb(80, 80, 80)',
-                                'yaxis.linecolor': 'rgb(80, 80, 80)',
-			        'xaxis.tickfont.color': 'rgb(80, 80, 80)',
-			        'yaxis.tickfont.color': 'rgb(80, 80, 80)',
-			        'yaxis.titlefont.color': 'rgb(80, 80, 80)',
-			        'xaxis.titlefont.color': 'rgb(80, 80, 80)',
-			        'xaxis.tickfont.size': 18,
-			        'yaxis.tickfont.size': 18,
-			        'xaxis.titlefont.size': 18,
-			        'yaxis.titlefont.size': 18,
-			        'legend.font.size': 18,
-			        'legend.font.color': 'rgb(80, 80, 80)',
-			        'legend.bgcolor': 'rgb(255, 255, 255)',
-                                'margin.l': 80,
-                                'margin.b': 50
-                            });
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': 'rgb(80, 80, 80)',
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12
+                                });
+                            } else {
+                                Plotly.restyle(plots[i].plotDiv, {
+                                    'colorbar.titlefont.color': 'rgb(80, 80, 80)',
+                                    'colorbar.tickfont.color': 'rgb(80, 80, 80)'
+                                });
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.linecolor': 'rgb(80, 80, 80)',
+                                    'yaxis.linecolor': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12,
+			            'legend.font.size': 12,
+			            'legend.font.color': 'rgb(80, 80, 80)',
+			            'legend.bgcolor': 'rgb(255, 255, 255)'
+                                });
+                            }
                         }
                     });
                 $('head').append(
@@ -693,26 +721,45 @@ define(function(require) {
                         var plots = controller.getWidgets();
                         for (var i=0; i<plots.length; ++i) {
                             var defaults = plots[i].defaultOptions();
-                            Plotly.relayout(plots[i].plotDiv, {
-                                'plot_bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'xaxis.linecolor': defaults.xaxis.linecolor,
-                                'yaxis.linecolor': defaults.xaxis.linecolor,
-			        'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
-			        'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
-			        'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
-			        'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
-			        'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
-			        'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
-			        'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
-			        'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
-			        'legend.font.size': defaults.legend.font.size,
-			        'legend.font.family': defaults.legend.font.family,
-			        'legend.font.color': defaults.legend.font.color,
-			        'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
-                                'margin.l': defaults.margin.l,
-                                'margin.r': defaults.margin.r
-                            });
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgb(66, 59, 59, 0.9)',
+                                    'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': defaults.xaxis.tickcolor,
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12
+                                });
+                            } else {
+                                Plotly.restyle(plots[i].plotDiv, {
+                                    'colorbar.titlefont.color': defaults.yaxis.titlefont.color,
+                                    'colorbar.tickfont.color': defaults.yaxis.tickfont.color
+                                });
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                    'xaxis.linecolor': defaults.xaxis.linecolor,
+                                    'yaxis.linecolor': defaults.xaxis.linecolor,
+			            'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+			            'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
+			            'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
+			            'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
+			            'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
+			            'legend.font.size': defaults.legend.font.size,
+			            'legend.font.family': defaults.legend.font.family,
+			            'legend.font.color': defaults.legend.font.color,
+			            'legend.bgcolor': 'rgba(66, 59, 59, 0.9)'
+                                });
+                            }
                         }
                     });
                 $('link[href$="white-theme.css"]').remove();
@@ -935,52 +982,41 @@ define(function(require) {
             });
         };
 
-        var groupBy = function(xs, key) {
-            return xs.reduce(function(rv, x) {
-                (rv[key(x)] = rv[key(x)] || []).push(x);
-                return rv;
-            }, {});
-        };
-
         window.plotAllRecordedVariables = function(groupingFn) {
-            var experiment = Project.getActiveExperiment();
-            if (experiment.status == GEPPETTO.Resources.ExperimentStatus.COMPLETED) {
-                var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
-                if (watchedVars.length > 50) {
-                    GEPPETTO.ModalFactory.infoDialog("Warning",
-                                                     "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
-                } else {
-                    var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                        .filter(x => x.getMetaType() !== 'SimpleType');
-                    if (typeof groupingFn === 'undefined')
-                        // default: group by populations
-                        groupingFn = function(v) {
-                            return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
-                        }
-                    Project.getActiveExperiment().playAll();
-                    var grouped = groupBy(watchedVars, groupingFn);
-                    var groups = Object.keys(grouped);
-                    var colors = populations.map(function(pop) {
-                        return {[pop.getName()]: GEPPETTO.ModelFactory.getAllInstancesOfType(pop)[0].getColor()};
-                    }).reduce(function(acc, x) {
-                        for (var key in x) acc[key] = x[key];
-                        return acc;
-                    }, {});
-                    for (var i=0; i<groups.length; ++i) {
-                        var group = groups[i];
-                        (function(group, i, colors) {
-                            G.addWidget(GEPPETTO.Widgets.PLOT).then(w => {
-		                w.setName("Recorded variables: "+group);
-                                w.setPosition(100+(i*50), 100+(i*50));
-                                lastPos = w.getPosition();
-                                for (var j=0; j<grouped[group].length; ++j)
-			            w.plotData(grouped[group][j], null, {color: colors[group]});
-                            });
-                        })(group, i, colors)
-                    }
-                }
+            var groupBy = function(xs, key) {
+                return xs.reduce(function(rv, x) {
+                    (rv[key(x)] = rv[key(x)] || []).push(x);
+                    return rv;
+                }, {});
+            };
+
+            var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
+            if (watchedVars.length > 60) {
+                GEPPETTO.ModalFactory.infoDialog("Warning",
+                                                 "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
             } else {
-                GEPPETTO.ModalFactory.infoDialog(GEPPETTO.Resources.CANT_PLAY_EXPERIMENT, "Experiment '" + experiment.name + "' isn't completed, so can't be plotted.");
+                if (typeof groupingFn === 'undefined')
+                    // default: group by populations
+                    groupingFn = function(v) {
+                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                            .filter(x => x.getMetaType() !== 'SimpleType');
+                        return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+                    };
+                Project.getActiveExperiment().playAll();
+                var grouped = groupBy(watchedVars, groupingFn);
+                var groups = Object.keys(grouped);
+                for (var i=0; i<groups.length; ++i) {
+                    var group = groups[i];
+                    (function(group, i) {
+                        G.addWidget(GEPPETTO.Widgets.PLOT).then(w => {
+		            w.setName("Recorded variables: "+group);
+                            w.setPosition(100+(i*50), 100+(i*50));
+                            lastPos = w.getPosition();
+                            for (var j=0; j<grouped[group].length; ++j)
+			        w.plotData(grouped[group][j]);
+                        });
+                    })(group, i)
+                }
             }
         };
 
@@ -1285,6 +1321,8 @@ define(function(require) {
 		});
 	    }
 	};
+
+        window.showActivitySelector = function() { return activity.showActivitySelector(); }
 
         window.getProtocolExperimentsMap = function(){
             var experiments = Project.getExperiments();
