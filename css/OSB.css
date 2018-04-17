@@ -8,11 +8,10 @@
     position: absolute;
     height: 100px;
     width: 470px;
-    top: 50px;
+    bottom: 15px;
     right: 10px;
     text-align: center;
     border-radius:0;
-    z-index: -1;
 }
 
 .controlsMenuButton {
