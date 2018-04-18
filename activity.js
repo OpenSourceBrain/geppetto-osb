@@ -118,7 +118,14 @@ define(function(require) {
             var unfetched = Project.getActiveExperiment().getWatchedVariables(true)
                 .filter(x => typeof x.getTimeSeries() == 'undefined');
             if(unfetched.length > 0) {
-                GEPPETTO.ExperimentsController.getExperimentState(Project.id, Project.activeExperiment.id, unfetched.map(x => x.getPath()), callback);
+                var i,j,chunk,chunksize = 10;
+                for (i=0,j=unfetched.length; i<j; i+=chunksize) {
+                    chunk = unfetched.slice(i,i+chunksize);
+                    GEPPETTO.ExperimentsController.getExperimentState(Project.id, Project.activeExperiment.id, chunk.map(x => x.getPath()), function() {
+                        if (Project.getActiveExperiment().getWatchedVariables(true).filter(x => typeof x.getTimeSeries() == 'undefined').length == 0)
+                            return callback();
+                    });
+                }
             } else {
                 callback();
             }
@@ -208,7 +215,9 @@ define(function(require) {
         plotAllContinuous: function(plot, groupId) {
             var that=this;
             this.fetchAllTimeseries(function() {
-                var variables = Project.getActiveExperiment().getWatchedVariables(true);
+                // only use soma voltages (variable parent is 'root compartment' i.e. has no parent segment)
+                var variables = Project.getActiveExperiment().getWatchedVariables(true)
+                    .filter(v => v.id == 'v' && v.getParent().getType().getName().indexOf("root_compartment") > -1);
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
                 if (typeof groupId == 'undefined')
                     var groups = Object.keys(groupedVars);
@@ -276,18 +285,18 @@ define(function(require) {
                         var vSorted = Object.values(variables).sort((x,y) => collator.compare(y.getPath(),x.getPath()));
                         var traces = [];
                         that.getSpikes(vSorted);
-                        for (var i=0; i<vSorted.length; ++i) {
+                        for (var j=0; j<vSorted.length; ++j) {
                             var trace = {mode: 'markers', type: 'scatter', marker: {size: 5}};
-                            var timeSeries = vSorted[i].getTimeSeries();
-                            trace.x = that.spikeCache[expId][vSorted[i].getPath()];
+                            var timeSeries = vSorted[j].getTimeSeries();
+                            trace.x = that.spikeCache[expId][vSorted[j].getPath()];
                             // FIXME: getting pop needs to be more generic
-                            trace.marker.color = eval(vSorted[i].getPath().split('.').splice(0,2).join('.')).getColor();
+                            trace.marker.color = eval(vSorted[j].getPath().split('.').splice(0,2).join('.')).getColor();
                             if ($.isEmptyObject(trace.x)) {
                                 trace.x = [null];
-                                trace.y = [vSorted[i].getPath().split('.')[1]];
+                                trace.y = [vSorted[j].getPath().split('.')[1]];
                             }
                             else
-                                trace.y = trace.x.slice().fill(vSorted[i].getPath().split('.')[1]);
+                                trace.y = trace.x.slice().fill(vSorted[j].getPath().split('.')[1]);
                             traces.push(trace);
                         }
                         plot.plotGeneric(traces, variables);
