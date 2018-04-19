@@ -215,7 +215,9 @@ define(function(require) {
         plotAllContinuous: function(plot, groupId) {
             var that=this;
             this.fetchAllTimeseries(function() {
-                var variables = Project.getActiveExperiment().getWatchedVariables(true);
+                // only use soma voltages (variable parent is 'root compartment' i.e. has no parent segment)
+                var variables = Project.getActiveExperiment().getWatchedVariables(true)
+                    .filter(v => v.id == 'v' && v.getParent().getType().getName().indexOf("root_compartment") > -1);
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
                 if (typeof groupId == 'undefined')
                     var groups = Object.keys(groupedVars);
