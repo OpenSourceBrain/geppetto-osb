@@ -121,7 +121,8 @@ define(function(require) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
-                if ((Project.getActiveExperiment().getWatchedVariables().length * formObject.formData['length'])/ formObject.formData['timeStep'] > 4e6) {
+                if ((Project.getActiveExperiment().getWatchedVariables().length * formObject.formData['length'])/ formObject.formData['timeStep'] > 4e6 &&
+                    GEPPETTO.UserController.getUserPrivileges().indexOf("ADMIN") == -1) {
                     $("#procWarning").show().text("Experiment too large: reduce number of watched variables, length, or increase timestep.");
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } 
