@@ -62,6 +62,10 @@ define(function(require) {
                         type: 'number',
                         title: 'Number of Processors'
                     },
+                    randomSeed: {
+                        type: 'number',
+                        title: 'Random seed'
+                    },
 		    dropboxUpload: {
                         type: 'boolean',
                         title: 'Upload results to Dropbox on completion'
@@ -78,7 +82,8 @@ define(function(require) {
 
             var formData = {
                 experimentName: Project.getActiveExperiment().getName(),
-                numberProcessors: 1
+                numberProcessors: 1,
+                randomSeed: 123
             };
 
             // figure out aspect configuration path ref
@@ -149,6 +154,8 @@ define(function(require) {
                                 Project.getActiveExperiment().simulatorConfigurations[window.Instances[0].getId()].setSimulatorParameter('numberProcessors', nProc);
                         } else if (key == 'simulator') {
                             $("#experimentsOutput").find(".activeExperiment").find("td[name='simulatorId']").html(formObject.formData[key]).blur();
+                        } else if (key == 'randomSeed') {
+                            Project.getActiveExperiment().saveExperimentProperties({"SP$randomSeed": formObject.formData[key], "aspectInstancePath": window.Instances[0].getId()});
                         }
                         this.formData[key] = formObject.formData[key];
                     }
