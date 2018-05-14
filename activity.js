@@ -217,14 +217,15 @@ define(function(require) {
             this.fetchAllTimeseries(function() {
                 // only use soma variables (variable parent is 'root compartment' i.e. has no parent segment)
                 var variables = Project.getActiveExperiment().getWatchedVariables(true)
-                    .filter(v => (v.id =='ca' || v.id == 'v') && v.getParent().getType().getName().indexOf("root_compartment") > -1);
+                    .filter(v => (v.id =='caConc' || v.id == 'v') && v.getParent().getType().getName().indexOf("root_compartment") > -1);
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
                 if (typeof groupId == 'undefined')
                     var groups = Object.keys(groupedVars);
                 else
                     var groups = [groupId];
                 for (var i=0; i<groups.length; ++i) {
-                    var data = {colorbar: {title: 'Membrane Potential (v)',
+                    var unit = groupedVars[groups[i]][0].getUnit();
+                    var data = {colorbar: {title: GEPPETTO.UnitsController.getUnitLabel(unit) + ' (' + unit + ')',
                                            titleside: 'right',
                                            titlefont: {color: 'white'},
                                            autotick: true, tickfont: {color: '#FFFFFF'}, xaxis: {title: 'Value'}},
@@ -240,20 +241,20 @@ define(function(require) {
                     var min = Math.min.apply(Math, data.z.map(d => Math.min.apply(Math, d)));
                     var max = Math.max.apply(Math, data.z.map(d => Math.max.apply(Math, d)));
                     data.colorscale = colorbar.genColorscale(min, max, 100, window.voltage_color(min, max), false);
-                    var callback = function(plot, data, variables) {
+                    var callback = function(plot, data, variables, groupId) {
                         plot.plotGeneric([data], variables);
                         plot.xVariable = window.time;
                         plot.dependent = 'z';
                         plot.setOptions({margin: {l: 110, r: 10}});
                         plot.setOptions({xaxis: {title: 'Time (s)'}});
                         plot.setOptions({yaxis: {title: '', min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
-                        plot.setName("Continuous Activity - " + Project.getActiveExperiment().getName());
+                        plot.setName("Continuous Activity (" + groupId + ") - " + Project.getActiveExperiment().getName());
                         plot.resetAxes();
                     }
                     if (typeof plot == 'undefined')
                         GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then((function(data, groupId, variables) {
                             return function(plot) {
-                                callback(plot, data, variables);
+                                callback(plot, data, variables, groupId);
                                 plot.addButtonToTitleBar($("<div class='fa fa-gear'></div>").on('click', function(event) {
                                     that.showActivitySelector(plot, groupId);
                                 }));

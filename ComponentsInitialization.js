@@ -1013,6 +1013,12 @@ define(function(require) {
                 Project.getActiveExperiment().playAll();
                 var grouped = groupBy(watchedVars, groupingFn);
                 var groups = Object.keys(grouped);
+                var colors = populations.map(function(pop) {
+                    return {[pop.getName()]: GEPPETTO.ModelFactory.getAllInstancesOfType(pop)[0].getColor()};
+                }).reduce(function(acc, x) {
+                    for (var key in x) acc[key] = x[key];
+                    return acc;
+                }, {});
                 for (var i=0; i<groups.length; ++i) {
                     var group = groups[i];
                     (function(group, i) {
@@ -1021,9 +1027,9 @@ define(function(require) {
                             w.setPosition(100+(i*50), 100+(i*50));
                             lastPos = w.getPosition();
                             for (var j=0; j<grouped[group].length; ++j)
-			        w.plotData(grouped[group][j]);
+			        w.plotData(grouped[group][j], null, {color: colors[group]});
                         });
-                    })(group, i)
+                    })(group, i, colors)
                 }
             }
         };
@@ -1557,6 +1563,7 @@ define(function(require) {
         GEPPETTO.G.autoFocusConsole(false);
         
         GEPPETTO.UnitsController.addUnit("V","Membrane potential");
+        GEPPETTO.UnitsController.addUnit("mol_per_m3","Concentration");
         GEPPETTO.UnitsController.addUnit("S / m2","Conductance density");
         GEPPETTO.UnitsController.addUnit("A / m2","Current density");
     };
