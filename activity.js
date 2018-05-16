@@ -143,7 +143,7 @@ define(function(require) {
                 var popPotentials = that.groupBy(membranePotentials, function(v) {
                     var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
                         .filter(x => x.getMetaType() !== 'SimpleType');
-                    return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+                    return populations.filter(p => v.getPath().search(new RegExp(p.getName() + '\\[')) > -1)[0].getName()
                 });
                 var maxTime = window.time.getTimeSeries()[window.time.getTimeSeries().length-1];
                 that.getSpikes(membranePotentials);
@@ -291,7 +291,7 @@ define(function(require) {
                             markerSize = 2.5;
                         that.getSpikes(vSorted);
                         for (var j=0; j<vSorted.length; ++j) {
-                            var trace = {mode: 'markers', type: 'scatter', marker: {size: 5}};
+                            var trace = {mode: 'markers', type: 'scatter', marker: {size: markerSize}};
                             var timeSeries = vSorted[j].getTimeSeries();
                             trace.x = that.spikeCache[expId][vSorted[j].getPath()];
                             // FIXME: getting pop needs to be more generic
