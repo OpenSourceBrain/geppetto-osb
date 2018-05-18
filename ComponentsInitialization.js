@@ -1003,11 +1003,11 @@ define(function(require) {
                 GEPPETTO.ModalFactory.infoDialog("Warning",
                                                  "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
             } else {
+                var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                            .filter(x => x.getMetaType() !== 'SimpleType');
                 if (typeof groupingFn === 'undefined')
                     // default: group by populations
                     groupingFn = function(v) {
-                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                            .filter(x => x.getMetaType() !== 'SimpleType');
                         return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
                     };
                 Project.getActiveExperiment().playAll();

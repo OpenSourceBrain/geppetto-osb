@@ -194,6 +194,7 @@ define(function(require) {
                     plot.limit = time[time.length-1];
                     plot.resetAxes();
                     plot.setName("Mean firing - " + Project.getActiveExperiment().getName());
+                    plot.isFunctionNode = true;
                 }
 
                 if (typeof plot == 'undefined')
@@ -250,6 +251,7 @@ define(function(require) {
                         plot.setOptions({yaxis: {title: '', min: -0.5, max: data.y.length-0.5, tickmode: 'auto', type: 'category'}});
                         plot.setName("Continuous Activity (" + groupId + ") - " + Project.getActiveExperiment().getName());
                         plot.resetAxes();
+                        plot.isFunctionNode = true;
                     }
                     if (typeof plot == 'undefined')
                         GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then((function(data, groupId, variables) {
@@ -315,6 +317,7 @@ define(function(require) {
                         plot.limit = time[time.length-1];
                         plot.resetAxes();
                         plot.setName("Raster plot - " + Project.getActiveExperiment().getName());
+                        plot.isFunctionNode = true;
                     }
                     if (typeof plot == 'undefined')
                         GEPPETTO.WidgetFactory.addWidget(GEPPETTO.Widgets.PLOT).then((function(variables, groupId) {
