@@ -288,7 +288,7 @@ define(function(require) {
                         var vSorted = Object.values(variables).sort((x,y) => collator.compare(y.getPath(),x.getPath()));
                         var traces = [];
                         var markerSize = 5;
-                        if (variables.length > 100)
+                        if (Object.keys(variables).length > 100)
                             markerSize = 2.5;
                         that.getSpikes(vSorted);
                         for (var j=0; j<vSorted.length; ++j) {
