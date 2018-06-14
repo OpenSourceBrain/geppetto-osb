@@ -635,7 +635,10 @@ define(function(require) {
             children: [Console, ExperimentsTable],
             labels: ["Console", "Experiments"],
             iconClass: ["fa fa-terminal", "fa fa-flask"]
-        }, document.getElementById("footerHeader"));
+        }, document.getElementById("footerHeader"), function() {
+            // add small status indicator to tab
+            $(".tabButton .fa-flask").before('<div class="circle small-expt-indicator" data-status="DESIGN" title="" rel="tooltip"></div>');
+        });
 
         //Home button initialization
         GEPPETTO.ComponentFactory.addComponent('HOME', {}, document.getElementById("HomeButton"));
