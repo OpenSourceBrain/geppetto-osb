@@ -204,20 +204,30 @@ define(function(require) {
             });
         };
 
-        // Brings up the add protocol dialog
-        GEPPETTO.showAddProtocolDialog = function(callback) {
+        function persistWarning() {
             if(!GEPPETTO.UserController.hasWritePermissions()){
                 var message = "";
 
                 if(GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT)){
-                    message = "You first need to persist your project clicking on the star above before you can create a protocol.";
+                    message = "You first need to persist your project by clicking on the star icon in the top toolbar.";
                 } else {
                     message = "You don’t have write permissions for this project (read only).";
                 }
-
-                GEPPETTO.ModalFactory.infoDialog("Cannot create protocol", message);
-                return;
+                GEPPETTO.ModalFactory.infoDialog("Cannot run experiment", message);
+                return true;
+            } else {
+                return false;
             }
+        }
+
+        GEPPETTO.runActiveExperiment = function() {
+            if (!persistWarning())
+                GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');
+        }
+
+        // Brings up the add protocol dialog
+        GEPPETTO.showAddProtocolDialog = function(callback) {
+            if (!persistWarning()) {
 
             var formWidget = null;
 
@@ -387,6 +397,7 @@ define(function(require) {
 
                 // close widget
                 formWidget.destroy();
+            }
             };
 
             var errorHandler = function() {
@@ -621,7 +632,7 @@ define(function(require) {
              GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
                  // disable results if project not persisted and user has write permission
                  // if user doesn't have write permission then it's assumed we're looking at a sample project
-                 if (!Project.persisted && GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
+                 if (!GEPPETTO.UserController.hasWritePermissions())
                      window.controlsMenuButton.refs.menuButton.disabled = true;
             });
          });
@@ -662,14 +673,14 @@ define(function(require) {
             },
             menuItems: [{
                 label: "Run active experiment",
-                action: "GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');",
+                action: "GEPPETTO.runActiveExperiment();",
                 value: "run_experiment",
-                disabled: true
+                disabled: false
             }, {
                 label: "Add & run protocol",
                 action: "GEPPETTO.showAddProtocolDialog();",
                 value: "add_protocol",
-                disabled: true
+                disabled: false
             }]
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
