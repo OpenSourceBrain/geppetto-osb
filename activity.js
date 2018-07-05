@@ -216,9 +216,10 @@ define(function(require) {
         plotAllContinuous: function(plot, groupId) {
             var that=this;
             this.fetchAllTimeseries(function() {
-                // only use soma variables (variable parent is 'root compartment' i.e. has no parent segment)
+                // only use soma variables (the RHS of the && should be v.getParent().getType().getName().indexOf("root_compartment") > -1)
+                // but using the ad-hoc version of soma check from geppetto-osb since root_compartment not being set properly on eg. c302_c0_muscles…
                 var variables = Project.getActiveExperiment().getWatchedVariables(true)
-                    .filter(v => (v.id =='caConc' || v.id == 'v') && v.getParent().getType().getName().indexOf("root_compartment") > -1);
+                    .filter(v => (v.id =='caConc' || v.id == 'v') && (v.getPath().split('.').reverse()[1].endsWith("_0") || v.getPath().split('.').reverse()[1].endsWith("]")))
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
                 if (typeof groupId == 'undefined')
                     var groups = Object.keys(groupedVars);
