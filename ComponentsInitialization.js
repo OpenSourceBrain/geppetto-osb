@@ -1169,7 +1169,6 @@ define(function(require) {
                                                         }
                                                     }
                                                     return types;
-                                                    //return c.getName().split("-")[0];
                                                 },
                                                 library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
                                                 colorMapFunction: window.getNodeCustomColormap
