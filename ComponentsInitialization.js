@@ -1154,17 +1154,22 @@ define(function(require) {
                     } else {
                         G.addWidget(6).then(w =>
                                             w.setData(instance, {
-                                                linkType: function(c, linkCache) {
-                                                    if (linkCache[c.getParent().getPath()])
-                                                        return linkCache[c.getParent().getPath()];
-                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                        if (synapseType != undefined) {
-                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                            return synapseType.getId();
+                                                linkType: function(cs, linkCache) {
+                                                    var types = [];
+                                                    for (var c of cs) {
+                                                        if (linkCache[c.getParent().getPath()])
+                                                            types = types.concat(linkCache[c.getParent().getPath()]);
+                                                        else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                            linkCache[c.getParent().getPath()] = [];
+                                                            var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                            if (synapseType != undefined) {
+                                                                linkCache[c.getParent().getPath()].push(synapseType.getId());
+                                                                types.push(synapseType.getId());
+                                                            }
                                                         }
                                                     }
-                                                    return c.getName().split("-")[0];
+                                                    return types;
+                                                    //return c.getName().split("-")[0];
                                                 },
                                                 library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
                                                 colorMapFunction: window.getNodeCustomColormap
