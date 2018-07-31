@@ -1157,14 +1157,16 @@ define(function(require) {
                                                 linkType: function(cs, linkCache) {
                                                     var types = [];
                                                     for (var c of cs) {
-                                                        if (linkCache[c.getParent().getPath()])
+                                                        if (linkCache[c.getParent().getPath()]) {
                                                             types = types.concat(linkCache[c.getParent().getPath()]);
+                                                            types = Array.from(new Set(types));
+                                                        }
                                                         else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
                                                             linkCache[c.getParent().getPath()] = [];
                                                             var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
                                                             if (synapseType != undefined) {
-                                                                linkCache[c.getParent().getPath()].push(synapseType.getId());
-                                                                types.push(synapseType.getId());
+                                                                linkCache[c.getParent().getPath()].indexOf(synapseType.getId()) === -1 ? linkCache[c.getParent().getPath()].push(synapseType.getId()) : undefined;
+                                                                types.indexOf(synapseType.getId()) === -1 ? types.push(synapseType.getId()) : undefined;
                                                             }
                                                         }
                                                     }
