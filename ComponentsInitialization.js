@@ -1035,8 +1035,10 @@ define(function(require) {
 		            w.setName("Recorded variables: "+group);
                             w.setPosition(100+(i*50), 100+(i*50));
                             lastPos = w.getPosition();
-                            for (var j=0; j<grouped[group].length; ++j)
-			        w.plotData(grouped[group][j], null, {color: colors[group]});
+                            // first trace match population color, let plotly assign the rest
+                            w.plotData(grouped[group][0], null, {color: colors[group]});
+                            for (var j=1; j<grouped[group].length; ++j)
+			        w.plotData(grouped[group][j], null, {});
                         });
                     })(group, i, colors)
                 }
