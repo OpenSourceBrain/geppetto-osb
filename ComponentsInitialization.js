@@ -438,8 +438,8 @@ define(function(require) {
 
         var eventHandler = function(component){
 		};
-		var clickHandler = function(){
-		    GEPPETTO.ComponentFactory.getComponents()['CONSOLE'][0].executeCommand("Project.download();");
+	var clickHandler = function(){
+                    GEPPETTO.CommandController.execute('Project.download();');
 		};
 		
 		GEPPETTO.on(GEPPETTO.Events.Project_downloaded,function(){
