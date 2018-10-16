@@ -1046,8 +1046,10 @@ define(function(require) {
 		            w.setName("Recorded variables: "+group);
                             w.setPosition(100+(i*50), 100+(i*50));
                             lastPos = w.getPosition();
-                            for (var j=0; j<grouped[group].length; ++j)
-			        w.plotData(grouped[group][j], null, {color: colors[group]});
+                            // first trace match population color, let plotly assign the rest
+                            w.plotData(grouped[group][0], null, {color: colors[group]});
+                            for (var j=1; j<grouped[group].length; ++j)
+			        w.plotData(grouped[group][j], null, {});
                         });
                     })(group, i, colors)
                 }
@@ -1165,17 +1167,23 @@ define(function(require) {
                     } else {
                         G.addWidget(6).then(w =>
                                             w.setData(instance, {
-                                                linkType: function(c, linkCache) {
-                                                    if (linkCache[c.getParent().getPath()])
-                                                        return linkCache[c.getParent().getPath()];
-                                                    else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
-                                                        var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
-                                                        if (synapseType != undefined) {
-                                                            linkCache[c.getParent().getPath()] = synapseType.getId();
-                                                            return synapseType.getId();
+                                                linkType: function(cs, linkCache) {
+                                                    var types = [];
+                                                    for (var c of cs) {
+                                                        if (linkCache[c.getParent().getPath()]) {
+                                                            types = types.concat(linkCache[c.getParent().getPath()]);
+                                                            types = Array.from(new Set(types));
+                                                        }
+                                                        else if (GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse != undefined) {
+                                                            linkCache[c.getParent().getPath()] = [];
+                                                            var synapseType = GEPPETTO.ModelFactory.getAllVariablesOfType(c.getParent(), GEPPETTO.ModelFactory.geppettoModel.neuroml.synapse)[0];
+                                                            if (synapseType != undefined) {
+                                                                linkCache[c.getParent().getPath()].indexOf(synapseType.getId()) === -1 ? linkCache[c.getParent().getPath()].push(synapseType.getId()) : undefined;
+                                                                types.indexOf(synapseType.getId()) === -1 ? types.push(synapseType.getId()) : undefined;
+                                                            }
                                                         }
                                                     }
-                                                    return c.getName().split("-")[0];
+                                                    return types;
                                                 },
                                                 library: GEPPETTO.ModelFactory.geppettoModel.neuroml,
                                                 colorMapFunction: window.getNodeCustomColormap

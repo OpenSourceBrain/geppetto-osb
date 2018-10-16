@@ -23,7 +23,7 @@
 		"title": " Experiments Table",
 		"icon" : "fa fa-flask",
 		"message": "The experiments table displays all the experiments within the loaded project.",
-		"action": "$('#experimentsButton').click();"
+		"action": "$('.tabButton:contains(\"Experiments\")').click();"
 	}, {
 		"title": " Experiments Table",
 		"icon" : "fa fa-flask",
@@ -38,7 +38,7 @@
 		"title": " Console",
 		"icon" : "fa fa-terminal",
 		"message": "The console allows you to control the experiment via command line as an alternative to the simulation controls on the UI. Every UI action maps to a console command, you can learn about commands by doing something on the UI and the looking at what shows up in the console.",
-		"action": "$('#consoleButton').click();"
+		"action": "$('.tabButton:contains(\"Console\")').click();"
 	}, {
 		"title": " Persisting your project",
 		"icon" : "fa fa-star",
