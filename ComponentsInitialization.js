@@ -247,6 +247,13 @@ define(function(require) {
                     "simDuration"
                 ],
                 properties: {
+                    pulseGenerator: {
+                        type: "string",
+                        title: "Current Input",
+                        enum: GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i"),
+                        enumNames: GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i"),
+                        default: GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i")[0],
+                    },
                     protocolName: {
                         type: "string",
                         title: "Protocol Name"
@@ -267,6 +274,10 @@ define(function(require) {
                         type: "number",
                         title: "Amplitude Stop (nA)"
                     },
+                    ampStep: {
+                        type: "number",
+                        title: "Amplitude Step (nA)"
+                    },
                     timeStep: {
                         type: 'number',
                         title: 'Time Step (ms)'
@@ -284,6 +295,7 @@ define(function(require) {
                 pulseStop: 550,
                 ampStart: -0.1,
                 ampStop: 0.3,
+                ampStep: 0.05,
                 timeStep: 0.02,
                 simDuration: 600
             };
@@ -337,15 +349,21 @@ define(function(require) {
                 }
 
                 // loop based on amplitude delta / timestep
-                var experimentsNo = (formData.ampStop - formData.ampStart)/formData.timeStep;
+                var experimentsNo = (formData.ampStop - formData.ampStart)/formData.ampStep;
                 var experimentsData = [];
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
+                    // really we should implement a "getAllPotentialInstancesOfSuperType"
+                    var currentInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i").map(i => Instances.getInstance(i));
+                    var pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
+                    var pulseGeneratorPath = "";
+                    if (pulseGenerators)
+                        pulseGeneratorPath = pulseGenerators.filter(x=>x.getPath()+'.i'===formData.pulseGenerator)[0].getVariable().getPath().split(".").splice(1).join('.');
                     var parameterMap = {
-                        i: {'neuroml.pulseGen1.amplitude': amplitude},
-                        pulseStart: {'neuroml.pulseGen1.delay': formData.pulseStart},
-                        pulseDuration: {'neuroml.pulseGen1.duration': formData.pulseStop-formData.pulseStart}
+                        i: {[pulseGeneratorPath + '.amplitude']: amplitude},
+                        pulseStart: {[pulseGeneratorPath + '.delay']: formData.pulseStart},
+                        pulseDuration: {[pulseGeneratorPath + '.duration']: formData.pulseStop-formData.pulseStart}
                     };
                     
                     
