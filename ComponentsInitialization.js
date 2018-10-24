@@ -354,11 +354,9 @@ define(function(require) {
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
-                    // really we should implement a "getAllPotentialInstancesOfSuperType"
-                    var currentInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i").map(i => Instances.getInstance(i));
-                    var pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
+                    var pulseGeneratorPath = window.getPulseGenerators();
                     var pulseGeneratorPath = "";
-                    if (pulseGenerators)
+                    if (pulseGenerators.length > 0)
                         pulseGeneratorPath = pulseGenerators.filter(x=>x.getPath()+'.i'===formData.pulseGenerator)[0].getVariable().getPath().split(".").splice(1).join('.');
                     var parameterMap = {
                         i: {[pulseGeneratorPath + '.amplitude']: amplitude},
@@ -673,35 +671,43 @@ define(function(require) {
         GEPPETTO.ComponentFactory.addComponent('HOME', {}, document.getElementById("HomeButton"));
 
         //Simulation controls initialization
-        var runConfiguration = {
-            id: "runMenuButton",
-            openByDefault: false,
-            closeOnClick: true,
-            label: ' Run',
-            iconOn: 'fa fa-cogs',
-            iconOff: 'fa fa-cogs',
-            disableable: false,
-            menuPosition: {
-                top: 40,
-                right: 450
-            },
-            menuSize: {
-                height: "auto",
-                width: "auto"
-            },
-            menuItems: [{
-                label: "Run active experiment",
-                action: "GEPPETTO.runActiveExperiment();",
-                value: "run_experiment",
-                disabled: false
-            }, {
-                label: "Add & run protocol",
-                action: "GEPPETTO.showAddProtocolDialog();",
-                value: "add_protocol",
-                disabled: false
-            }]
-        };
-        GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
+        GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
+            window.getPulseGenerators = function() {
+                // really we should implement a "getAllPotentialInstancesOfSuperType"
+                var currentInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i").map(i => Instances.getInstance(i));
+                var pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
+                return pulseGenerators;
+            }
+            var runConfiguration = {
+                id: "runMenuButton",
+                openByDefault: false,
+                closeOnClick: true,
+                label: ' Run',
+                iconOn: 'fa fa-cogs',
+                iconOff: 'fa fa-cogs',
+                disableable: false,
+                menuPosition: {
+                    top: 40,
+                    right: 450
+                },
+                menuSize: {
+                    height: "auto",
+                    width: "auto"
+                },
+                menuItems: [{
+                    label: "Run active experiment",
+                    action: "GEPPETTO.runActiveExperiment();",
+                    value: "run_experiment",
+                    disabled: false
+                }, ...(window.getPulseGenerators().length > 0) && {
+                    label: "Add & run protocol",
+                    action: "GEPPETTO.showAddProtocolDialog();",
+                    value: "add_protocol",
+                    disabled: false
+                }]
+            };
+            GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
+        });
 
         // theme button
         $("<div id='themeButton' class='row foreground-controls'/>").appendTo('#controls');
