@@ -227,7 +227,7 @@ define(function(require) {
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
-            if (!persistWarning()) {
+            if (!persistWarning() && window.getPulseGenerators().length > 0) {
 
             var formWidget = null;
 
@@ -413,29 +413,32 @@ define(function(require) {
 
                 // close widget
                 formWidget.destroy();
+                
+                var errorHandler = function() {
+                    // error handling
+                };
+
+                var changeHandler = function(formObject) {
+                    // handle any changes on form data
+                };
+
+                GEPPETTO.ComponentFactory.addWidget('FORM', {
+                    id: formId,
+                    name: formName,
+                    schema: schema,
+                    formData: formData,
+                    submitHandler: submitHandler,
+                    errorHandler: errorHandler,
+                    changeHandler: changeHandler
+                }, function() {
+                    formWidget = this;
+                    this.setName(formName);
+                });
             }
+            } else {
+                GEPPETTO.ModalFactory.infoDialog("No Pulse Generators", "Cannot add protocol for model with no NeuroML pulseGenerator inputs.");
             };
 
-            var errorHandler = function() {
-                // error handling
-            };
-
-            var changeHandler = function(formObject) {
-                // handle any changes on form data
-            };
-
-            GEPPETTO.ComponentFactory.addWidget('FORM', {
-                id: formId,
-                name: formName,
-                schema: schema,
-                formData: formData,
-                submitHandler: submitHandler,
-                errorHandler: errorHandler,
-                changeHandler: changeHandler
-            }, function() {
-                formWidget = this;
-                this.setName(formName);
-            });
         };
 
         //Function to add a dialog when run button is pressed
@@ -675,7 +678,9 @@ define(function(require) {
             window.getPulseGenerators = function() {
                 // really we should implement a "getAllPotentialInstancesOfSuperType"
                 var currentInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i").map(i => Instances.getInstance(i));
-                var pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
+                var pulseGenerators = [];
+                if (Model.neuroml.pulseGenerator)
+                    pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
                 return pulseGenerators;
             }
             var runConfiguration = {
@@ -699,7 +704,7 @@ define(function(require) {
                     action: "GEPPETTO.runActiveExperiment();",
                     value: "run_experiment",
                     disabled: false
-                }, ...(window.getPulseGenerators().length > 0) && {
+                }, {
                     label: "Add & run protocol",
                     action: "GEPPETTO.showAddProtocolDialog();",
                     value: "add_protocol",
