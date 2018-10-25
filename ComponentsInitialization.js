@@ -931,8 +931,7 @@ define(function(require) {
                     false: {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
-                            "window.soma_v_entire_cell();" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');"
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)', undefined, undefined, window.soma_v_entire_cell);"
                     },
                     true: {
                         // is selected
@@ -972,19 +971,18 @@ define(function(require) {
             // get the intersection of recorded potentials and soma potential instances
             var recordedSomaV = $(recordedMemV).not($(recordedMemV).not(somaVInstances)).toArray();
             for (var i=0; i<recordedSomaV.length; ++i) {
-                Canvas1.engine.colorController.litUpInstances.push(recordedSomaV[i]);
                 var instance = recordedSomaV[i].getParent();
                 while (instance) {
                     if (instance.getInstancePath() in Canvas1.engine.splitMeshes ||
                         instance.getInstancePath() in Canvas1.engine.meshes) {
-                        GEPPETTO.SceneController.addColorListener(instance.getInstancePath(), recordedSomaV[i], window.voltage_color);
+                        GEPPETTO.SceneController.addColorListener(instance.getInstancePath(), recordedSomaV[i], window.color_norm);
                     }
                     instance = instance.getParent();
                 }
             }
         }
 
-        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle, left, top) {
+        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle, left, top, cb) {
             if (instances.length > 0) {
                 G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
                     c => {
@@ -1014,6 +1012,8 @@ define(function(require) {
                             c.plotGeneric(data);
 
                             window.controlsMenuButton.refresh();
+
+                            if (cb) cb();
                         };
 
                         if (Project.getActiveExperiment().status == "COMPLETED") {
