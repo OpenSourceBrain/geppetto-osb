@@ -354,7 +354,7 @@ define(function(require) {
                 for(var i=0; i<experimentsNo; i++){
                     // build parameters map
                     var amplitude = (formData.ampStart + formData.timeStep*i).toFixed(2)/1;
-                    var pulseGeneratorPath = window.getPulseGenerators();
+                    var pulseGenerators = window.getPulseGenerators();
                     var pulseGeneratorPath = "";
                     if (pulseGenerators.length > 0)
                         pulseGeneratorPath = pulseGenerators.filter(x=>x.getPath()+'.i'===formData.pulseGenerator)[0].getVariable().getPath().split(".").splice(1).join('.');
@@ -413,6 +413,7 @@ define(function(require) {
 
                 // close widget
                 formWidget.destroy();
+                };
                 
                 var errorHandler = function() {
                     // error handling
@@ -434,7 +435,6 @@ define(function(require) {
                     formWidget = this;
                     this.setName(formName);
                 });
-            }
             } else {
                 GEPPETTO.ModalFactory.infoDialog("No Pulse Generators", "Cannot add protocol for model with no NeuroML pulseGenerator inputs.");
             };
@@ -677,7 +677,14 @@ define(function(require) {
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
             window.getPulseGenerators = function() {
                 // really we should implement a "getAllPotentialInstancesOfSuperType"
-                var currentInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i").map(i => Instances.getInstance(i));
+                var potentialInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i");
+                var currentInstances = [];
+                for (var i=0; i<potentialInstances.length; ++i)
+                    try {
+                        currentInstances.push(Instances.getInstance(potentialInstances[i]));
+                    } catch (e) {
+                        break;
+                    }
                 var pulseGenerators = [];
                 if (Model.neuroml.pulseGenerator)
                     pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
