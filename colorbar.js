@@ -46,6 +46,26 @@ define(function(require) {
             return [r, g, b];
         }
     };
+    
+    window.sequential_color = function(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
+        return function(x) {
+            x = (x-min)/(max-min);
+            var y=(1-x)/0.25;
+            var i=Math.floor(y);
+            var j=y-i;
+            var r, g, b;
+            switch(i)
+            {
+                case 0: r=0;g=j/10000;b=0;break;
+                case 1: r=0;g=1/1000;b=0;break;
+                case 2: r=0;g=1/100;b=0;break;
+                case 3: r=0;g=1/10;b=0;break;
+                case 4: r=0;g=1;b=0;break;
+            }
+            return [r, g, b];
+        }
+    };
 
     window.ca_color = function(min, max) {
         if(max == undefined || min == undefined) { min = 0; max = 1; }

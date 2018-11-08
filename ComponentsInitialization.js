@@ -1004,6 +1004,27 @@ define(function(require) {
                         c.plotOptions.xaxis.title = axistitle;
                         c.yaxisAutoRange = true; // for correct reseting of axes
 
+                        c.colorscaleMenu = [{
+                                "label": "Rainbow",
+                                "method": "setScale",
+                                "arguments": [window.voltage_color, true]
+                            },{
+                                "label": "Sequential",
+                                "method": "setScale",
+                                "arguments": [window.sequential_color, true]
+                            }];
+                        c.setScale = function(scale, norm) {
+                            if (norm)
+                                scale = scale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max)
+                            var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scale, norm);
+                            c.plotGeneric(data);
+                        }
+                        c.addButtonToTitleBar($("<div class='fa fa-align-left' title='Colorscale'></div>").on('click', function(event) {
+                            c.showMenu(c.colorscaleMenu, "colorscaleMenu", event);
+                            event.stopPropagation();
+		    }));
+
+
                         var callback = function() {
                             for (var instance of instances) {
                                 c.updateXAxisRange(instance.getTimeSeries().filter(x => !isNaN(x)));

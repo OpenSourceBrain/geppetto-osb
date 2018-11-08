@@ -84,7 +84,7 @@ body {
     background: rgba(255, 255, 255, 0.8) !important;
 }
 
-.connectivity-ordering-label, .weight-label {
+.connectivity-ordering-label, .weight-label, .color-selector-label {
     color: black !important;
 }
 
