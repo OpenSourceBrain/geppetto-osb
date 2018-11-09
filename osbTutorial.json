@@ -17,7 +17,7 @@
 		"action": ""
 	}, {
 		"title": " Guided tour: Simulation Controls",
-		"message": "<p>On the top right you can find the Simulation Controls, with them you can: </p><p> <span  style=\"color:#ff5a02\">  <i class=\"fa fa-cogs\"></i> Run<br/> <i class=\"fa fa-play\"></i> Play<br/> <i class=\"fa fa-pause\"></i> Pause<br/> <i class=\"fa fa-stop\"> Stop</i></span></p><p>an experiment.</p><p>But before running an experiment in a project it has to be persisted...</p>",
+		"message": "<p>On the top right you can find the Simulation Controls, with them you can: </p><span  style=\"color:#ff5a02\"><p> <i class=\"fa fa-cogs\"></i> Run<br/> <i class=\"fa fa-play\"></i> Play<br/> <i class=\"fa fa-pause\"></i> Pause<br/> <i class=\"fa fa-stop\"></i> Stop</span></p><p>an experiment.</p><p>But before running an experiment in a project it has to be persisted...</p>",
 		"action": "$('#sim-toolbar').effect('highlight', {}, 3000);"
 	}, {		
         "title": " Guided tour: Persisting your project",
