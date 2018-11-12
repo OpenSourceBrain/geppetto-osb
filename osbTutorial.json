@@ -5,34 +5,38 @@
 	"steps": [{
 		"icon" : "gpt-osb",
 		"title": " Guided tour",
-		"message": "<strong>Welcome to Open Source Brain!</strong> This is a <strong>tutorial</strong> to help you understand what you can do through the OSB 3D interface.",
+		"message": "<p><strong>Welcome to Open Source Brain!</strong></p><p>This is a <strong>tutorial</strong> to help you understand what you can do through the OSB 3D interface.</p>",
 		"action": ""
 	}, {
 		"title": " Guided tour: Model information",
-		"message": "<p>You are looking at neuronal morphologies (and possibly network connections) defined in one or more <a href=\"http://www.neuroml.org\" target=\"_blank\">NeuroML</a> files and rendered here in 3D.</p><p>You can see information on this model (e.g. what populations, cells and channels are present) by clicking on the <strong>Model Description</strong> button on the menu bar.</p><p>This will also provide a link to the NeuroML file (normally hosted on GitHub) which generated this scene.</p>",
+		"message": "<p>You are looking at neuronal morphologies (and possibly network connections) defined in one or more <a href=\"http://www.neuroml.org\" target=\"_blank\">NeuroML</a> files and rendered here in 3D.</p><p>You can see information on this model (e.g. what populations, cells and channels are present) by clicking on the <strong>Model Description</strong> button on the top left.</p><p>This will also provide a link to the NeuroML file (normally hosted on GitHub) which was used to generate this scene.</p>",
 		"action": "$('div.toolbar button :eq(1)').effect('highlight', {}, 6000);"
 	}, {
+		"title": " Guided tour: Connectivity information",
+		"message": "<p>If there are connections between the populations displayed in the network, these can be explored by pressing the <strong>Connectivity</strong> button on the top left.</p><p>Note that the connections are not loaded by default for speed of visualizing the overall structure of the model, and these may take a long time to load for large models.</p><p>You can analyse connections in multiple ways: Adjacency Matrix, Force-directed layout, Hive plot and Chord diagram. Switch between these views by pressing <i class=\"fa fa-cog\" style=\"color:#ff5a02\"></i> on the Connectivity widget.</p>",
+		"action": "$('div.toolbar button :eq(0)').effect('highlight', {}, 6000);"
+	}, {
 		"title": " Guided tour: Experiments",
-		"message": "You can have multiple experiments for your model, and only one experiment can be active at a given time. What you see now on screen is the content of the active experiment.",
+		"message": "<p>You can have multiple <strong>experiments</strong> for your model, and only one experiment can be active at a given time.</p><p> What you see now on screen is the content of the currently active experiment.</p>",
 		"action": ""
 	}, {
 		"title": " Guided tour: Simulation Controls",
-		"message": "<p>On the top right you can find the Simulation Controls, with them you can: </p><span  style=\"color:#ff5a02\"><p> <i class=\"fa fa-cogs\"></i> Run<br/> <i class=\"fa fa-play\"></i> Play<br/> <i class=\"fa fa-pause\"></i> Pause<br/> <i class=\"fa fa-stop\"></i> Stop</span></p><p>an experiment.</p><p>But before running an experiment in a project it has to be persisted...</p>",
+		"message": "<p>On the top right you can find the <strong>Simulation Controls</strong>, with them you can: </p> <span style=\"color:#ff5a02\"><p> <i class=\"fa fa-cogs\"></i> Run<br/> <i class=\"fa fa-play\"></i> Play<br/> <i class=\"fa fa-pause\"></i> Pause<br/> <i class=\"fa fa-stop\"></i> Stop</p></span>  <p>an experiment.</p><p>But before running an experiment in a project it has to be <strong>persisted</strong>...</p>",
 		"action": "$('#sim-toolbar').effect('highlight', {}, 3000);"
 	}, {		
         "title": " Guided tour: Persisting your project",
 		"icon" : "fa fa-star",
-		"message": "<p>On the top bar you can find the Persist button, in the shape of a star. With it you can add this model to your model collection for easy access.</p> <p>Note <strong>you must be <a href=\"http://www.opensourcebrain.org/account/register\" target=\"_blank\">signed up</a> and logged in</strong> to be able to persist projects!</p><p>The button will be disabled if the model has already been persisted. All persisted models will appear on your homepage when logged in.</p>",
+		"message": "<p>On the top bar you can find the <strong>Persist</strong> button, in the shape of a star. With it you can add this model to your model collection for easy access.</p> <p>Note <strong>you must be <a href=\"http://www.opensourcebrain.org/account/register\" target=\"_blank\">signed up</a> and logged in</strong> to be able to persist projects!</p><p>The button will be disabled if the model has already been persisted, or you're not logged in. All persisted models will appear on your homepage when logged in.</p>",
 		"action": "$('.saveButton').effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Experiments Tab",
 		"icon" : "fa fa-flask",
-		"message": "<p>The Experiments tab displays all the experiments within the loaded project.</p>  <p>When an experiment is set running, the status icon in the Experiments tab will change from <i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> (pre simulation; experiment design phase), to <i class=\"fa fa-circle\" style=\"color:#0199e8\"></i> (in the queue on our servers), to <i class=\"fa fa-circle\" style=\"color:#ffcc00\"></i> (running), and finally to <i class=\"fa fa-circle\" style=\"color:#649615\"></i> (completed).</p>",
+		"message": "<p>The <strong>Experiments tab</strong> displays all the experiments within the loaded project.</p>  <p>When an experiment is set running, the status icon in the Experiments tab will change from <i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> (pre simulation; experiment design phase), to <i class=\"fa fa-circle\" style=\"color:#0199e8\"></i> (in the queue on our servers), to <i class=\"fa fa-circle\" style=\"color:#ffcc00\"></i> (running), and finally to <i class=\"fa fa-circle\" style=\"color:#649615\"></i> (completed). It will show <i class=\"fa fa-circle\" style=\"color:red\"></i> if there has been a problem running the simulation.</p>",
 		"action": "$('.tabButton:contains(\"Experiments\")').click();"
 	}, {
 		"title": " Guided tour: Experiments Tab",
 		"icon" : "fa fa-flask",
-		"message": "Icons on the right side of the Experiments list allow for: setting an experiment active, downloading an experiment's model and results, deleting/cloning the experiment (when logged in).",
+		"message": "<p>Icons on the right side of the Experiments list allow for: setting an experiment active (<i class=\"fa fa-check-circle\" style=\"color:#ff5a02\"></i>), downloading an experiment's model (<i class=\"fa fa-cloud-download\" style=\"color:#ff5a02\"></i>) and results (<i class=\"fa fa-download\" style=\"color:#ff5a02\"></i>), and cloning (<i class=\"fa fa-clone\" style=\"color:#ff5a02\"></i>) or deleting (<i class=\"fa fa-times\" style=\"color:#ff5a02\"></i>) the experiment.</p><p>Note, different icons will be present depending on whether you are logged in, the simulation status of the experiment, etc.</p>",
 		"action": "$('.iconsDiv').effect('pulsate', {}, 3000)"
 	}, {
 		"title": " Guided tour: Experiments Tab",
@@ -47,69 +51,69 @@
 
 	}, {
 		"title": " Guided tour: Camera Controls",
-		"message": "<p>On the left side of the screen, you'll find the camera controls.</p><p>With these you can explore the 3D morphologies by zooming in and out, and rotating the camera.</p>",
+		"message": "<p>On the left side of the screen, you'll find the <strong>Camera Controls</strong>.</p><p>With these you can explore the 3D morphologies by zooming in and out, and rotating the camera.</p>",
 		"action": "$('#panLeftBtn').effect('highlight', {}, 3000); $('#panUpBtn').effect('highlight', {}, 3000); $('#panDownBtn').effect('highlight', {}, 3000); $('#panRightBtn').effect('highlight', {}, 3000); $('#panHomeBtn').effect('highlight', {}, 3000); $('#rotateLeftBtn').effect('highlight', {}, 3000); $('#rotateRightBtn').effect('highlight', {}, 3000); $('#rotateUpBtn').effect('highlight', {}, 3000); $('#rotateDownBtn').effect('highlight', {}, 3000); $('#rotateHomeBtn').effect('highlight', {}, 3000); $('#zoomInBtn').effect('highlight', {}, 3000); $('#zoomOutBtn').effect('highlight', {}, 3000);"
 
 	}, {
 		"title": " Guided tour: Change background",
 		"icon" : "fa fa-paint-brush",
-		"message": "To change the background on the main canvas from black to white (easier to see some models) click on the paintbrush icon on the left.",
+		"message": "To <strong>change the background</strong> on the main canvas from black to white (easier to see some models, or better for taking screenshots) click on the paintbrush icon on the left.",
 		"action": "$('#themeButton').effect('highlight', {}, 3000);"
 
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "<p>The Control Panel allows you to visualize and interact with the cell morphologies, state variables and parameters in a given model.</p><p>The Control Panel can be opened and closed with the button on the left side bar or with the CTRL+P shortcut.</p>",
+		"message": "<p>The <strong>Control Panel</strong> allows you to visualize and interact with the cell morphologies, state variables and parameters in a given model.</p><p>The Control Panel can be opened and closed with the button on the left side bar or with the CTRL+P shortcut.</p>",
 		"action": "Controlpanel1.close(); $('#controlPanelBtn').effect('highlight', {}, 3000);"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "<p>The Control Panel can be filtered to visualize morphologies. It is possible to hide/show (<i class=\"fa fa-eye\"  style=\"color:#ff5a02\"></i>), zoom (<i class=\"fa fa-search-plus\"  style=\"color:#ff5a02\"></i>) and change the color of any of the cells and networks (<i class=\"fa fa-tint\"  style=\"color:#ff5a02\"></i>: select your own, <i class=\"fa fa-random\"  style=\"color:#ff5a02\"></i>: random color).</p><p>Changes at the population level will be propagated to all the cells belonging to the population.</p>",
+		"message": "<p>The Control Panel can be filtered to visualize and interact with <strong>morphologies</strong> (<i class=\"gpt-3dshape\"  style=\"color:#ff5a02\"></i>).</p><p>It is possible to hide/show (<i class=\"fa fa-eye\"  style=\"color:#ff5a02\"></i>), zoom to (<i class=\"fa fa-search-plus\" style=\"color:#ff5a02\"></i>) and change the color of any of the cells and networks (<i class=\"fa fa-tint\" style=\"color:#ff5a02\"></i>: select your own, <i class=\"fa fa-random\"  style=\"color:#ff5a02\"></i>: random color).</p><p>Changes at the population level will be propagated to all the cells belonging to the population.</p>",
 		"action": "Controlpanel1.open(); Controlpanel1.setTab(Controlpanel1.filterOptions.VISUAL_INSTANCES); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(0).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('VISUAL_INSTANCES');"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "<p>The Control Panel can be filtered to visualize the available state variables (such as the membrane potentials of cells).</p><p>If the active experiment is currently in design mode (<i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> in the experiments tab) then it is possible to decide what variables to record by selecting the circle on the right in the Control Panel.</p><p>When you set an experiment running, if you haven't selected anything to record, you will get a number of options to record all membrane potentials at somas, etc.</p>",
+		"message": "<p>The Control Panel can be filtered to visualize the available <strong>state variables</strong> (<i class=\"fa fa-superscript\" style=\"color:#ff5a02\"></i>) of a model, such as the membrane potentials of cells.</p><p>If the active experiment is currently in design mode (<i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> in the experiments tab) then it is possible to decide what state variables to record by selecting the circle on the right in the Control Panel.</p><p>When you set an experiment running, if you haven't yet selected anything to record, you will be presented with a number of options for what to record, e.g. all membrane potentials at cell somas.</p>",
 		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(1).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "If the active experiment is completed (<i class=\"fa fa-circle\" style=\"color:#649615\"></i> in the Experiments tab), the recorded filter lets you look only at the variables that were recorded.",
+		"message": "<p>If the active experiment is completed (<i class=\"fa fa-circle\" style=\"color:#649615\"></i> in the Experiments tab), selecting the recorded filter (<i class=\"fa fa-dot-circle-o\" style=\"color:#ff5a02\"></i>) lets you look only at the variables that were recorded.</p><p>To plot any of these select the <i class=\"fa fa-area-chart\" style=\"color:#ff5a02\"></i> icon on the right.</p><p>Note, to plot all of the variables recorded in the current experiment, go to the <strong>Results</strong> menu on the top right and select <strong>Plot all recorded variables</strong>.</p><p>The <i class=\"gpt-osb\"  style=\"color:#ff5a02\"></i> logo on the top left will rotate as data is being loaded.</p>",
 		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_RECORDED_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(3).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "The active experiment filters let you pick between state variables that belong to the active experiment or state variables that belong to any existing experiments. These filters apply also to parameters.",
+		"message": "The active experiment filters let you pick between state variables that belong to the active experiment (<i class=\"gpt-activeExp\" style=\"color:#ff5a02\"></i>) or state variables that belong to any existing experiments (<i class=\"fa fa-flask\" style=\"color:#ff5a02\"></i>). These filters apply also to parameters.",
 		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ANY_EXPERIMENT_RECORDED_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(4).effect('pulsate', {}, 3000); $('#controlpanel .built-in-filter .toggleButton').eq(5).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "The global filter lets you peak into state variables and parameters that were recorded in other projects that belong to you",
+		"message": "The global filter (<i class=\"fa fa-globe\" style=\"color:#ff5a02\"></i>) lets you peek into state variables and parameters that were recorded in other projects that belong to you.",
 		"action": "Controlpanel1.setTab(Controlpanel1.filterOptions.ANY_PROJECT_GLOBAL_STATE_VARIABLES); $('#controlpanel .built-in-filter .toggleButton').eq(6).effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Control Panel",
 		"icon" : "fa fa-list",
-		"message": "The parameter filters shows you the available parameters. If the active experiment is in design mode (<i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i>) you will be able to change the value of the parameters simply typing in their inlined textbox.",
+		"message": "<p>The <strong>parameters</strong> filter (<i class=\"fa fa-sliders\" style=\"color:#ff5a02\"></i>) shows you the available parameters in your model, which are taken from, and get saved to, values in the NeuroML files.</p><p>If the active experiment is in design mode (<i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i>) you will be able to change the value of the parameters simply typing in their inlined textbox. These updated values will be used in the next simulation.</p>",
 		"action": "Controlpanel1.open(); Controlpanel1.setTab(Controlpanel1.filterOptions.ACTIVE_PARAMETERS); Tutorial1.dialog.parent().css('z-index',1000); $('#controlpanel .built-in-filter .toggleButton').eq(2).effect('pulsate', {}, 3000); GEPPETTO.ControlPanel.setTab('ACTIVE_PARAMETERS');"
 	}, {
 		"title": " Guided tour: Search",
 		"icon" : "fa fa-search",
-		"message": "<p>You can use the search to find and interact with anything in your model by name, including state variables to be recorded and parameters to be set. </p><p>The spotlight can be opened and closed with the button on the left side bar or with the CTRL+SPACE shortcut.</p>",
+		"message": "<p>You can use the <strong>search function</strong> to find and interact with anything in your model by name, including state variables to be recorded and parameters to be set. </p><p>The search box can be opened and closed with the button on the left side bar or with the CTRL+SPACE shortcut.</p>",
 		"action": "Controlpanel1.close(); Tutorial1.dialog.parent().css('z-index',''); $('#spotlightBtn').effect('highlight', {}, 3000);"
 	},{
 		"title": " Guided tour: Help",
 		"icon" : "fa fa-info-circle",
-		"message": "To get more information about the OSB environment, launch the Help window using the button on the top right. In it you'll find more detailed documentation.",
+		"message": "To get more information about the OSB environment, launch the <strong>Help window</strong> using the button on the top right. In it you'll find more detailed documentation.",
 		"action": "$('#genericHelpBtn').effect('highlight', {}, 3000);"
 	},{
 		"title": " Guided tour: Open Tutorial Again",
 		"icon" : "fa fa-leanpub",
-		"message": "At anytime, if you wish to you can re-open this tutorial, look for the button on the left hand side of the screen.",
+		"message": "At any time, if you wish to you can re-open this tutorial, look for the button on the left hand side of the screen.",
 		"action": "$('#tutorialBtn').effect('highlight', {}, 3000);"
 	},{
 		"title": " End of Guided Tour",
 		"icon" : "fa fa-leanpub",
-		"message": "<p>You reached the end of this tutorial, you can restart the tutorial or you can keep exploring on your own!</p><p>By the way, the OSB 3D interface has been created with <strong>Geppetto</strong>. Have a look on <a href=\"http://www.geppetto.org\" target=\"_blank\">geppetto.org</a> for more about this platform.</p>",
+		"message": "<p>You have reached the end of this tutorial, you can restart the tutorial now or you can keep exploring on your own!</p><p>By the way, the OSB 3D interface has been created with <strong>Geppetto</strong>. Have a look on <a href=\"http://www.geppetto.org\" target=\"_blank\">geppetto.org</a> for more about this platform.</p>",
 		"action": ""
 	}]
 }
