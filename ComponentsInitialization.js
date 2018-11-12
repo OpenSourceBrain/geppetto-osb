@@ -1016,7 +1016,14 @@ define(function(require) {
                         c.setScale = function(scale, norm) {
                             if (norm)
                                 scale = scale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max)
-                            var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scale, norm);
+                            var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, scale, false);
+                            var instances = GEPPETTO.SceneController.getColorFunctionInstances();
+                            // manually clear instances to avoid lit entities change event
+                            // (triggers destroying colorbar in PlotController…)
+                            Canvas1.engine.colorController.litUpInstances = [];
+                            for (var i=0; i<instances.length; ++i)
+                                Canvas1.engine.colorController.clearOnNodeUpdateCallback(instances[i]);
+                            GEPPETTO.SceneController.addColorFunction(instances, scale, false);
                             c.plotGeneric(data);
                         }
                         c.addButtonToTitleBar($("<div class='fa fa-align-left' title='Colorscale'></div>").on('click', function(event) {
