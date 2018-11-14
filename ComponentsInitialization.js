@@ -645,15 +645,15 @@ define(function(require) {
          }, document.getElementById("ControlsMenuButton"), function(){
              window.controlsMenuButton = this;
              toggleMenuOptions();
-             GEPPETTO.on(GEPPETTO.Events.Project_persisted, function() {
+             GEPPETTO.on(GEPPETTO.Events.Experiment_completed, function() {
                  window.controlsMenuButton.refs.menuButton.disabled = false;
              });
-             GEPPETTO.on(GEPPETTO.Events.Project_loaded, function() {
-                 // disable results if project not persisted and user has write permission
-                 // if user doesn't have write permission then it's assumed we're looking at a sample project
-                 if (!GEPPETTO.UserController.hasWritePermissions())
+             GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
+                 if (Project.getActiveExperiment().status == "COMPLETED")
+                     window.controlsMenuButton.refs.menuButton.disabled = false;
+                 else
                      window.controlsMenuButton.refs.menuButton.disabled = true;
-            });
+             });
          });
 
 
