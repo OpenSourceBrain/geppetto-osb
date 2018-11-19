@@ -707,6 +707,11 @@ define(function(require) {
                     width: "auto"
                 },
                 menuItems: [{
+                    label: "Add new experiment",
+                    action: "Project.getActiveExperiment().clone()",
+                    value: "add_experiment",
+                    disabled: false
+                },{
                     label: "Run active experiment",
                     action: "GEPPETTO.runActiveExperiment();",
                     value: "run_experiment",
@@ -718,6 +723,13 @@ define(function(require) {
                     disabled: false
                 }]
             };
+            if (!GEPPETTO.UserController.hasWritePermissions())
+                runConfiguration.menuItems.push({
+                    label: "Sign up and log in to run experiments",
+                    action: "window.location.href = 'http://www.opensourcebrain.org/login'",
+                    value: "add_experiment",
+                    disabled: false
+                })
             GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
         });
 
@@ -729,6 +741,7 @@ define(function(require) {
                 return window.themeSet;
             }
             else if (t) {
+                Canvas1.setBackgroundColor("#FFFFFF");
                 GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
                     controller => {
                         var plots = controller.getWidgets();
@@ -1369,6 +1382,8 @@ define(function(require) {
                 } else if (metaType == GEPPETTO.Resources.VISUAL_GROUP_NODE) {
                     //A visual group
                     n.show(true);
+                    Canvas1.viewState.custom.highlight = n.getPath();
+                    Canvas1.setDirty(true);
                 } else if (metaType == GEPPETTO.Resources.COMPOSITE_TYPE_NODE) {
                     //Another composite
                     widget.setName('Information for ' + n.getId()).setData(n, [GEPPETTO.Resources.HTML_TYPE])
