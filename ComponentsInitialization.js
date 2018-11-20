@@ -97,8 +97,22 @@ define(function(require) {
             }
 
             if (pathRef != null) {
-                formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
-                formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
+                // dt and length can be overriden by neuroml property tags. replace this if you know a better way to extract the info
+                var properties = GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0].getType().getChildren()
+                    .filter(x=>x.getName()==="Property").map(x=>x.getAnonymousTypes()).map(x=>x[0].tag.getWrappedObj().initialValues[0].value.text);
+                var values = GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0].getType().getChildren()
+                    .filter(x=>x.getName()==="Property").map(x=>x.getAnonymousTypes()).map(x=>x[0].value.getWrappedObj().initialValues[0].value.text);
+
+                if (properties.indexOf("recommended_dt_ms") > -1)
+                    formData['timeStep'] = values[properties.indexOf("recommended_dt_ms")];
+                else
+                    formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
+
+                if (properties.indexOf("recommended_duration_ms") > -1)
+                    formData['length'] = values[properties.indexOf("recommended_duration_ms")];
+                else
+                    formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
+
                 formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
 
