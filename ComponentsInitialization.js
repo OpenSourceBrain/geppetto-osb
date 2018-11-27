@@ -241,7 +241,8 @@ define(function(require) {
 
         // Brings up the add protocol dialog
         GEPPETTO.showAddProtocolDialog = function(callback) {
-            if (!persistWarning() && window.getPulseGenerators().length > 0) {
+            if (!persistWarning()) {
+                if (window.getPulseGenerators().length > 0) {
 
             var formWidget = null;
 
@@ -451,7 +452,8 @@ define(function(require) {
                 });
             } else {
                 GEPPETTO.ModalFactory.infoDialog("No Pulse Generators", "Cannot add protocol for model with no NeuroML pulseGenerator inputs.");
-            };
+            }
+            }
 
         };
 
@@ -807,6 +809,7 @@ define(function(require) {
                 window.themeSet = true;
             }
             else {
+                Canvas1.setBackgroundColor("none");
                 GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
                     controller => {
                         var plots = controller.getWidgets();
