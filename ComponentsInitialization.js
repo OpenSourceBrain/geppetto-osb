@@ -739,10 +739,10 @@ define(function(require) {
                     disabled: false
                 }]
             };
-            if (!GEPPETTO.UserController.hasWritePermissions())
+            if (!GEPPETTO.UserController.hasWritePermissions() && !GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
                 runConfiguration.menuItems.push({
                     label: "Sign up and log in to run experiments",
-                    action: "window.location.href = 'http://www.opensourcebrain.org/login'",
+                    action: "top.window.location = 'http://www.opensourcebrain.org/account/register'",
                     value: "add_experiment",
                     disabled: false
                 })
