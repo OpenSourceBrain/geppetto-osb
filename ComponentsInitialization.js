@@ -38,6 +38,8 @@ define(function(require) {
 
             var formName = "Run experiment";
 
+            var temperatureVar = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.network)[0].getVariables().filter(x=>x.getId()==='temperature')
+
             var schema = {
                 type: "object",
                 required: ["experimentName", "timeStep", "length", "simulator", "numberProcessors"],
@@ -68,6 +70,13 @@ define(function(require) {
                         type: 'number',
                         title: 'Random seed'
                     },
+                    ...(temperatureVar.length>0) &&
+                        {
+                            'temperature': {
+                                type: 'number',
+                                title: 'Temperature'
+                            }
+                        },
 		    dropboxUpload: {
                         type: 'boolean',
                         title: 'Upload results to Dropbox on completion'
@@ -85,7 +94,8 @@ define(function(require) {
             var formData = {
                 experimentName: Project.getActiveExperiment().getName(),
                 numberProcessors: 1,
-                randomSeed: 123
+                randomSeed: 123,
+                temperature: temperatureVar[0] ? temperatureVar.getInitialValue() : undefined
             };
 
             // figure out aspect configuration path ref
@@ -172,6 +182,8 @@ define(function(require) {
                             $("#experimentsOutput").find(".activeExperiment").find("td[name='simulatorId']").html(formObject.formData[key]).blur();
                         } else if (key == 'randomSeed') {
                             Project.getActiveExperiment().saveExperimentProperties({"SP$randomSeed": formObject.formData[key], "aspectInstancePath": window.Instances[0].getId()});
+                        } else if (key == 'temperature' && temperatureVar[0]) {
+                            Project.getActiveExperiment().saveExperimentProperties({"SP$temperature": formObject.formData[key], "aspectInstancePath": window.Instances[0].getId()});
                         }
                         this.formData[key] = formObject.formData[key];
                     }
@@ -232,6 +244,11 @@ define(function(require) {
             } else {
                 return false;
             }
+        }
+
+        GEPPETTO.addNewExperiment = function() {
+            if (!persistWarning())
+                Project.getActiveExperiment().clone();
         }
 
         GEPPETTO.runActiveExperiment = function() {
@@ -724,7 +741,7 @@ define(function(require) {
                 },
                 menuItems: [{
                     label: "Add new experiment",
-                    action: "Project.getActiveExperiment().clone()",
+                    action: "GEPPETTO.addNewExperiment();",
                     value: "add_experiment",
                     disabled: false
                 },{
@@ -999,6 +1016,11 @@ define(function(require) {
                 // reset to default tab
                 GEPPETTO.ControlPanel.setTab(undefined);
             }
+        });
+
+        GEPPETTO.on(GEPPETTO.Events.Canvas_initialised, function() {
+            if (Canvas1.viewState.custom.backgroundColor === '#FFFFFF')
+                window.theme(true);
         });
 
         //OSB Utility functions
