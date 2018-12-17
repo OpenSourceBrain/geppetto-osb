@@ -90,6 +90,14 @@ define(function(require) {
         };
     };
 
+    window.rate_color = function(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
+        return function(x) {
+            x = (x-min)/(max-min); // normalization
+            return hslToRgb((120-(90*x))/255.0, 0.5+(0.5*x), 0.2+(0.4*x));
+        };
+    };
+
     return {
         defaultLayout: function() {
             return {
