@@ -740,16 +740,16 @@ define(function(require) {
                     width: "auto"
                 },
                 menuItems: [{
-                    label: "Add new experiment",
-                    action: "GEPPETTO.addNewExperiment();",
-                    value: "add_experiment",
-                    disabled: false
-                },{
                     label: "Run active experiment",
                     action: "GEPPETTO.runActiveExperiment();",
                     value: "run_experiment",
                     disabled: false
                 }, {
+                    label: "Add new experiment",
+                    action: "GEPPETTO.addNewExperiment();",
+                    value: "add_experiment",
+                    disabled: false
+                },{
                     label: "Add & run protocol",
                     action: "GEPPETTO.showAddProtocolDialog();",
                     value: "add_protocol",
@@ -915,6 +915,16 @@ define(function(require) {
                 GEPPETTO.Spotlight.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
                 GEPPETTO.Spotlight.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
             }
+            var rateVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.r');
+            if (rateVars.length > 0) {
+                var rateSuggestion = {
+                    "label": "Record all rates for neural masses",
+                    "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.r')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "icon": "fa-dot-circle-o"
+                };
+
+                GEPPETTO.Spotlight.addSuggestion(rateSuggestion, GEPPETTO.Resources.RUN_FLOW);
+            }
         });
 
         GEPPETTO.on(GEPPETTO.Events.Project_loading, function() {
@@ -926,6 +936,8 @@ define(function(require) {
                 return;
         var caVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.caConc'));
         var vVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.v'));
+        var rateVars = Project.getActiveExperiment().variables.filter((x)=>x.endsWith('.r'));
+        
         if (caVars.length > 0) {
             if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca") == -1) {
                 var caMenuItem = {
@@ -953,6 +965,37 @@ define(function(require) {
         else {
             // remove ca option
             var i = window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_ca");
+            if (i >= 0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
+            window.controlsMenuButton.refresh();
+        }
+        
+        if (rateVars.length > 0) {
+            if (window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_rates") == -1) {
+                var rateMenuItem = {
+                    label: "Apply neural mass rate colouring to populations",
+                    radio: true,
+                    condition: "if (window.controlsMenuButton && window.controlsMenuButton.refs && window.controlsMenuButton.refs.dropDown.refs.apply_rates)" +
+                        "{ window.controlsMenuButton.refs.dropDown.refs.apply_rates.state.icon != 'fa fa-circle-o' } else { false }",
+                    value: "apply_rates",
+                    false: {
+                        // not selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
+                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedRates(), window.rate_color());" +
+                            "window.setupColorbar(window.getRecordedRates(), window.rate_color, true, 'Rate color scale', 'Rate (Hz)');"
+                    },
+                    true: {
+                        // is selected
+                        action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());"
+                    }
+                };
+
+                window.controlsMenuButton.addMenuItem(rateMenuItem);
+                window.controlsMenuButton.refresh();
+            }
+        }
+        else {
+            // remove rate option
+            var i = window.controlsMenuButton.props.configuration.menuItems.map((x)=>x.value).indexOf("apply_rates");
             if (i >= 0) window.controlsMenuButton.props.configuration.menuItems.splice(i,1);
             window.controlsMenuButton.refresh();
         }
@@ -1200,6 +1243,17 @@ define(function(require) {
             var v = [];
             for (var i = 0; i < instances.length; i++) {
                 if (instances[i].getInstancePath().endsWith(".caConc")) {
+                    v.push(instances[i]);
+                }
+            }
+            return v;
+        };
+
+        window.getRecordedRates = function() {
+            var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
+            var v = [];
+            for (var i = 0; i < instances.length; i++) {
+                if (instances[i].getInstancePath().endsWith(".r")) {
                     v.push(instances[i]);
                 }
             }

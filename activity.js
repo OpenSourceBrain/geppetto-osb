@@ -219,7 +219,7 @@ define(function(require) {
                 // only use soma variables (the RHS of the && should be v.getParent().getType().getName().indexOf("root_compartment") > -1)
                 // but using the ad-hoc version of soma check from geppetto-osb since root_compartment not being set properly on eg. c302_c0_muscles…
                 var variables = Project.getActiveExperiment().getWatchedVariables(true)
-                    .filter(v => (v.id =='caConc' || v.id == 'v') && (v.getPath().split('.').reverse()[1].endsWith("_0") || v.getPath().split('.').reverse()[1].endsWith("]")))
+                    .filter(v => (v.id =='caConc' || v.id == 'v' || v.id == 'r') && (v.getPath().split('.').reverse()[1].endsWith("_0") || v.getPath().split('.').reverse()[1].endsWith("]")))
                 var groupedVars = that.groupBy(variables, function(x) { return x.id });
                 if (typeof groupId == 'undefined')
                     var groups = Object.keys(groupedVars);
