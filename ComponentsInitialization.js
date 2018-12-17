@@ -95,7 +95,7 @@ define(function(require) {
                 experimentName: Project.getActiveExperiment().getName(),
                 numberProcessors: 1,
                 randomSeed: 123,
-                temperature: temperatureVar[0] ? temperatureVar.getInitialValue() : undefined
+                temperature: temperatureVar[0] ? temperatureVar[0].getInitialValue() : undefined
             };
 
             // figure out aspect configuration path ref
