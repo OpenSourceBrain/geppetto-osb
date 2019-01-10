@@ -55,7 +55,7 @@ body {
     fill: black !important;
 }
 
-.btn:not(ul):not(.btn-warning):not([disabled]) {
+.btn:not(ul):not(.btn-warning):not(.toggle-button-toggled):not([disabled]) {
     background: rgba(236, 236, 236, 0.8) !important;
     color: #fc6320 !important;
 }
@@ -111,5 +111,9 @@ body {
 }
 
 .tutorial-message a {
+    color: black !important;
+}
+
+#help-modal p {
     color: black !important;
 }
