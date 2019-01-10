@@ -114,12 +114,12 @@ define(function(require) {
                     .filter(x=>x.getName()==="Property").map(x=>x.getAnonymousTypes()).map(x=>x[0].value.getWrappedObj().initialValues[0].value.text);
 
                 if (properties.indexOf("recommended_dt_ms") > -1)
-                    formData['timeStep'] = values[properties.indexOf("recommended_dt_ms")];
+                    formData['timeStep'] = parseFloat(values[properties.indexOf("recommended_dt_ms")])/1000;
                 else
                     formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
 
                 if (properties.indexOf("recommended_duration_ms") > -1)
-                    formData['length'] = values[properties.indexOf("recommended_duration_ms")];
+                    formData['length'] = parseFloat(values[properties.indexOf("recommended_duration_ms")])/1000;
                 else
                     formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
 
