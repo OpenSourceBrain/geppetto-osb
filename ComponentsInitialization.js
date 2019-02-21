@@ -1107,6 +1107,10 @@ define(function(require) {
                                 "label": "Sequential",
                                 "method": "setScale",
                                 "arguments": [window.sequential_color, true]
+                            },{
+                                "label": "Sequential 2",
+                                "method": "setScale",
+                                "arguments": [window.sequential_color2, true]
                             }];
                         c.setScale = function(scale, norm) {
                             if (norm)

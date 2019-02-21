@@ -55,8 +55,22 @@ define(function(require) {
             return [r, g, b];
         }
     };
-    
+
+    // yellow-purple
     window.sequential_color = function(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
+        return function(x) {
+            x = (x-min)/(max-min);
+            var c = ['5b006d','5d056d','5f0a6d','610e6d','63126d','66166d','67196d','691d6d','6b1f6e','6d236e','6f246e','71286e','732b6e','742d6e','76306e','78326e','7a356e','7c376e','7e396e','803c6e','813f6e','83416e','85446e','86466e','88486e','8a4a6d','8c4d6d','8e4f6d','8f526d','91546d','93566d','95596d','965c6d','985e6d','99606d','9b636d','9d656c','9f676c','a0696c','a16c6c','a36f6c','a5716c','a6736b','a8756b','a9776b','ab7a6b','ad7d6b','ae7f6a','b0826a','b2846a','b3866a','b58869','b68b69','b88d69','b99069','bb9268','bd9468','be9768','c09967','c19b67','c29e66','c4a066','c5a266','c7a665','c8a865','caaa64','ccad64','cdae64','cfb163','d0b463','d2b662','d3b861','d5bb61','d6be60','d7c060','d9c25f','dac55e','dcc85e','ddca5d','dfcd5c','e0cf5c','e2d15b','e3d35a','e4d75a','e6d959','e7db58','e9de57','eae056','ebe355','ede654','eee853','f0eb52','f1ed51','f3ef50','f4f34f','f5f44e','f7f74d','f8fa4c','fafc4a','fbff49'];
+
+            var i = Math.round((x*100)-1);
+            if (i<0) i = 0
+            return hexToRgb(c[i]);
+        }
+    };
+
+    // black-blue-white
+    window.sequential_color2 = function(min, max) {
         if(max == undefined || min == undefined) { min = 0; max = 1; }
         return function(x) {
             x = (x-min)/(max-min);
@@ -65,20 +79,6 @@ define(function(require) {
             var i = Math.round((x*100)-1);
             if (i<0) i = 0
             return hexToRgb(c[i]);
-            /*var y=(1-x)/0.1;
-            var i=Math.floor(y);
-            //var j=y-i;
-            var r, g, b;
-            
-            switch(i)
-            {
-                case 0: r=0;g=1;b=0;break;
-                case 1: r=0;g=0.8;b=0;break;
-                case 2: r=0;g=0.6;b=0;break;
-                case 3: r=0;g=0.4;b=0;break;
-                case 4: r=0;g=0.2;b=0;break;
-            }
-            return [1/(i+i), 0, 0];*/
         }
     };
 
