@@ -1334,8 +1334,7 @@ define(function(require) {
             if ((Model.neuroml.importTypes.length == 0) && (typeof Model.neuroml.connection === 'undefined')) {
                 GEPPETTO.ModalFactory.infoDialog("No connections present in this model.", "");
             } else {
-                var resolveAndShow = function () {
-                    Model.neuroml.resolveAllImportTypes(function(){
+                Model.neuroml.resolveAllImportTypes(function(){
                     $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
                     if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
                         G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
@@ -1367,16 +1366,7 @@ define(function(require) {
                                             .configViaGUI()
                                            );
                     }
-                    });
-                };
-                if (GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0].getId() === 'ISN_net') {
-                    GEPPETTO.ModalFactory.inputDialog("Warning", "220886 connections present in this model: loading time and memory requirements may be large. Proceed?",
-                                                      "OK", resolveAndShow,
-                                                      "Cancel", function(){},
-                                                      false);
-                } else {
-                    resolveAndShow();
-                }
+                });
             }
         };
 
