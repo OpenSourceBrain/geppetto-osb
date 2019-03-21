@@ -1,195 +1,171 @@
 import React, { Component } from 'react';
+
 import Logo from '../../../js/components/interface/logo/Logo';
 import Canvas from '../../../js/components/interface/3dCanvas/Canvas';
+import Button from '../../../js/components/controls/button/Button';
 import Console from '../../../js/components/interface/console/Console';
+import Spotlight from '../../../js/components/interface/spotlight/spotlight';
+import MenuButton from '../../../js/components/controls/menuButton/MenuButton';
+import HomeControl from '../../../js/components/interface/home/HomeControl';
 import SaveControl from '../../../js/components/interface/save/SaveControl';
-import ButtonBar from '../../../js/components/interface/buttonBar/ButtonBar';
-import SpotLight from '../../../js/components/interface/spotlight/spotlight';
 import TabbedDrawer from '../../../js/components/interface/drawer/TabbedDrawer';
 import ControlPanel from '../../../js/components/interface/controlPanel/controlpanel';
 import ExperimentsTable from '../../../js/components/interface/experimentsTable/ExperimentsTable';
+import SimulationControls from '../../../js/components/interface/simulationControls/ExperimentControls';
+import ForegroundControls from '../../../js/components/interface/foregroundControls/ForegroundControls';
 
-require('../css/OSB.css');
+import ModelButtons from './interface/ModelButtons';
+import TutorialWidget from './interface/TutorialWidget';
+import ProjectionsDialog from './interface/ProjectionsDialog';
 
-//var $ = require('jquery');
-//var GEPPETTO = require('geppetto');
-var Rnd = require('react-rnd').default;
+require('../css/OSB.less');
+
+var $ = require('jquery');
+var GEPPETTO = require('geppetto');
 var Bloodhound = require("typeahead.js/dist/bloodhound.min.js");
 var networkControlPanel = require('../osbNetworkControlPanel.json');
+var colorbar = require('../colorbar');
+var activity = require('../activity');
+var Utilities = require('../utilities');
 
 export default class OSBMain extends React.Component {
     constructor(props) {
         super(props);
-        this.modelButtonsConfig = require('../components/configuration/modelButtonsConfig').modelButtonsConfig;
+        this.spotlightConfig = require('../components/configuration/spotlightConfig').spotlightConfig;
         this.downloadProjectButtonConfig = require('../components/configuration/downloadProjectButtonConfig').downloadProjectButtonConfig;
+        this.runMenuConfig = require('../components/configuration/runMenuConfig').runMenuConfig;
+        this.toggleRunMenuOptions = require('../components/configuration/runMenuConfig').toggleRunMenuOptions;
+        this.resultsMenuConfig = require('../components/configuration/resultsMenuConfig').resultsMenuConfig;
+        this.toggleResultsMenuOptions = require('../components/configuration/resultsMenuConfig').toggleResultsMenuOptions;
+        this.state = { ca_colouring: false };
     }
 
-    componentWillMount() {
+    addSpotlightSuggestions(spotlightRef) {
+        var recordAll = {
+            "label": "Record all membrane potentials",
+            "actions": [
+                // without setTimeout, this will hang when n instances large
+                "setTimeout(function(){var instances = Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);},250);"
+            ],
+            "icon": "fa-dot-circle-o"
+        };
 
-    }
+        var recordSoma = {
+            "label": "Record all membrane potentials at soma",
+            "actions": [
+                "var instances=window.getSomaVariableInstances('v'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+            ],
+            "icon": "fa-dot-circle-o"
+        };
 
-    componentWillUnMount() {
+        var lightUpSample = {
+            "label": "Link morphology colour to recorded membrane potentials",
+            "actions": [
+                "GEPPETTO.SceneController.addColorFunction(GEPPETTO.ModelFactory.instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v'),false), window.voltage_color);"
+            ],
+            "icon": "fa-lightbulb-o"
+        };
+
+        spotlightRef.addSuggestion(recordSoma, GEPPETTO.Resources.RUN_FLOW);
+        spotlightRef.addSuggestion(recordAll, GEPPETTO.Resources.RUN_FLOW);
+        spotlightRef.addSuggestion(lightUpSample, GEPPETTO.Resources.PLAY_FLOW);
+        spotlightRef.addSuggestion(spotlightRef.plotSample, GEPPETTO.Resources.PLAY_FLOW);
+
+        var caVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc');
+        if (caVars.length > 0) {
+            var caSuggestion = {
+                "label": "Record Ca2+ concentrations",
+                "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.caConc')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                "icon": "fa-dot-circle-o"
+            };
+            var caSomaSuggestion = {
+                "label": "Record Ca2+ concentrations at soma",
+                "actions": ["var instances=window.getSomaVariableInstances('caConc'); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                "icon": "fa-dot-circle-o"
+            };
+
+            spotlightRef.addSuggestion(caSuggestion, GEPPETTO.Resources.RUN_FLOW);
+            spotlightRef.addSuggestion(caSomaSuggestion, GEPPETTO.Resources.RUN_FLOW);
+        }
+        var rateVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.r');
+        if (rateVars.length > 0) {
+            var rateSuggestion = {
+                "label": "Record all rates for neural masses",
+                "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.r')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                "icon": "fa-dot-circle-o"
+            };
+
+            spotlightRef.addSuggestion(rateSuggestion, GEPPETTO.Resources.RUN_FLOW);
+        }
     }
 
     componentDidMount() {
         GEPPETTO.G.setIdleTimeOut(-1);
         GEPPETTO.SceneController.setLinesThreshold(20000);
-        GEPPETTO.G.autoFocusConsole(false);
+        GEPPETTO.MessageSocket.send("get_dropbox_token");
+        GEPPETTO.Spinner.setLogo("gpt-osb");
+
         GEPPETTO.UnitsController.addUnit("V","Membrane potential");
         GEPPETTO.UnitsController.addUnit("mol_per_m3","Concentration");
         GEPPETTO.UnitsController.addUnit("S / m2","Conductance density");
         GEPPETTO.UnitsController.addUnit("A / m2","Current density");
 
-        var link = document.createElement("link");
-        link.type = "text/css";
-        link.rel = "stylesheet";
-        link.href = "geppetto/extensions/geppetto-osb/css/OSB.css";
-        document.getElementsByTagName("head")[0].appendChild(link);
+        this.refs.osbCanvas.displayAllInstances();
+        this.refs.controlpanelRef.setDataFilter(function (entities) {
+            return entities;
+        });
 
-        window.initialiseControlPanel = function(barDef, id) {
-            var modifiedBarDef = JSON.parse(JSON.stringify(barDef, id).split("$ENTER_ID").join(id.getId()));
-
-            var posX = 90;
-            var posY = 5;
-            var target = GEPPETTO.ComponentFactory.addWidget('BUTTONBAR', {configuration: modifiedBarDef, isStateless: true},
-                                                             function() {
-                                                                 ButtonBar1 = this;
-                                                                 this.setPosition(posX, posY);
-                                                                 this.showTitleBar(false);
-                                                                 this.setTransparentBackground(true);
-                                                                 this.setResizable(false);
-                                                                 this.setMinSize(0, 0);
-                                                                 this.setAutoWidth();
-                                                                 this.setAutoHeight();
-                                                             });
-        };
-
-        window.initOSBGeppetto = function(type, id) {
-            var model = eval(id);
-            switch (type) {
-            case "network":
-                //window.initialiseControlPanel(networkControlPanel, id);
-                break;
-            }
-        }
-
-        if(this.refs.controlpanelRef !== undefined) {
-            this.refs.controlpanelRef.setDataFilter(function (entities) {
-                return entities;
-            })
-        }
-
+        // status indicator for experiments drawer button, this remains hacky
         $(".tabButton .fa-flask").before('<div class="circle small-expt-indicator" data-status="DESIGN" title="" rel="tooltip"></div>');
 
-        this.refs.osbCanvas.displayAllInstances();
+        GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
+            if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0)
+                this.refs.projectionsDialogRef.setState({show: true, msg: Model.neuroml.importTypes.length + ' projections in this model have not been loaded yet. '});
 
-        var that = this;
+            this.addSpotlightSuggestions(this.refs.spotlightRef);
+        }.bind(this));
+
         GEPPETTO.on(GEPPETTO.Events.Experiment_loaded, function() {
-            window.getPulseGenerators = function() {
-                // really we should implement a "getAllPotentialInstancesOfSuperType"
-                var potentialInstances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith(".i");
-                var currentInstances = [];
-                for (var i=0; i<potentialInstances.length; ++i)
-                    try {
-                        currentInstances.push(Instances.getInstance(potentialInstances[i]));
-                    } catch (e) {
-                        break;
-                    }
-                var pulseGenerators = [];
-                if (Model.neuroml.pulseGenerator)
-                    pulseGenerators = GEPPETTO.ModelFactory.getAllInstancesOfSuperType(Model.neuroml.pulseGenerator);
-                return pulseGenerators;
-            }
-            var runConfiguration = {
-                id: "runMenuButton",
-                openByDefault: false,
-                closeOnClick: true,
-                label: ' Run',
-                iconOn: 'fa fa-cogs',
-                iconOff: 'fa fa-cogs',
-                disableable: false,
-                menuPosition: {
-                    top: 40,
-                    right: 450
-                },
-                menuSize: {
-                    height: "auto",
-                    width: "auto"
-                },
-                menuItems: [{
-                    label: "Run active experiment",
-                    action: "GEPPETTO.runActiveExperiment();",
-                    value: "run_experiment",
-                    disabled: false
-                }, {
-                    label: "Add new experiment",
-                    action: "GEPPETTO.addNewExperiment();",
-                    value: "add_experiment",
-                    disabled: false
-                },{
-                    label: "Add & run protocol",
-                    action: "GEPPETTO.showAddProtocolDialog();",
-                    value: "add_protocol",
-                    disabled: false
-                }]
-            };
-            if (!GEPPETTO.UserController.hasWritePermissions() && !GEPPETTO.UserController.hasPermission(GEPPETTO.Resources.WRITE_PROJECT))
-                runConfiguration.menuItems.push({
-                    label: "Sign up and log in to run experiments",
-                    action: "top.window.location = 'http://www.opensourcebrain.org/account/register'",
-                    value: "add_experiment",
-                    disabled: false
-                })
-            GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
+            // update results menu with appropriate options (ca highlighting etc.)
+            this.toggleResultsMenuOptions(this.refs.resultsMenuRef)();
+            this.toggleRunMenuOptions(this.refs.runMenuRef);
+        }.bind(this));
 
-            GEPPETTO.ComponentFactory.addComponent('BUTTON', {configuration: that.downloadProjectButtonConfig}, document.getElementById("DownloadProjectButton"));
-
-            GEPPETTO.ComponentFactory.addComponent('FOREGROUND', {}, document.getElementById("foreground-toolbar"));
-        });
+        // update results menu with appropriate options (ca highlighting etc.)
+        GEPPETTO.on(GEPPETTO.Events.Experiment_completed, this.toggleResultsMenuOptions(this.refs.resultsMenuRef));
     }
 
     render() {
         return (
             <div style={{height: '100%', width: '100%'}}>
-              <Logo logo='gpt-osb' id="geppettologo" />
-              <Rnd
-                enableResizing={{
-                    top: false, right: false, bottom: false,
-                    left: false, topRight: false, bottomRight: false,
-                    bottomLeft: false, topLeft: false}}
-                default={{
-                    x: 10, y: 10,
-                    height: 35, width: 340}}
-                className="new-widget"
-                disableDragging={true}
-                maxHeight={35} minHeight={35}
-                maxWidth={350} minWidth={150}
-                ref="buttonBarRef">
-                <ButtonBar
-                  id="ButtonBarContainer"
-                  configuration={this.modelButtonConfig}
-                  buttonBarHandler={this.buttonBarHandler} />
-              </Rnd>
+              <Logo logo='gpt-osb' id="geppettologo"/>
               <div id="sim">
-                <Canvas id="CanvasContainer" name={"Canvas"} ref="osbCanvas" />
+                <Canvas id="CanvasContainer" name="Canvas" ref="osbCanvas" />
               </div>
 
-              <div id="controlpanel" style={{top: 0}}>
-                <ControlPanel ref="controlpanelRef" icon={"styles.Modal"} enableInfiniteScroll={true} 
-                              useBuiltInFilter={true}/>
+              <ModelButtons x={90} y={10} />
+
+              <SaveControl />
+              <Button configuration={this.downloadProjectButtonConfig} />
+              <HomeControl />
+              <SimulationControls ref="runMenuRef" runConfiguration={this.runMenuConfig} />
+              <MenuButton ref="resultsMenuRef" configuration={this.resultsMenuConfig} />
+              <ForegroundControls />
+
+              <TutorialWidget ref="tutorialWidgetRef" />
+
+              <div id="controlpanel">
+                <ControlPanel ref="controlpanelRef" icon="styles.Modal" enableInfiniteScroll={true} useBuiltInFilters={true} />
               </div>
+              <div id="spotlight" style={{top: 0}}>
+                <Spotlight ref="spotlightRef" indexInstances={true} />
+              </div>
+
+              <ProjectionsDialog ref="projectionsDialogRef" />
 
               <div id="footerHeader">
-                <TabbedDrawer ref="tabbedDrawRef" children={[Console, ExperimentsTable]} labels={["Console", "Experiments"]} iconClass={["fa fa-terminal", "fa fa-flask"]}/>
+                <TabbedDrawer ref="tabbedDrawRef" children={[Console, ExperimentsTable]} labels={["Console", "Experiments"]} iconClass={["fa fa-terminal", "fa fa-flask"]} />
               </div>
-              
-              <div id="sim-toolbar">
-              </div>
-
-              <div id="DownloadProjectButton"></div>
-              <div id="foreground-toolbar"></div>
-
-            <SaveControl ref="saveControl"/>
             </div>
         )
     }
