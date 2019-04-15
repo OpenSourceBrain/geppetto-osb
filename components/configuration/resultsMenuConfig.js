@@ -1,3 +1,6 @@
+var activity = require('../../activity');
+var Utilities = require('../../utilities');
+
 var resultsMenuConfig = {
     id: "controlsMenuButton",
     openByDefault: false,
@@ -15,36 +18,77 @@ var resultsMenuConfig = {
     },
     menuItems: [{
         label: "Plot all recorded variables",
-        action: "window.plotAllRecordedVariables();",
         value: "plot_recorded_variables"
     }, {
         label: "Plot activity (continuous/raster/mean)",
-        action: "window.showActivitySelector();",
         value: "plot_activity"
     }, {
         label: "Play step by step",
-        action: "Project.getActiveExperiment().play({step:1});",
         value: "play_speed_1"
     }, {
         label: "Play step by step (10x)",
-        action: "Project.getActiveExperiment().play({step:10});",
         value: "play_speed_10"
     }, {
         label: "Play step by step (100x)",
-        action: "Project.getActiveExperiment().play({step:100});",
         value: "play_speed_100"
     }, {
         label: "Show simulation time",
-        action: "G.addWidget(5).then(w => w.setName('Simulation time').setVariable(time));",
         value: "simulation_time"
     }, {
         label: "Show protocol summary",
-        action: "window.showProtocolSummary();",
-        value: "show_protocol_summary"
+        value: "show_protocol_summary",
     }]
 };
 
-window.plotAllRecordedVariables = function(groupingFn) {
+var resultsMenuHandler = function(value) {
+    switch(value) {
+    case "plot_recorded_variables":
+        plotAllRecordedVariables();
+        break;
+    case "plot_activity":
+        activity.showActivitySelector();
+        break;
+    case "play_speed_1":
+        Project.getActiveExperiment().play({step: 1});
+        break;
+    case "play_speed_10":
+        Project.getActiveExperiment().play({step: 10});
+        break;
+    case "play_speed_100":
+        Project.getActiveExperiment().play({step: 100});
+        break;
+    case "simulation_time":
+        G.addWidget(5).then(w => w.setName('Simulation time').setVariable(time));
+        break;
+    case "show_protocol_summary":
+        // we bind `this` in OSB component when this fn given as prop
+        showProtocolSummary(this);
+        break;
+    // this item is added dynamically
+    case "apply_voltage":
+        return applyVoltageColoring(this.refs.resultsMenuRef, this.refs.colorbarRef);
+        break;
+    }
+}
+
+var showProtocolSummary = function(that) {
+    that.refs.protocolResultsRef.show();
+    that.refs.protocolResultsRef.updateProtocols({protocols: Utilities.getProtocolExperimentsMap()});
+};
+
+var applyVoltageColoring = function(menuRef, colorbarRef) {
+    var radioState = menuRef.state.radio['apply_voltage'];
+    if (radioState) {
+        //GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
+        return false;
+    } else {
+        //GEPPETTO.SceneController.addColorFunction(getRecordedMembranePotentials(), this.refs.colorbarRef.voltage_color());
+        //colorbarRef.setupColorbar(getRecordedMembranePotentials(), colorbarRef.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');
+        return true;
+    }
+}
+
+var plotAllRecordedVariables = function(groupingFn) {
     var groupBy = function(xs, key) {
         return xs.reduce(function(rv, x) {
             (rv[key(x)] = rv[key(x)] || []).push(x);
@@ -89,21 +133,42 @@ window.plotAllRecordedVariables = function(groupingFn) {
     }
 };
 
-window.showActivitySelector = function() { return activity.showActivitySelector(); }
+var plotProtocolResults = function(protocolName, e){
+    e.preventDefault();
+    // figure out if we have any protocol and organize into a map
+    var protocolExperimentsMap = Utilities.getProtocolExperimentsMap();
 
-window.getSomaVariableInstances = function(stateVar) {
-    var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.' + stateVar);
-    var instancesToRecord = [];
-    for (var i = 0; i < instances.length; i++) {
-        var s = instances[i].split('.' + stateVar)[0];
-        if (s.endsWith("_0") || s.endsWith("]")) {
-            instancesToRecord.push(instances[i]);
-        }
+    // look for experiments with that name
+    var experiments = protocolExperimentsMap[protocolName];
+    var membranePotentials = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v');
+    var plotController = GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT);
+    if(experiments.length > 0 && membranePotentials.length>0){
+        G.addWidget(0).then(plotWidget  => {
+	    plotWidget.setName(protocolName + ' / membrane potentials').setSize(300, 500);
+	    // loop and plot all membrane potentials
+	    plotController.then(
+		function(pc) {
+		    (function (experiments) {
+			for(var i=0; i<experiments.length; i++){
+			    if(experiments[i].getStatus() == 'COMPLETED'){
+				for(var j=0; j<membranePotentials.length; j++){
+				    pc.plotStateVariable(
+					Project.getId(),
+					experiments[i].getId(),
+					membranePotentials[j],
+					plotWidget
+				    );
+				}
+			    }
+			}
+		    })(experiments)
+		}
+	    )
+	});
     }
-    return Instances.getInstance(instancesToRecord);
 };
 
-window.getRecordedMembranePotentials = function() {
+var getRecordedMembranePotentials = function() {
     var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
     var v = [];
     for (var i = 0; i < instances.length; i++) {
@@ -114,7 +179,7 @@ window.getRecordedMembranePotentials = function() {
     return v;
 };
 
-window.getRecordedCaConcs = function() {
+var getRecordedCaConcs = function() {
     var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
     var v = [];
     for (var i = 0; i < instances.length; i++) {
@@ -125,7 +190,7 @@ window.getRecordedCaConcs = function() {
     return v;
 };
 
-window.getRecordedRates = function() {
+var getRecordedRates = function() {
     var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
     var v = [];
     for (var i = 0; i < instances.length; i++) {
@@ -136,6 +201,7 @@ window.getRecordedRates = function() {
     return v;
 };
 
+// FIXME: actions/conditions etc to be changed in line with new menu handler setup
 var toggleResultsMenuOptions = function(resultsMenu) {
     return function(){
     if (Project.getActiveExperiment() == null)
@@ -148,6 +214,7 @@ var toggleResultsMenuOptions = function(resultsMenu) {
         if (resultsMenu.state.configuration.menuItems.map(x=>x.value).indexOf("apply_ca") == -1) {
             resultsMenu.addMenuItem({
                 label: "Apply Ca2+ concentration colouring to morphologies",
+                type: 'radio',
                 radio: true,
                 condition: "window.ca",
                 value: "apply_ca",
@@ -195,6 +262,7 @@ var toggleResultsMenuOptions = function(resultsMenu) {
         if (resultsMenu.state.configuration.menuItems.map(x=>x.value).indexOf("apply_voltage") == -1) {
             resultsMenu.addMenuItem({
                 label: "Apply voltage colouring to morphologies",
+                type: "radio",
                 radio: true,
                 condition: "if (window.controlsMenuButton && window.controlsMenuButton.refs && window.controlsMenuButton.refs.dropDown.refs.apply_voltage)" +
                     "{ window.controlsMenuButton.refs.dropDown.refs.apply_voltage.state.icon != 'fa fa-circle-o' } else { false }",
@@ -236,5 +304,5 @@ var toggleResultsMenuOptions = function(resultsMenu) {
 }
 
 module.exports = {
-    resultsMenuConfig, toggleResultsMenuOptions
+    resultsMenuConfig, resultsMenuHandler, toggleResultsMenuOptions
 }

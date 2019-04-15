@@ -4,6 +4,26 @@ export default class Colorbar extends React.Component {
     constructor(props) {
         super(props);
     }
+    voltage_color(min, max) {
+        if(max == undefined || min == undefined) { min = 0; max = 1; }
+        return function(x) {
+            x = (x-min)/(max-min);
+            var y=(1-x)/0.25;
+            var i=Math.floor(y);
+            var j=y-i;
+            var r, g, b;
+            switch(i)
+            {
+                case 0: r=1;g=j;b=0;break;
+                case 1: r=1-j;g=1;b=0;break;
+                case 2: r=0;g=1;b=j;break;
+                case 3: r=0;g=1-j;b=1;break;
+                case 4: r=0;g=0;b=1;break;
+            }
+            return [r, g, b];
+        }
+    }
+
     setupColorbar(instances, scalefn, normalize, name, axistitle, left, top, cb) {
             if (instances.length > 0) {
                 G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
@@ -22,7 +42,7 @@ export default class Colorbar extends React.Component {
                         c.colorscaleMenu = [{
                                 "label": "Rainbow",
                                 "method": "setScale",
-                                "arguments": [window.voltage_color, true]
+                                "arguments": [this.voltage_color, true]
                             },{
                                 "label": "Sequential",
                                 "method": "setScale",

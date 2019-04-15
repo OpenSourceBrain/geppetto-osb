@@ -2,7 +2,7 @@ var modelButtonsConfig = {
     "Connectivity": {
         "icon": "gpt-make-group",
         "label": "Connectivity",
-        "tooltip": "Loads the connectivity matrix widget"
+        "tooltip": "Loads the connectivity matrix widget",
     },
     "Model Description": {
         "icon": "gpt-pyramidal-cell",

@@ -18,28 +18,36 @@ var runMenuConfig = {
     },
     menuItems: [{
         label: "Run active experiment",
-        action: "window.runActiveExperiment();",
         value: "run_experiment",
-        disabled: false
     }, {
         label: "Add new experiment",
-        action: "window.addNewExperiment();",
         value: "add_experiment",
-        disabled: false
     },{
         label: "Add & run protocol",
-        action: "window.showAddProtocolDialog();",
         value: "add_protocol",
-        disabled: false
     }]
 };
 
-window.addNewExperiment = function() {
+var runMenuHandler = function(value) {
+    switch(value) {
+    case "run_experiment":
+        runActiveExperiment();
+        break;
+    case "add_experiment":
+        addNewExperiment();
+        break;
+    case "add_protocol":
+        showAddProtocolDialog();
+        break;
+    }
+}
+
+var addNewExperiment = function() {
     if (!Utilities.persistWarning())
         Project.getActiveExperiment().clone();
 }
 
-window.runActiveExperiment = function() {
+var runActiveExperiment = function() {
     if (!Utilities.persistWarning())
         GEPPETTO.Flows.onRun('Project.getActiveExperiment().run();');
 }
@@ -60,7 +68,19 @@ var getPulseGenerators = function() {
     return pulseGenerators;
 }
 
-window.showAddProtocolDialog = function(callback) {
+var getSomaVariableInstances = function(stateVar) {
+    var instances = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.' + stateVar);
+    var instancesToRecord = [];
+    for (var i = 0; i < instances.length; i++) {
+        var s = instances[i].split('.' + stateVar)[0];
+        if (s.endsWith("_0") || s.endsWith("]")) {
+            instancesToRecord.push(instances[i]);
+        }
+    }
+    return Instances.getInstance(instancesToRecord);
+};
+
+var showAddProtocolDialog = function(callback) {
     if (!Utilities.persistWarning()) {
         if (getPulseGenerators().length > 0) {
             var formWidget = null;
@@ -137,7 +157,7 @@ window.showAddProtocolDialog = function(callback) {
                 var experimentNamePattern = "[P] " + formData.protocolName + " - ";
 
                 function experimentCompleteHandler(){
-                    var protocolExperimentsMap = window.getProtocolExperimentsMap();
+                    var protocolExperimentsMap = Utilities.getProtocolExperimentsMap();
 
                     var protocolExperiments = [];
                     for(var protocol in protocolExperimentsMap){
@@ -156,7 +176,7 @@ window.showAddProtocolDialog = function(callback) {
                     }
 
                     if(allCompleted){
-                        window.showProtocolSummary();
+                        showProtocolSummary();
                         GEPPETTO.off(GEPPETTO.Events.Experiment_completed, experimentCompleteHandler);
                     }
                 }
@@ -170,7 +190,7 @@ window.showAddProtocolDialog = function(callback) {
                     watchedVars = Project.getActiveExperiment().getWatchedVariables();
                 }
                 // concat default paths
-                var defaultVars = window.getSomaVariableInstances('v').map(function(item){
+                var defaultVars = getSomaVariableInstances('v').map(function(item){
                     return item.getPath();
                 });
                 for(var v=0; v<defaultVars.length; v++){
