@@ -55,7 +55,7 @@ body {
     fill: black !important;
 }
 
-.btn:not(ul):not(.btn-warning):not(.toggle-button-toggled):not([disabled]) {
+.btn:not(ul):not(.btn-warning):not(.toggle-button-toggled):not(.color-picker-button):not([disabled]) {
     background: rgba(236, 236, 236, 0.8) !important;
     color: #fc6320 !important;
 }
