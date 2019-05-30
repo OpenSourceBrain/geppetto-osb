@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import Tutorial from '../../../../js/components/interface/tutorial/Tutorial';
-import WidgetCapability from '../../../../js/components/widgets/WidgetCapability';
+import Tutorial from 'geppetto-client/js/components/interface/tutorial/Tutorial';
+import WidgetCapability from 'geppetto-client/js/components/widgets/WidgetCapability';
 
-var osbDefaultTutorial = require('../../osbTutorial.json');
+var osbDefaultTutorial = require('../configuration/osbTutorial.json');
 var GEPPETTO = require('geppetto');
 
 export default class TutorialWidget extends React.Component {
@@ -20,8 +20,8 @@ export default class TutorialWidget extends React.Component {
     render() {
         var TutorialWidget = WidgetCapability.createWidget(Tutorial);
 
-        var tutorialsList = [
-            "/org.geppetto.frontend/geppetto/extensions/geppetto-osb/osbTutorial.json"]
+        var tutorialsList = [];
+            //"/components/configuration/osbTutorial.json"]
         return (
                 <TutorialWidget
                     id={'widgetTutorial'}

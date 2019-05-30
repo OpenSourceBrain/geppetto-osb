@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import WidgetCapability from '../../../../js/components/widgets/WidgetCapability';
+import WidgetCapability from 'geppetto-client/js/components/widgets/WidgetCapability';
+import AbstractComponent from 'geppetto-client/js/components/AComponent';
 
 var Utilities = require('../../utilities.js');
-var AbstractComponent = require('../../../../js/components/AComponent');
+//var AbstractComponent = require('../../../../js/components/AComponent');
 
 class ProtocolResultsAbstract extends AbstractComponent {
 

@@ -120,7 +120,7 @@ var plotAllRecordedVariables = function(groupingFn) {
         for (var i=0; i<groups.length; ++i) {
             var group = groups[i];
             (function(group, i) {
-                G.addWidget(GEPPETTO.Widgets.PLOT).then(w => {
+                G.addWidget('PLOT').then(w => {
 		    w.setName("Recorded variables: "+group);
                     w.setPosition(100+(i*50), 100+(i*50));
                     // first trace match population color, let plotly assign the rest

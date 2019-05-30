@@ -1,10 +1,11 @@
 import React from 'react';
-import ButtonBar from '../../../../js/components/interface/buttonBar/ButtonBar';
+import ButtonBar from 'geppetto-client/js/components/interface/buttonBar/ButtonBar';
+import AbstractComponent from 'geppetto-client/js/components/AComponent';
 
 var Rnd = require('react-rnd').default;
 var Utilities = require('../../utilities');
 
-var AbstractComponent = require('../../../../js/components/AComponent');
+//var AbstractComponent = require('../../../../js/components/AComponent');
 
 export default class ModelButtons extends AbstractComponent {
 
