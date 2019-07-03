@@ -730,7 +730,7 @@ define(function(require) {
                 label: ' Run',
                 iconOn: 'fa fa-cogs',
                 iconOff: 'fa fa-cogs',
-                disableable: false,
+                disableable: true,
                 menuPosition: {
                     top: 40,
                     right: 450
