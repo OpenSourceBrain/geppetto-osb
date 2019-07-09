@@ -4,18 +4,6 @@ export default class ProjectionsDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = { show: false, loadLink: true, msg: '' };
-        this.loadConnections = this.loadConnections.bind(this);
-    }
-
-    loadConnections (e) {
-        e.preventDefault();
-        Model.neuroml.resolveAllImportTypes(function() {
-            this.setState({msg: window.Model.neuroml.importTypes.length +
-                           " projections and " +
-                           window.Model.neuroml.connection.getVariableReferences().length +
-                           " connections were successfully loaded.",
-                           loadLink: false});
-        }.bind(this));
     }
 
     render() {
@@ -27,7 +15,7 @@ export default class ProjectionsDialog extends React.Component {
                   <span aria-hidden="true">&times;</span>
                   </button>
                   <span className="osb-notification-text">{this.state.msg}</span>
-                  { this.state.loadLink ? <span><a href="#" onClick={this.loadConnections} className="alert-link">Click here to load the connections.</a>  (Note: depending on the size of the network, loading connections may take up to two minutes).</span> : null }
+                  { this.state.loadLink ? <span><a href="#" onClick={this.props.loadConnections} className="alert-link">Click here to load the connections.</a>  (Note: depending on the size of the network, loading connections may take up to two minutes).</span> : null }
                   </div>
                   : null }
             </div>

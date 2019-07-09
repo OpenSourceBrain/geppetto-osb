@@ -12,12 +12,13 @@ export default class ModelButtons extends AbstractComponent {
     constructor(props) {
         super(props);
         this.state = {};
+        this.loadConnections = this.props.loadConnections(this.connectivityCallback);
         this.state.modelButtonsConfig = require('../../components/configuration/modelButtonsConfig').modelButtonsConfig;
         
         this.buttonBarHandler = function(buttonState) {
             switch (buttonState) {
             case 'Connectivity':
-                this.loadConnectivityAndShow();
+                this.loadConnections(); 
                 break;
             case 'Model Description':
                 this.showModelDescription();
@@ -63,10 +64,8 @@ export default class ModelButtons extends AbstractComponent {
         }
     }
 
-    loadConnectivityAndShow() {
-        var instance = GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0];
-        Model.neuroml.resolveAllImportTypes(function(){
-            $(".osb-notification-text").html(Model.neuroml.importTypes.length + " projections and " + Model.neuroml.connection.getVariableReferences().length + " connections were successfully loaded.");
+    connectivityCallback() {
+    var instance = GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0];
             if (GEPPETTO.ModelFactory.geppettoModel.neuroml.projection == undefined) {
                 G.addWidget(1, {isStateless: true}).then(w => w.setMessage('No connection found in this network').setName('Warning Message'));
             } else {
@@ -97,7 +96,6 @@ export default class ModelButtons extends AbstractComponent {
                                     .configViaGUI()
                                    );
             }
-        });
     }
 
     hideConnectivityButton() {

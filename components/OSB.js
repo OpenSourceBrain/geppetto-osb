@@ -142,16 +142,27 @@ export default class OSB extends React.Component {
         GEPPETTO.on(GEPPETTO.Events.Experiment_completed, this.toggleResultsMenuOptions(this.refs.resultsMenu));
     }
 
+  loadConnections (cb) {
+    return function(e) {
+      if (e) e.preventDefault();
+      Model.neuroml.resolveAllImportTypes(function() {
+        if (cb) cb();
+        this.refs.projectionsDialog.setState({msg: window.Model.neuroml.importTypes.length +
+                       " projections and " +
+                       window.Model.neuroml.connection.getVariableReferences().length +
+                       " connections were successfully loaded.",
+                       loadLink: false});
+      }.bind(this));
+    }.bind(this);
+    }
+
     closeHandler() {
-        if(this.state.protocolWidgetVisible == true) {
-                    this.setState({protocolWidgetVisible: false});
+        if (this.state.protocolWidgetVisible == true) {
+          this.setState({protocolWidgetVisible: false});
         }
     }
-    render() {
-        if((this.state.protocolWidgetVisible == true) && (this.protocolWidgetRender == undefined)) {
-            this.protocolWidgetRender = <ProtocolResultsWidget ref="protocolResults" closeHandler={this.closeHandler} />
-        }
-
+  render() {
+        let protocolWidgetRender = this.state.protocolWidgetVisible ? <ProtocolResultsWidget ref="protocolResults" closeHandler={this.closeHandler} /> : null;
         return (
             <div style={{height: '100%', width: '100%'}}>
               <Logo logo='gpt-osb' id="geppettologo"/>
@@ -159,7 +170,7 @@ export default class OSB extends React.Component {
                 <Canvas id="CanvasContainer" name="Canvas" ref="osbCanvas" />
               </div>
 
-              <ModelButtons ref="modelButtons" x={90} y={10} />
+              <ModelButtons ref="modelButtons" x={90} y={10} loadConnections={this.loadConnections.bind(this)} />
 
               <SaveControl />
               <Button configuration={this.downloadProjectButtonConfig} />
@@ -178,9 +189,9 @@ export default class OSB extends React.Component {
               </div>
 
               <Colorbar ref="colorbar" />
-              {this.protocolWidgetRender}
+              {protocolWidgetRender}
               {/*<ProtocolResultsWidget ref="protocolResults" />*/}
-              <ProjectionsDialog ref="projectionsDialog" />
+              <ProjectionsDialog ref="projectionsDialog" loadConnections={this.loadConnections()}/>
 
               {/*<ModelDescriptionWidget ref="modelDesc" hidden={true} />*/}
 
