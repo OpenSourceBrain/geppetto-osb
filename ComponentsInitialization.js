@@ -133,7 +133,7 @@ define(function(require) {
 		    ...(!GEPPETTO.UserController.getDropboxToken()) && {'ui:disabled': 'false'}
 		},
                 timeStep: {
-                    ...(dt_required) && {'ui:disabled': 'true'}
+                    ...(required_dt) && {'ui:disabled': 'true'}
 		}
 	    };
 
