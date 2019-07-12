@@ -30,6 +30,7 @@ define(function(require) {
             this.engine.setLinesThreshold(10000);
         });
 
+        var required_dt = false;
         //This function will be called when the run button is clicked
         GEPPETTO.showExecutionDialog = function(callback) {
             var formCallback = callback;
@@ -84,13 +85,6 @@ define(function(require) {
                 }
             };
 
-	    var uiSchema = {
-		dropboxUpload: {
-                    classNames: "dropbox-check",
-		    ...(!GEPPETTO.UserController.getDropboxToken()) && {'ui:disabled': 'false'}
-		}
-	    };
-
             var formData = {
                 experimentName: Project.getActiveExperiment().getName(),
                 numberProcessors: 1,
@@ -112,19 +106,36 @@ define(function(require) {
                     .filter(x=>x.getName()==="Property").map(x=>x.getAnonymousTypes()).map(x=>x[0].tag.getWrappedObj().initialValues[0].value.text);
                 var values = GEPPETTO.ModelFactory.getAllInstancesOfType(Model.neuroml.network)[0].getType().getChildren()
                     .filter(x=>x.getName()==="Property").map(x=>x.getAnonymousTypes()).map(x=>x[0].value.getWrappedObj().initialValues[0].value.text);
+                if (properties.indexOf("required_dt_ms") > -1) {
+                    required_dt = true;
+                    formData['timeStep'] = parseFloat(values[properties.indexOf("required_dt_ms")])/1000;
+                    $("#experimentsOutput").find(".activeExperiment").find("td[name='timeStep']").html(formData['timeStep']).blur();
+		}
 
-                if (properties.indexOf("recommended_dt_ms") > -1)
+                if (properties.indexOf("recommended_dt_ms") > -1) {
                     formData['timeStep'] = parseFloat(values[properties.indexOf("recommended_dt_ms")])/1000;
-                else
+                    $("#experimentsOutput").find(".activeExperiment").find("td[name='timeStep']").html(formData['timeStep']).blur();
+		} else
                     formData['timeStep'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getTimeStep();
-
-                if (properties.indexOf("recommended_duration_ms") > -1)
+ 
+                if (properties.indexOf("recommended_duration_ms") > -1) {
                     formData['length'] = parseFloat(values[properties.indexOf("recommended_duration_ms")])/1000;
-                else
+                    $("#experimentsOutput").find(".activeExperiment").find("td[name='length']").html(formData['length']).blur();
+		} else
                     formData['length'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getLength();
 
                 formData['simulator'] = Project.getActiveExperiment().simulatorConfigurations[pathRef].getSimulator();
             }
+
+	    var uiSchema = {
+		dropboxUpload: {
+                    classNames: "dropbox-check",
+		    ...(!GEPPETTO.UserController.getDropboxToken()) && {'ui:disabled': 'false'}
+		},
+                timeStep: {
+                    ...(dt_required) && {'ui:disabled': 'true'}
+		}
+	    };
 
             var submitHandler = function(data) {
 		var formData = data.formData;
@@ -451,7 +462,7 @@ define(function(require) {
                     // error handling
                 };
 
-                var changeHandler = function(formObject) {
+                var changeHandler2 = function(formObject) {
                     // handle any changes on form data
                 };
 
@@ -462,7 +473,7 @@ define(function(require) {
                     formData: formData,
                     submitHandler: submitHandler,
                     errorHandler: errorHandler,
-                    changeHandler: changeHandler
+                    changeHandler: changeHandler2
                 }, function() {
                     formWidget = this;
                     this.setName(formName);
