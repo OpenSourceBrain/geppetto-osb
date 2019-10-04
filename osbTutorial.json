@@ -5,11 +5,11 @@
 	"steps": [{
 		"icon" : "gpt-osb",
 		"title": " Guided tour",
-		"message": "<p><strong>Welcome to Open Source Brain!</strong></p><p>This is a <strong>tutorial</strong> to help you understand what you can do through the OSB 3D interface.</p>",
+		"message": "<p><strong>Welcome to Open Source Brain!</strong></p><p>This is a <strong>Guided Tour</strong> to help you understand what you can do through the OSB 3D interface.</p>",
 		"action": ""
 	}, {
 		"title": " Guided tour: Model information",
-		"message": "<p>You are looking at neuronal morphologies (and possibly network connections) defined in one or more <a href=\"http://www.neuroml.org\" target=\"_blank\">NeuroML</a> files and rendered here in 3D.</p><p>You can see information on this model (e.g. what populations, cells and channels are present) by clicking on the <strong>Model Description</strong> button on the top left.</p><p>This will also provide a link to the NeuroML file (normally hosted on GitHub) which was used to generate this scene.</p>",
+		"message": "<p>You are looking at neuronal morphologies (and possibly network connections) defined in one or more <a href=\"http://www.neuroml.org\" target=\"_blank\">NeuroML</a> files and rendered here in 3D.</p><p>You can see information on this model (e.g. what populations, cells and channels are present) by clicking on the <strong>Model Description</strong> button on the top left.</p><p>This will also provide a link to the NeuroML file (normally hosted on <a href=\"https://github.com/OpenSourceBrain\" target=\"_blank\">GitHub</a>) which was used to generate this scene.</p>",
 		"action": "$('div.toolbar button :eq(1)').effect('highlight', {}, 6000);"
 	}, {
 		"title": " Guided tour: Connectivity information",
@@ -26,12 +26,12 @@
 	}, {		
         "title": " Guided tour: Persisting your project",
 		"icon" : "fa fa-star",
-		"message": "<p>On the top bar you can find the <strong>Persist</strong> button, in the shape of a star. With it you can add this model to your model collection for easy access.</p> <p>Note <strong>you must be <a href=\"http://www.opensourcebrain.org/account/register\" target=\"_blank\">signed up</a> and logged in</strong> to be able to persist projects!</p><p>The button will be disabled if the model has already been persisted, or you're not logged in. All persisted models will appear on your homepage when logged in.</p>",
+		"message": "<p>On the top bar you can find the <strong>Persist</strong> button, in the shape of a star. With it you can add this model to your model collection for easy access.</p> <p>Note <strong>you must be <a href=\"http://www.opensourcebrain.org/account/register\" target=\"_blank\">signed up</a> and logged in</strong> to be able to persist projects!</p><p>The button will be disabled if the model has already been persisted, or you're not logged in. All of your persisted models will appear on the OSB homepage when logged in (click on \"Your models\").</p>",
 		"action": "$('.saveButton').effect('pulsate', {}, 3000);"
 	}, {
 		"title": " Guided tour: Experiments Tab",
 		"icon" : "fa fa-flask",
-		"message": "<p>The <strong>Experiments tab</strong> displays all the experiments within the loaded project.</p>  <p>When an experiment is set running, the status icon in the Experiments tab will change from <i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> (pre simulation; experiment design phase), to <i class=\"fa fa-circle\" style=\"color:#0199e8\"></i> (in the queue on our servers), to <i class=\"fa fa-circle\" style=\"color:#ffcc00\"></i> (running), and finally to <i class=\"fa fa-circle\" style=\"color:#649615\"></i> (completed). It will show <i class=\"fa fa-circle\" style=\"color:red\"></i> if there has been a problem running the simulation.</p>",
+		"message": "<p>The <strong>Experiments tab</strong> displays all the experiments within the loaded project.</p>  <p>When an experiment is set running, the status icon in the Experiments tab will change from <i class=\"fa fa-circle\" style=\"color:#ff5a02\"></i> (pre simulation; experiment design phase), to <i class=\"fa fa-circle\" style=\"color:#0199e8\"></i> (in the queue on our servers), to <i class=\"fa fa-circle\" style=\"color:#ffcc00\"></i> (running), and finally to <i class=\"fa fa-circle\" style=\"color:#649615\"></i> (completed).</p>  <p>It will show <i class=\"fa fa-circle\" style=\"color:red\"></i> if there has been a problem running the simulation.</p>",
 		"action": "$('.tabButton:contains(\"Experiments\")').click();"
 	}, {
 		"title": " Guided tour: Experiments Tab",
@@ -51,7 +51,7 @@
 
 	}, {
 		"title": " Guided tour: Camera Controls",
-		"message": "<p>On the left side of the screen, you'll find the <strong>Camera Controls</strong>.</p><p>With these you can explore the 3D morphologies by zooming in and out, and rotating the camera.</p>",
+		"message": "<p>On the left side of the screen, you'll find the <strong>Camera Controls</strong>.</p><p>With these you can explore the 3D morphologies by zooming in and out, and rotating the camera (in addition to being able to move the scene by holding down the left/right mouse button and moving).</p>",
 		"action": "$('#panLeftBtn').effect('highlight', {}, 3000); $('#panUpBtn').effect('highlight', {}, 3000); $('#panDownBtn').effect('highlight', {}, 3000); $('#panRightBtn').effect('highlight', {}, 3000); $('#panHomeBtn').effect('highlight', {}, 3000); $('#rotateLeftBtn').effect('highlight', {}, 3000); $('#rotateRightBtn').effect('highlight', {}, 3000); $('#rotateUpBtn').effect('highlight', {}, 3000); $('#rotateDownBtn').effect('highlight', {}, 3000); $('#rotateHomeBtn').effect('highlight', {}, 3000); $('#zoomInBtn').effect('highlight', {}, 3000); $('#zoomOutBtn').effect('highlight', {}, 3000);"
 
 	}, {
