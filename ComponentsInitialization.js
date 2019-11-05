@@ -936,6 +936,16 @@ define(function(require) {
 
                 GEPPETTO.Spotlight.addSuggestion(rateSuggestion, GEPPETTO.Resources.RUN_FLOW);
             }
+            var dlVoltageVars = GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.V');
+            if (dlVoltageVars.length > 0) {
+                var dlVoltageSuggestion = {
+                    "label": "Record all (dimensionless) membrane potentials, V",
+                    "actions": ["var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.V')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"],
+                    "icon": "fa-dot-circle-o"
+                };
+
+                GEPPETTO.Spotlight.addSuggestion(dlVoltageSuggestion, GEPPETTO.Resources.RUN_FLOW);
+            }
         });
 
         GEPPETTO.on(GEPPETTO.Events.Project_loading, function() {
@@ -1247,6 +1257,18 @@ define(function(require) {
             var v = [];
             for (var i = 0; i < instances.length; i++) {
                 if (instances[i].getInstancePath().endsWith(".v")) {
+                    v.push(instances[i]);
+                }
+            }
+            return v;
+        };
+        
+        // Dimensionless voltage, V
+        window.getRecordedDLMembranePotentials = function() {
+            var instances = Project.getActiveExperiment().getWatchedVariables(true, false);
+            var v = [];
+            for (var i = 0; i < instances.length; i++) {
+                if (instances[i].getInstancePath().endsWith(".V")) {
                     v.push(instances[i]);
                 }
             }
