@@ -7,44 +7,44 @@ var GEPPETTO = require('geppetto');
 
 export default class TutorialWidget extends React.Component {
 
-    constructor(props) {
-        super(props);
+  constructor (props) {
+    super(props);
 
-        this.closeHandler = this.closeHandler.bind(this);
-    }
+    this.closeHandler = this.closeHandler.bind(this);
+  }
 
-    closeHandler() {
-        this.props.tutorialHandler();
-    }
+  closeHandler () {
+    this.props.tutorialHandler();
+  }
 
-    render() {
-        var TutorialWidget = WidgetCapability.createWidget(Tutorial);
+  render () {
+    var TutorialWidget = WidgetCapability.createWidget(Tutorial);
 
-        var tutorialsList = [];
-            //"/components/configuration/osbTutorial.json"]
-        return (
-                <TutorialWidget
-                    id={'widgetTutorial'}
-                    componentType={'TUTORIAL'}
-                    tutorialData={osbDefaultTutorial}
-                    closeByDefault={false}
-                    position={{left: 100, top: 70, position: "absolute"}}
-                    size={{height: 300, width: 350}}
-                    tutorialMessageClass="tutorialMessage"
-                    showMemoryCheckbox={true}
-                    tutorialsList={tutorialsList}
-                    closeHandler={this.closeHandler}
-                    isStateLess={true}
-                    resizable={true}
-                    draggable={true}
-                    fixPosition={false}
-                    help={true}
-                    showHistoryIcon={true}
-                    closable={true}
-                    minimizable={true}
-                    maximizable={true}
-                    collapsable={true}
-                    ref="tutorialRef" />
-        );
-    }
+    var tutorialsList = [];
+    // "/components/configuration/osbTutorial.json"]
+    return (
+      <TutorialWidget
+        id={'widgetTutorial'}
+        componentType={'TUTORIAL'}
+        tutorialData={osbDefaultTutorial}
+        closeByDefault={false}
+        position={{ left: 100, top: 70, position: "absolute" }}
+        size={{ height: 300, width: 350 }}
+        tutorialMessageClass="tutorialMessage"
+        showMemoryCheckbox={true}
+        tutorialsList={tutorialsList}
+        closeHandler={this.closeHandler}
+        isStateLess={true}
+        resizable={true}
+        draggable={true}
+        fixPosition={false}
+        help={true}
+        showHistoryIcon={true}
+        closable={true}
+        minimizable={true}
+        maximizable={true}
+        collapsable={true}
+        ref="tutorialRef" />
+    );
+  }
 }

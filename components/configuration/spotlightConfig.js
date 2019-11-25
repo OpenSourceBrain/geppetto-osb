@@ -1,5 +1,3 @@
 var spotlightConfig = {}
 
-module.exports = {
-    spotlightConfig
-}
+module.exports = { spotlightConfig }
