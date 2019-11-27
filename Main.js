@@ -1,7 +1,7 @@
 global.jQuery = require("jquery");
 global.GEPPETTO_CONFIGURATION = require('./GeppettoConfiguration.json');
 
-jQuery(function () {
+jQuery(function () {  
   require('geppetto-client-initialization');
   var React = require('react');
   var ReactDOM = require('react-dom');
