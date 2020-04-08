@@ -8,7 +8,7 @@
     position: absolute;
     height: 100px;
     width: 470px;
-    top: 50px;
+    bottom: 15px;
     right: 10px;
     text-align: center;
     border-radius:0;
@@ -48,7 +48,7 @@
   position: fixed;
   bottom: 0px;
   right: 0px;
-  z-index: 2;
+  z-index: 1500; /* main footer is 1000 */
   height:27px
 }
 
@@ -71,6 +71,12 @@
 .DownloadProjectButton:disabled{
 	background:0;
 	color:@orange;
+}
+
+.themeButton {
+    position: fixed;
+    top: 405px;
+    left: 38px;
 }
 
 #tutorial_dialog b{
@@ -138,6 +144,10 @@
     color: white;
     clear: right;
     float: left;
+}
+
+.mainTutorialContainer #message {
+    color: white;
 }
 
 #procWarning {
