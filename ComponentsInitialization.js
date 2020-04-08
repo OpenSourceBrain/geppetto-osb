@@ -5,6 +5,7 @@ define(function(require) {
     var osbTutorial = require('./osbTutorial.json');
     var colorbar = require('./colorbar');
     var d3 = require('d3');
+    var Plotly = require('plotly.js/lib/core');
 
     return function(GEPPETTO) {
 
@@ -23,7 +24,7 @@ define(function(require) {
 		GEPPETTO.ComponentFactory.addComponent('CANVAS', {}, document.getElementById("sim"), function () {
             this.displayAllInstances();
 
-            this.engine.setLinesThreshold(20000)
+            this.engine.setLinesThreshold(10000);
         });
 
         //This function will be called when the run button is clicked
@@ -119,11 +120,15 @@ define(function(require) {
                 var nProc = formObject.formData['numberProcessors'];
                 var procLimit = processorLimits[formObject.formData['simulator']];
 
-                if (nProc > procLimit) {
+                if ((Project.getActiveExperiment().getWatchedVariables().length * formObject.formData['length'])/ formObject.formData['timeStep'] > 4e6) {
+                    $("#procWarning").show().text("Experiment too large: reduce number of watched variables, length, or increase timestep.");
+                    $("#exptRunForm button[type='submit']").prop('disabled', true);
+                } 
+                else if (nProc > procLimit) {
                     $("#procWarning").show().text("Number of processors currently cannot exceed " + procLimit + " for: " + formObject.formData['simulator']);
                     $("#exptRunForm button[type='submit']").prop('disabled', true);
                 } else {
-                    $("#procWarning").hide()
+                    $("#procWarning").hide();
                     $("#exptRunForm button[type='submit']").prop('disabled', false);
                 }
 
@@ -166,7 +171,7 @@ define(function(require) {
                 $("select#root_simulator").width("33%");
                 $("select#root_simulator").after("<button type='button' class='btn btn-info' id='procInfo'>?</button>");
                 $("#procInfo").click(function() { GEPPETTO.ModalFactory.infoDialog("Simulator info", "<b>Neuron on OSB</b>, <b>jNeuroML on OSB</b>, and <b>NetPyNE on OSB</b> simulation options run on the OSB platform's own server. Limitations on the size and duration of simulations apply.<br/><br/> \
-                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 64 processors."); });
+                                                                                                      <b>Neuron on NSG</b> and <b>NetPyNE on NSG</b> run on the <a href=\"http://www.nsgportal.org/\"  target=\"_blank\">Neuroscience Gateway Portal</a>. <b>NetPyNE on NSG</b> simulations can be run on up to 256 processors."); });
                 if (!GEPPETTO.UserController.getDropboxToken()) {
                     $(".dropbox-check").append("<a href='https://www.dropbox.com/oauth2/authorize?locale=en_US&client_id=kbved8e6wnglk4h&response_type=code' target='_blank' class='btn btn-info config-dropbox'>Link Dropbox…</button>");
                     $(".config-dropbox").click(function() {
@@ -507,7 +512,9 @@ define(function(require) {
             	var recordAll = {
                     "label": "Record all membrane potentials",
                     "actions": [
-                        "var instances=Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);"
+                        // without setTimeout, this will hang when n
+                        // instances large
+                        "setTimeout(function(){var instances = Instances.getInstance(GEPPETTO.ModelFactory.getAllPotentialInstancesEndingWith('.v')); GEPPETTO.ExperimentsController.watchVariables(instances,true);},250);"
                     ],
                     "icon": "fa-dot-circle-o"
                 };
@@ -645,6 +652,129 @@ define(function(require) {
         };
         GEPPETTO.ComponentFactory.addComponent('SIMULATIONCONTROLS', {runConfiguration: runConfiguration}, document.getElementById("sim-toolbar"));
 
+        // theme button
+        $("<div id='themeButton' class='row foreground-controls'/>").appendTo('#controls');
+        window.themeSet = false;
+        window.theme = function (t) {
+            if (typeof t === 'undefined') {
+                return window.themeSet;
+            }
+            else if (t) {
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': 'rgb(80, 80, 80)',
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12
+                                });
+                            } else {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': '#fff',
+                                    'paper_bgcolor': 'rgb(255, 255, 255)',
+                                    'xaxis.linecolor': 'rgb(80, 80, 80)',
+                                    'yaxis.linecolor': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.tickfont.color': 'rgb(80, 80, 80)',
+			            'yaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.titlefont.color': 'rgb(80, 80, 80)',
+			            'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12,
+			            'legend.font.size': 12,
+			            'legend.font.color': 'rgb(80, 80, 80)',
+			            'legend.bgcolor': 'rgb(255, 255, 255)',
+                                    'margin.l': 50,
+                                    'margin.b': 40
+                                });
+                            }
+                        }
+                    });
+                $('head').append(
+                    $('<link rel="stylesheet" type="text/css"/>')
+                        .attr('href', 'geppetto/extensions/geppetto-osb/css/unpacked/white-theme.css')
+                );
+                window.themeSet = true;
+            }
+            else {
+                GEPPETTO.WidgetFactory.getController(GEPPETTO.Widgets.PLOT).then(
+                    controller => {
+                        var plots = controller.getWidgets();
+                        for (var i=0; i<plots.length; ++i) {
+                            var defaults = plots[i].defaultOptions();
+                            if (plots[i].controller.isColorbar(plots[i])) {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgb(66, 59, 59, 0.9)',
+                                    'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+                                    'xaxis.showticklabels': true,
+                                    'xaxis.tickcolor': defaults.xaxis.tickcolor,
+                                    'xaxis.tickfont.size': 11,
+			            'yaxis.tickfont.size': 11,
+			            'xaxis.titlefont.size': 12,
+			            'yaxis.titlefont.size': 12,
+                                    'margin.l': 0
+                                });
+                            } else {
+                                Plotly.relayout(plots[i].plotDiv, {
+                                    'plot_bgcolor': 'transparent',
+                                    'paper_bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                    'xaxis.linecolor': defaults.xaxis.linecolor,
+                                    'yaxis.linecolor': defaults.xaxis.linecolor,
+			            'xaxis.tickfont.color': defaults.xaxis.tickfont.color,
+			            'yaxis.tickfont.color': defaults.yaxis.tickfont.color,
+			            'yaxis.titlefont.color': defaults.yaxis.titlefont.color,
+			            'xaxis.titlefont.color': defaults.xaxis.titlefont.color,
+			            'xaxis.tickfont.size': defaults.xaxis.tickfont.size,
+			            'yaxis.tickfont.size': defaults.yaxis.tickfont.size,
+			            'xaxis.titlefont.size': defaults.xaxis.titlefont.size,
+			            'yaxis.titlefont.size': defaults.yaxis.titlefont.size,
+			            'legend.font.size': defaults.legend.font.size,
+			            'legend.font.family': defaults.legend.font.family,
+			            'legend.font.color': defaults.legend.font.color,
+			            'legend.bgcolor': 'rgba(66, 59, 59, 0.9)',
+                                    'margin.l': defaults.margin.l,
+                                    'margin.r': defaults.margin.r
+                                });
+                            }
+                        }
+                    });
+                $('link[href$="white-theme.css"]').remove();
+                window.themeSet = false;
+            }
+        }
+
+        var configuration = {
+            id: "themeButton",
+            condition: "window.theme()",
+            "false": {
+                "action": "window.theme(true)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            },
+            "true": {
+                "action": "window.theme(false)",
+                "icon": "fa fa-paint-brush",
+                "label": "",
+            }
+        };
+        GEPPETTO.ComponentFactory.addComponent('TOGGLEBUTTON', { configuration: configuration }, document.getElementById("themeButton"));
+
         //OSB Geppetto events handling
         GEPPETTO.on(GEPPETTO.Events.Model_loaded, function() {
             if (Model.neuroml != undefined && Model.neuroml.importTypes != undefined && Model.neuroml.importTypes.length > 0) {
@@ -688,7 +818,7 @@ define(function(require) {
                     false: {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
-                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.ca_color());" +
+                            "GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.ca_color());" +
                             "window.setupColorbar(window.getRecordedCaConcs(), window.ca_color, true, 'Ca2+ color scale', 'Amount of substance (mol/m³)');"
                     },
                     true: {
@@ -718,8 +848,8 @@ define(function(require) {
                     value: "apply_voltage",
                     false: {
                         // not selected
-                        action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color);" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                        action: "GEPPETTO.SceneController.addColorFunction(window.getRecordedMembranePotentials(), window.voltage_color());" +
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');"
                     },
                     true: {
                         // is selected
@@ -737,7 +867,7 @@ define(function(require) {
                         // not selected
                         action: "GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());" +
                             "window.soma_v_entire_cell();" +
-                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, false, 'Voltage color scale', 'Membrane Potential (V)');"
+                            "window.setupColorbar(window.getRecordedMembranePotentials(), window.voltage_color, true, 'Voltage color scale', 'Membrane Potential (V)');"
                     },
                     true: {
                         // is selected
@@ -789,13 +919,16 @@ define(function(require) {
             }
         }
 
-        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle) {
+        window.setupColorbar = function(instances, scalefn, normalize, name, axistitle, left, top) {
             if (instances.length > 0) {
                 G.addWidget(GEPPETTO.Widgets.PLOT, {isStateless:true}).then(
                     c => {
                         c.setName(name);
                         c.setSize(125, 350);
-                        c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
+                        if (typeof top !== 'undefined' && typeof left !=='undefined')
+                            c.setPosition(left, top);
+                        else
+                            c.setPosition(window.innerWidth - 375, window.innerHeight - 150);
 
                         c.plotOptions = colorbar.defaultLayout();
                         c.plotOptions.xaxis.title = axistitle;
@@ -803,14 +936,12 @@ define(function(require) {
 
                         var callback = function() {
                             for (var instance of instances) {
-                                c.updateXAxisRange(instance.getTimeSeries());
+                                c.updateXAxisRange(instance.getTimeSeries().filter(x => !isNaN(x)));
                             }
-                            // this should be generalized beyond ca
                             if (normalize) {
-                                window.color_norm = scalefn(c.plotOptions.xaxis.max);
-                                //scalefn = window.ca_color;
+                                window.color_norm = scalefn(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max);
                                 GEPPETTO.SceneController.removeColorFunction(GEPPETTO.SceneController.getColorFunctionInstances());
-                                GEPPETTO.SceneController.addColorFunction(window.getRecordedCaConcs(), window.color_norm);
+                                GEPPETTO.SceneController.addColorFunction(instances, window.color_norm);
                             }
 
                             var data = colorbar.setScale(c.plotOptions.xaxis.min, c.plotOptions.xaxis.max, normalize ? window.color_norm : scalefn, false);
@@ -852,27 +983,32 @@ define(function(require) {
 
         window.plotAllRecordedVariables = function(groupingFn) {
             var watchedVars = Project.getActiveExperiment().getWatchedVariables(true, false);
-            if (typeof groupingFn === 'undefined')
-                // default: group by populations
-                groupingFn = function(v) {
-                    var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
-                        .filter(x => x.getMetaType() !== 'SimpleType');
-                    return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+            if (watchedVars.length > 50) {
+                GEPPETTO.ModalFactory.infoDialog("Warning",
+                                                 "You have recorded " + watchedVars.length + " variables. Please use the control panel (<i class='fa fa-list'></i> icon at left of screen) for plotting.");
+            } else {
+                if (typeof groupingFn === 'undefined')
+                    // default: group by populations
+                    groupingFn = function(v) {
+                        var populations = GEPPETTO.ModelFactory.getAllTypesOfType(Model.neuroml.population)
+                            .filter(x => x.getMetaType() !== 'SimpleType');
+                        return populations.filter(p => v.getPath().indexOf(p.getName()) > -1)[0].getName()
+                    }
+                Project.getActiveExperiment().playAll();
+                var grouped = groupBy(watchedVars, groupingFn);
+                var groups = Object.keys(grouped);
+                for (var i=0; i<groups.length; ++i) {
+                    var group = groups[i];
+                    (function(group, i) {
+                        G.addWidget(0).then(w => {
+		            w.setName("Recorded variables: "+group);
+                            w.setPosition(100+(i*50), 100+(i*50));
+                            lastPos = w.getPosition();
+                            for (var j=0; j<grouped[group].length; ++j)
+			        w.plotData(grouped[group][j]);
+                        });
+                    })(group, i)
                 }
-            Project.getActiveExperiment().playAll();
-            var grouped = groupBy(watchedVars, groupingFn);
-            var groups = Object.keys(grouped);
-            for (var i=0; i<groups.length; ++i) {
-                var group = groups[i];
-                (function(group, i) {
-                    G.addWidget(0).then(w => {
-		        w.setName("Recorded variables: "+group);
-                        w.setPosition(100+(i*50), 100+(i*50));
-                        lastPos = w.getPosition();
-                        for (var j=0; j<grouped[group].length; ++j)
-			    w.plotData(grouped[group][j]);
-                    });
-                })(group, i)
             }
         };
 
@@ -1403,5 +1539,7 @@ define(function(require) {
         GEPPETTO.G.autoFocusConsole(false);
         
         GEPPETTO.UnitsController.addUnit("V","Membrane potential");
+        GEPPETTO.UnitsController.addUnit("S / m2","Conductance density");
+        GEPPETTO.UnitsController.addUnit("A / m2","Current density");
     };
 });

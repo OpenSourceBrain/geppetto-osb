@@ -1,0 +1,111 @@
+body {
+    background: white;
+}
+
+.nav-tabs > li > a {
+    background: rgba(211,211,211,0.5);
+}
+
+.activeExperiment {
+    background: rgba(255, 152, 88, 0.2);
+    color: white;
+}
+
+.nthTr { 
+    background: rgba(179, 179, 179, 0.8);
+}
+
+.dropDownButtonContainer {
+    background: rgba(211,211,211,0.5);
+}
+
+#experiments, #console { 
+    background: rgba(211,211,211,0.8) !important;
+}
+
+.experimentsTableColumn:not(.activeExperiment) {
+    color: black;
+}
+
+.btn { 
+    background: rgb(211,211,211);
+}
+
+.main-svg:first-child {
+    background: rgba(255,255,255,0.5) !important;
+}
+ 
+.legend .bg {
+    fill: rgba(255, 255, 255, 0.5) !important;
+}
+ 
+.ui-dialog {
+    background: rgba(255, 255, 255, 0.90) !important;
+}
+
+.popup {
+    color: #4c4c4c !important;
+}
+
+.legend-text {
+    fill: black !important;
+}
+
+.connectionlabel {
+    fill: black !important;
+}
+
+.btn:not(ul):not(.btn-warning):not([disabled]) {
+    background: rgba(236, 236, 236, 0.8) !important;
+    color: #fc6320 !important;
+}
+
+.nav-tabs > li.active > a {
+    background: rgba(228, 228, 228, 0.9);
+}
+
+.nav-tabs > li.active > a:focus {
+    background: rgba(228, 228, 228, 0.9);
+}
+
+#console textarea {
+    color: black;
+}
+
+#console div.output span.command {
+    color: black;
+}
+
+#console div.output span.run {
+    color: #0d08bd;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.connectivity-ordering-label, .weight-label {
+    color: black !important;
+}
+
+.legend-axis .tick text, .legend-axis .tick line {
+    fill: black;
+    stroke: black;
+}
+
+.weight-legend-label {
+    fill: black;
+    stroke: black;
+}
+
+.geppettoForm label {
+    color: black !important;
+}
+
+.mainTutorialContainer #message {
+    color: black !important;
+}
+
+.tutorial-message .invert {
+    filter: none !important;
+}

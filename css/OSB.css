@@ -73,6 +73,12 @@
 	color:@orange;
 }
 
+.themeButton {
+    position: fixed;
+    top: 405px;
+    left: 38px;
+}
+
 #tutorial_dialog b{
 	color:#37abc8;
 }
@@ -138,6 +144,10 @@
     color: white;
     clear: right;
     float: left;
+}
+
+.mainTutorialContainer #message {
+    color: white;
 }
 
 #procWarning {
