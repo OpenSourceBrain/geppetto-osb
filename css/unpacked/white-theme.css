@@ -117,3 +117,13 @@ body {
 #help-modal p {
     color: black !important;
 }
+
+.legendtext,
+.ytitle,
+.xtitle,
+g.ytick > text,
+g.xtick > text,
+.varvis_header {
+    color: black !important;
+    fill: black !important;
+}
