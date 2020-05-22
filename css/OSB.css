@@ -183,3 +183,19 @@
     margin-left: 1em;
     float: right;
 }
+
+/* Default color for text in standard theme */
+.legendtext,
+.ytitle,
+.xtitle,
+g.ytick > text,
+g.xtick > text,
+.varvis_header {
+    color: rgb(255, 255, 255) !important;
+    fill: rgb(255, 255, 255) !important;
+}
+
+path.xlines-above,
+path.ylines-above {
+    stroke: rgb(255,255,255) !important;
+}

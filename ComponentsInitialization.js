@@ -778,6 +778,8 @@ define(function(require) {
         });
 
         // theme button
+        // it is important that the white-theme CSS is added at the end of the
+        // list so that definitions there override the default theme.
         $("<div id='themeButton' class='row foreground-controls'/>").appendTo('#controls');
         window.themeSet = false;
         window.theme = function (t) {
